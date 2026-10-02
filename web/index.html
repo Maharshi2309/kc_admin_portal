@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Keshav Admin Portal — employee, attendance and leave administration.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1D4FC4">
+  <!-- Internal admin tool: keep it out of search engines. -->
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Keshav Admin">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Keshav Admin Portal</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Loading screen shown while the app downloads; removed on the first
+       Flutter frame. Colours match AppColors (background, inverse). -->
+  <style>
+    html, body { margin: 0; height: 100%; background: #F4F5F2; }
+    #app-loading {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+      font: 500 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #5B616E; transition: opacity 200ms ease;
+    }
+    #app-loading.done { opacity: 0; pointer-events: none; }
+    #app-loading .tile {
+      width: 48px; height: 48px; border-radius: 12px; background: #16181D;
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      animation: app-loading-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes app-loading-pulse { 50% { transform: scale(0.92); opacity: 0.8; } }
+    @media (prefers-reduced-motion: reduce) {
+      #app-loading .tile { animation: none; }
+      #app-loading { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-loading" role="status" aria-live="polite">
+    <div class="tile" aria-hidden="true"><img src="icons/kc-logo-white.png" alt="" width="16" height="34"></div>
+    <div>Loading Keshav Admin…</div>
+  </div>
+  <noscript>
+    <p style="text-align:center;padding:24px;font-family:system-ui,sans-serif">
+      Keshav Admin needs JavaScript. Please enable it and reload the page.
+    </p>
+  </noscript>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var loading = document.getElementById('app-loading');
+      if (!loading) return;
+      loading.classList.add('done');
+      setTimeout(function () { loading.remove(); }, 250);
+    });
+  </script>
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

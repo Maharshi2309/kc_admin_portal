@@ -1,0 +1,6 @@
+{
+  "APP_ENV": "prod",
+  "API_BASE_URL": "https://REPLACE-WITH-PRODUCTION-HOST/api",
+  "API_TIMEOUT_SECONDS": 30,
+  "USE_MOCK_API": false
+}

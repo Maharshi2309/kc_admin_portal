@@ -1,0 +1,27 @@
+{
+  "id": "a-7-20260928",
+  "employee": {
+    "id": "7",
+    "name": "Arjun Joshi",
+    "ecNumber": "KC1019",
+    "department": "Operations",
+    "designation": "Supervisor"
+  },
+  "date": "2026-09-28",
+  "punchIn": "2026-09-28T10:08:00+05:30",
+  "punchOut": null,
+  "workedMinutes": 262,
+  "workedPercent": 54.6,
+  "status": "late",
+  "note": "38 min late",
+  "correctedBy": null,
+  "correctedAt": null,
+  "dayKind": "working",
+  "schedule": {
+    "startTime": "09:30",
+    "endTime": "18:30",
+    "expectedMinutes": 480
+  },
+  "expectedMinutes": 480,
+  "overtimeMinutes": 0
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AppColors.inverse: the brand tile behind the launcher K. -->
+    <color name="ic_launcher_background">#16181D</color>
+    <!-- AppColors.background: behind the launch screen. -->
+    <color name="launch_background">#F4F5F2</color>
+</resources>

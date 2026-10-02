@@ -1,0 +1,6 @@
+{
+  // Passed to every `flutter run` started from VS Code: the Run/Debug links
+  // above main(), F5, and the launch configurations. Without it the app has
+  // no API configuration and shows the startup error screen.
+  "dart.flutterRunAdditionalArgs": ["--dart-define-from-file=env/dev.json"]
+}

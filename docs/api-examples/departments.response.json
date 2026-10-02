@@ -1,0 +1,12 @@
+[
+  {
+    "id": "3",
+    "name": "IT",
+    "employeeCount": 22
+  },
+  {
+    "id": "4",
+    "name": "Operations",
+    "employeeCount": 41
+  }
+]
