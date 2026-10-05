@@ -6,6 +6,7 @@ import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
 import 'package:kc_admin_portal/core/widgets/app_icon_button.dart';
@@ -164,15 +165,15 @@ class _Summary extends StatelessWidget {
       ('Leave', FormatUtils.days(summary.leaveDays), null),
       (
         'Worked',
-        FormatUtils.duration(summary.workedMinutes),
-        'of ${FormatUtils.duration(summary.expectedMinutes)}',
+        DurationFormat.short(summary.workedMinutes),
+        'of ${DurationFormat.short(summary.expectedMinutes)}',
       ),
       (
         'Overtime',
-        overtime == 0 ? '—' : '+${FormatUtils.compactDuration(overtime)}',
+        overtime == 0 ? '—' : '+${DurationFormat.short(overtime)}',
         overtime == 0
             ? null
-            : OvertimeDays.of(overtime, dayMinutes: dayMinutes).short,
+            : OvertimeDays.of(overtime, dayMinutes: dayMinutes).compact,
       ),
       (
         'Holidays · week offs',
@@ -448,7 +449,7 @@ class _DayCell extends StatelessWidget {
 
 /// Everything about a day in one sentence, for the tooltip and screen
 /// readers: "Thu, 1 Oct 2026 · Present · 08:58–19:00 · worked 9h 02m ·
-/// overtime 1h 32m · Pending sick leave".
+/// overtime 1h 32m · Pending casual leave".
 String describeDay(
   CalendarDayModel day,
   CalendarCellState state,
@@ -465,9 +466,9 @@ String describeDay(
     if (punchIn != null)
       '${AppDateFormat.time(punchIn)}–'
           '${punchOut == null ? '…' : AppDateFormat.time(punchOut)}',
-    if (worked != null) 'worked ${FormatUtils.duration(worked)}',
+    if (worked != null) 'worked ${DurationFormat.full(worked)}',
     if (day.overtimeMinutes > 0)
-      'overtime ${FormatUtils.compactDuration(day.overtimeMinutes)}',
+      'overtime ${DurationFormat.full(day.overtimeMinutes)}',
     for (final leave in day.leaves)
       if (leave.status != LeaveStatus.approved ||
           state != CalendarCellState.onLeave)

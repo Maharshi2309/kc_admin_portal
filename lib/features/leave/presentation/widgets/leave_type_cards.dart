@@ -8,12 +8,12 @@ import 'package:kc_admin_portal/core/widgets/responsive_grid.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
 import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
 
-/// Leave type choice with each type's remaining balance for the chosen
-/// employee, e.g. "Casual · 8 days left" (design board 09).
+/// Leave type choice with the chosen employee's Casual balance, e.g.
+/// "Casual · 8 days available"; Unpaid has no fixed balance (design board 09).
 class LeaveTypeCards extends StatelessWidget {
   const LeaveTypeCards({
     required this.types,
-    required this.balances,
+    required this.balance,
     required this.selectedId,
     required this.onSelected,
     this.enabled = true,
@@ -22,8 +22,8 @@ class LeaveTypeCards extends StatelessWidget {
 
   final List<LeaveTypeModel> types;
 
-  /// The employee's balances; empty until an employee is chosen.
-  final List<LeaveBalanceModel> balances;
+  /// The employee's balance; null until an employee is chosen.
+  final LeaveBalanceModel? balance;
   final String? selectedId;
   final ValueChanged<String> onSelected;
   final bool enabled;
@@ -31,10 +31,9 @@ class LeaveTypeCards extends StatelessWidget {
   static const double _minCardWidth = 120;
 
   String _balanceText(LeaveTypeModel type) {
-    if (!type.hasBalance) return 'No balance';
-    final balance = balances.where((b) => b.leaveTypeId == type.id).firstOrNull;
+    if (!type.hasBalance) return 'No fixed balance';
     final remaining = balance?.remaining;
-    return remaining == null ? '—' : '${FormatUtils.days(remaining)} left';
+    return remaining == null ? '—' : '${FormatUtils.days(remaining)} available';
   }
 
   @override

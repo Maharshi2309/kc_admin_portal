@@ -15,7 +15,6 @@ import 'package:kc_admin_portal/features/employees/data/datasources/employee_rem
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/features/holidays/data/datasources/holiday_remote_data_source.dart';
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_remote_data_source.dart';
-import 'package:kc_admin_portal/features/master_data/data/datasources/master_data_remote_data_source.dart';
 import 'package:kc_admin_portal/features/overtime/data/datasources/overtime_remote_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/datasources/user_remote_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/models/user_account_models.dart';
@@ -183,7 +182,6 @@ void main() {
         throwsA(isA<ValidationException>()),
       );
       await container.read(holidayRemoteDataSourceProvider).list(year: 2026);
-      await container.read(masterDataRemoteDataSourceProvider).departments();
       await container.read(dashboardRemoteDataSourceProvider).summary(testNow);
       await container
           .read(calendarRemoteDataSourceProvider)

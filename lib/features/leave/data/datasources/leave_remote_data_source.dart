@@ -31,6 +31,9 @@ abstract interface class LeaveRemoteDataSource {
 
   Future<LeavePreviewModel> preview(LeavePreviewRequest request);
 
+  /// Every active employee's Casual balance, with totals.
+  Future<LeaveBalanceListModel> balances(LeaveBalanceQuery query);
+
   /// Company holidays, and [employeeId]'s weekly offs when given.
   Future<LeaveCalendarModel> calendar(DateTime month, {String? employeeId});
 }
@@ -85,6 +88,14 @@ class LeaveApiDataSource implements LeaveRemoteDataSource {
         ApiConstants.leavePreview,
         body: request.toJson(),
         parse: (json) => LeavePreviewModel.fromJson(_map(json)),
+      );
+
+  @override
+  Future<LeaveBalanceListModel> balances(LeaveBalanceQuery query) =>
+      _client.get(
+        ApiConstants.leaveBalances,
+        query: query.toQueryParameters(),
+        parse: (json) => LeaveBalanceListModel.fromJson(_map(json)),
       );
 
   @override

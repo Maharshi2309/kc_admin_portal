@@ -53,8 +53,8 @@
         "id": "25",
         "name": "Nisha Solanki",
         "ecNumber": "KC1025",
-        "department": "HR",
-        "designation": "HR executive"
+        "department": "accountant",
+        "position": "accountant"
       },
       "isActive": true,
       "lastSignInAt": null

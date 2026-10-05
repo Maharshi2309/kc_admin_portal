@@ -122,8 +122,8 @@
         {
           "id": "91",
           "leaveType": {
-            "id": "sick",
-            "name": "Sick"
+            "id": "casual",
+            "name": "Casual"
           },
           "status": "pending",
           "isHalfDay": false

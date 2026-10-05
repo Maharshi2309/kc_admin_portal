@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EmployeeSummaryModel {
 
-@JsonKey(fromJson: idFromJson) String get id; String get name; String get ecNumber; String? get department; String? get designation;
+@JsonKey(fromJson: idFromJson) String get id; String get name; String get ecNumber;@JsonKey(unknownEnumValue: JobRole.unknown) JobRole? get department;@JsonKey(unknownEnumValue: JobRole.unknown) JobRole? get position;
 /// Create a copy of EmployeeSummaryModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $EmployeeSummaryModelCopyWith<EmployeeSummaryModel> get copyWith => _$EmployeeSu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmployeeSummaryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.ecNumber, ecNumber) || other.ecNumber == ecNumber)&&(identical(other.department, department) || other.department == department)&&(identical(other.designation, designation) || other.designation == designation));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmployeeSummaryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.ecNumber, ecNumber) || other.ecNumber == ecNumber)&&(identical(other.department, department) || other.department == department)&&(identical(other.position, position) || other.position == position));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,ecNumber,department,designation);
+int get hashCode => Object.hash(runtimeType,id,name,ecNumber,department,position);
 
 @override
 String toString() {
-  return 'EmployeeSummaryModel(id: $id, name: $name, ecNumber: $ecNumber, department: $department, designation: $designation)';
+  return 'EmployeeSummaryModel(id: $id, name: $name, ecNumber: $ecNumber, department: $department, position: $position)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $EmployeeSummaryModelCopyWith<$Res>  {
   factory $EmployeeSummaryModelCopyWith(EmployeeSummaryModel value, $Res Function(EmployeeSummaryModel) _then) = _$EmployeeSummaryModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(fromJson: idFromJson) String id, String name, String ecNumber, String? department, String? designation
+@JsonKey(fromJson: idFromJson) String id, String name, String ecNumber,@JsonKey(unknownEnumValue: JobRole.unknown) JobRole? department,@JsonKey(unknownEnumValue: JobRole.unknown) JobRole? position
 });
 
 
@@ -65,14 +65,14 @@ class _$EmployeeSummaryModelCopyWithImpl<$Res>
 
 /// Create a copy of EmployeeSummaryModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? ecNumber = null,Object? department = freezed,Object? designation = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? ecNumber = null,Object? department = freezed,Object? position = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,ecNumber: null == ecNumber ? _self.ecNumber : ecNumber // ignore: cast_nullable_to_non_nullable
 as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as String?,designation: freezed == designation ? _self.designation : designation // ignore: cast_nullable_to_non_nullable
-as String?,
+as JobRole?,position: freezed == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
+as JobRole?,
   ));
 }
 
@@ -157,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String ecNumber,  String? department,  String? designation)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String ecNumber, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole? department, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole? position)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EmployeeSummaryModel() when $default != null:
-return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.designation);case _:
+return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.position);case _:
   return orElse();
 
 }
@@ -178,10 +178,10 @@ return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.design
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String ecNumber,  String? department,  String? designation)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String ecNumber, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole? department, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole? position)  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeSummaryModel():
-return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.designation);case _:
+return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.position);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +198,10 @@ return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.design
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String ecNumber,  String? department,  String? designation)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String ecNumber, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole? department, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole? position)?  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeSummaryModel() when $default != null:
-return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.designation);case _:
+return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.position);case _:
   return null;
 
 }
@@ -213,14 +213,14 @@ return $default(_that.id,_that.name,_that.ecNumber,_that.department,_that.design
 @JsonSerializable()
 
 class _EmployeeSummaryModel implements EmployeeSummaryModel {
-  const _EmployeeSummaryModel({@JsonKey(fromJson: idFromJson) required this.id, required this.name, required this.ecNumber, this.department, this.designation});
+  const _EmployeeSummaryModel({@JsonKey(fromJson: idFromJson) required this.id, required this.name, required this.ecNumber, @JsonKey(unknownEnumValue: JobRole.unknown) this.department, @JsonKey(unknownEnumValue: JobRole.unknown) this.position});
   factory _EmployeeSummaryModel.fromJson(Map<String, dynamic> json) => _$EmployeeSummaryModelFromJson(json);
 
 @override@JsonKey(fromJson: idFromJson) final  String id;
 @override final  String name;
 @override final  String ecNumber;
-@override final  String? department;
-@override final  String? designation;
+@override@JsonKey(unknownEnumValue: JobRole.unknown) final  JobRole? department;
+@override@JsonKey(unknownEnumValue: JobRole.unknown) final  JobRole? position;
 
 /// Create a copy of EmployeeSummaryModel
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +235,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmployeeSummaryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.ecNumber, ecNumber) || other.ecNumber == ecNumber)&&(identical(other.department, department) || other.department == department)&&(identical(other.designation, designation) || other.designation == designation));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmployeeSummaryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.ecNumber, ecNumber) || other.ecNumber == ecNumber)&&(identical(other.department, department) || other.department == department)&&(identical(other.position, position) || other.position == position));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,ecNumber,department,designation);
+int get hashCode => Object.hash(runtimeType,id,name,ecNumber,department,position);
 
 @override
 String toString() {
-  return 'EmployeeSummaryModel(id: $id, name: $name, ecNumber: $ecNumber, department: $department, designation: $designation)';
+  return 'EmployeeSummaryModel(id: $id, name: $name, ecNumber: $ecNumber, department: $department, position: $position)';
 }
 
 
@@ -255,7 +255,7 @@ abstract mixin class _$EmployeeSummaryModelCopyWith<$Res> implements $EmployeeSu
   factory _$EmployeeSummaryModelCopyWith(_EmployeeSummaryModel value, $Res Function(_EmployeeSummaryModel) _then) = __$EmployeeSummaryModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(fromJson: idFromJson) String id, String name, String ecNumber, String? department, String? designation
+@JsonKey(fromJson: idFromJson) String id, String name, String ecNumber,@JsonKey(unknownEnumValue: JobRole.unknown) JobRole? department,@JsonKey(unknownEnumValue: JobRole.unknown) JobRole? position
 });
 
 
@@ -272,14 +272,14 @@ class __$EmployeeSummaryModelCopyWithImpl<$Res>
 
 /// Create a copy of EmployeeSummaryModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? ecNumber = null,Object? department = freezed,Object? designation = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? ecNumber = null,Object? department = freezed,Object? position = freezed,}) {
   return _then(_EmployeeSummaryModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,ecNumber: null == ecNumber ? _self.ecNumber : ecNumber // ignore: cast_nullable_to_non_nullable
 as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as String?,designation: freezed == designation ? _self.designation : designation // ignore: cast_nullable_to_non_nullable
-as String?,
+as JobRole?,position: freezed == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
+as JobRole?,
   ));
 }
 

@@ -3,6 +3,7 @@ import 'package:kc_admin_portal/features/dashboard/data/models/dashboard_summary
 import 'package:kc_admin_portal/features/dashboard/data/models/monthly_attendance_model.dart';
 import 'package:kc_admin_portal/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 
 /// Fixed "today" for dashboard tests: Monday 28 Sep 2026, 14:30.
 final testNow = DateTime(2026, 9, 28, 14, 30);
@@ -30,7 +31,7 @@ final testSummary = DashboardSummaryModel(
       id: '1042',
       name: 'Rohan Patel',
       ecNumber: 'KC1042',
-      department: 'Sales',
+      department: JobRole.graphicDesigner,
     ),
   ],
   onLeave: [
@@ -47,9 +48,12 @@ final testSummary = DashboardSummaryModel(
   ],
   leaveUsage: const LeaveUsageModel(
     year: 2026,
-    usedPercent: 21,
-    takenDays: 312,
-    remainingDays: 1176,
+    casualRemainingDays: 412,
+    casualTakenDays: 286,
+    unpaidTakenDays: 26,
+    approvedThisMonth: 41,
+    pendingThisMonth: 3,
+    rejectedThisMonth: 4,
   ),
 );
 

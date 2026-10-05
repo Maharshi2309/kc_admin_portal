@@ -2,23 +2,28 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
+import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
 import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 part 'leave_models.freezed.dart';
 part 'leave_models.g.dart';
 
-/// A leave type from `GET /leave-types` (the design's Casual, Sick,
-/// Earned, Unpaid).
+/// A leave type from `GET /leave-types`: Casual (paid) and Unpaid
+/// (approved 2026-10-05; Sick and Earned are retired).
 @freezed
 abstract class LeaveTypeModel with _$LeaveTypeModel {
   const factory LeaveTypeModel({
     @JsonKey(fromJson: idFromJson) required String id,
     required String name,
 
-    /// False for types not limited by a balance (e.g. Unpaid).
+    /// False for types not limited by a balance (Unpaid).
     @Default(true) bool hasBalance,
+
+    /// Paid leave (Casual) uses the monthly balance; Unpaid doesn't.
+    @Default(true) bool isPaid,
   }) = _LeaveTypeModel;
 
   factory LeaveTypeModel.fromJson(Map<String, dynamic> json) =>
@@ -44,6 +49,16 @@ abstract class LeaveModel with _$LeaveModel {
 
     /// Who created it, as shown in the design: "Admin" or "Employee request".
     String? addedBy,
+
+    /// Paid (Casual) or Unpaid, from the leave type.
+    @Default(true) bool isPaid,
+
+    /// Casual days left after this leave, counting leave in date order.
+    /// Only on paid leave that counts (approved or pending).
+    double? balanceAfter,
+
+    /// When a request was split, the Unpaid leave saved with it.
+    String? unpaidPartId,
   }) = _LeaveModel;
 
   const LeaveModel._();
@@ -128,7 +143,7 @@ abstract class LeaveQuery with _$LeaveQuery {
     DateTime? from,
     DateTime? to,
     String? leaveTypeId,
-    String? departmentId,
+    JobRole? department,
     @Default(1) int page,
     @Default(LeaveQuery.defaultPageSize) int pageSize,
   }) = _LeaveQuery;
@@ -141,7 +156,7 @@ abstract class LeaveQuery with _$LeaveQuery {
       search.isNotEmpty ||
       from != null ||
       leaveTypeId != null ||
-      departmentId != null;
+      department != null;
 
   Map<String, Object?> toQueryParameters() => {
     'status': ?status?.name,
@@ -149,7 +164,7 @@ abstract class LeaveQuery with _$LeaveQuery {
     if (from != null) 'from': dateToJson(from!),
     if (to != null) 'to': dateToJson(to!),
     'leaveTypeId': ?leaveTypeId,
-    'departmentId': ?departmentId,
+    'department': ?department?.code,
     'page': page,
     'pageSize': pageSize,
   };
@@ -169,6 +184,11 @@ abstract class LeaveFormData with _$LeaveFormData {
 
     /// The design lets the admin save as Approved or Pending.
     required LeaveStatus status,
+
+    /// Casual leave beyond the available balance is saved as a separate
+    /// Unpaid leave (the latest days). Without this, such a request is
+    /// refused with `INSUFFICIENT_LEAVE_BALANCE`.
+    @JsonKey(includeIfNull: false) bool? splitExcessAsUnpaid,
   }) = _LeaveFormData;
 
   factory LeaveFormData.fromJson(Map<String, dynamic> json) =>
@@ -193,18 +213,27 @@ abstract class LeavePreviewRequest with _$LeavePreviewRequest {
       _$LeavePreviewRequestFromJson(json);
 }
 
-/// Backend calculation shown as "3 days · calculated" and
-/// "Casual balance 8 → 5 days".
+/// The backend's calculation for the drawer: how many days, and how many
+/// of them Casual leave can cover now ([paidDays]); the rest would be
+/// Unpaid ([unpaidDays]) if the admin agrees to split.
 @freezed
 abstract class LeavePreviewModel with _$LeavePreviewModel {
   const factory LeavePreviewModel({
     required double days,
-    double? balanceBefore,
-    double? balanceAfter,
+    @Default(0) double paidDays,
+    @Default(0) double unpaidDays,
+
+    /// Casual days available for these dates; null for Unpaid leave.
+    double? availableCasual,
   }) = _LeavePreviewModel;
+
+  const LeavePreviewModel._();
 
   factory LeavePreviewModel.fromJson(Map<String, dynamic> json) =>
       _$LeavePreviewModelFromJson(json);
+
+  /// Casual leave that doesn't fit the balance.
+  bool get needsSplit => availableCasual != null && unpaidDays > 0;
 }
 
 /// Non-working days of a month for one employee's date picker
@@ -234,4 +263,71 @@ abstract class LeaveCalendarModel with _$LeaveCalendarModel {
 
   factory LeaveCalendarModel.fromJson(Map<String, dynamic> json) =>
       _$LeaveCalendarModelFromJson(json);
+}
+
+/// One row of `GET /leave-balances`: an active employee and their Casual
+/// balance, calculated like `GET /employees/{id}/leave-balance`.
+@freezed
+abstract class EmployeeLeaveBalanceModel with _$EmployeeLeaveBalanceModel {
+  const factory EmployeeLeaveBalanceModel({
+    required EmployeeSummaryModel employee,
+    required LeaveBalanceModel balance,
+  }) = _EmployeeLeaveBalanceModel;
+
+  factory EmployeeLeaveBalanceModel.fromJson(Map<String, dynamic> json) =>
+      _$EmployeeLeaveBalanceModelFromJson(json);
+}
+
+/// Sums over **every** employee matching the filters (not just one page),
+/// for the Leave page's summary.
+@freezed
+abstract class LeaveBalanceTotalsModel with _$LeaveBalanceTotalsModel {
+  const factory LeaveBalanceTotalsModel({
+    required int employees,
+    required double accrued,
+    required double used,
+    @Default(0) double pending,
+    required double remaining,
+    @Default(0) double unpaidTaken,
+  }) = _LeaveBalanceTotalsModel;
+
+  factory LeaveBalanceTotalsModel.fromJson(Map<String, dynamic> json) =>
+      _$LeaveBalanceTotalsModelFromJson(json);
+}
+
+/// `GET /leave-balances`: one page of employees, sorted by name.
+@freezed
+abstract class LeaveBalanceListModel with _$LeaveBalanceListModel {
+  const factory LeaveBalanceListModel({
+    required List<EmployeeLeaveBalanceModel> items,
+    required int total,
+    required int page,
+    required int pageSize,
+    required LeaveBalanceTotalsModel summary,
+  }) = _LeaveBalanceListModel;
+
+  factory LeaveBalanceListModel.fromJson(Map<String, dynamic> json) =>
+      _$LeaveBalanceListModelFromJson(json);
+}
+
+/// Search, department and page of the Balances tab.
+@freezed
+abstract class LeaveBalanceQuery with _$LeaveBalanceQuery {
+  const factory LeaveBalanceQuery({
+    @Default('') String search,
+    JobRole? department,
+    @Default(1) int page,
+    @Default(LeaveQuery.defaultPageSize) int pageSize,
+  }) = _LeaveBalanceQuery;
+
+  const LeaveBalanceQuery._();
+
+  bool get hasFilters => search.isNotEmpty || department != null;
+
+  Map<String, Object?> toQueryParameters() => {
+    if (search.isNotEmpty) 'search': search,
+    'department': ?department?.code,
+    'page': page,
+    'pageSize': pageSize,
+  };
 }

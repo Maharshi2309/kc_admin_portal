@@ -9,6 +9,7 @@ import 'package:kc_admin_portal/features/dashboard/data/models/monthly_attendanc
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_mock_data_source.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// DEV ONLY (`USE_MOCK_API=true`): sample dashboard data shaped like the
@@ -34,13 +35,40 @@ class DashboardMockDataSource implements DashboardRemoteDataSource {
   final Duration latency;
   final AttendanceMockDataSource? attendance;
 
-  /// When set, the pending-leave count comes from the leave mock.
+  /// When set, the pending-leave count and leave figures come from the
+  /// leave mock.
   final LeaveMockDataSource? leaves;
 
   /// The company holiday on a date, from the holiday mock.
   final HolidayModel? Function(DateTime date)? holidayOn;
 
   static const int _previewSize = 3;
+
+  /// From the leave mock when shared; sample figures otherwise.
+  LeaveUsageModel _leaveUsage(DateTime today) {
+    final source = leaves;
+    if (source == null) {
+      return LeaveUsageModel(
+        year: today.year,
+        casualRemainingDays: 412,
+        casualTakenDays: 286,
+        unpaidTakenDays: 26,
+        approvedThisMonth: 41,
+        pendingThisMonth: 3,
+        rejectedThisMonth: 2,
+      );
+    }
+    final usage = source.usage(today);
+    return LeaveUsageModel(
+      year: today.year,
+      casualRemainingDays: usage.casualRemaining,
+      casualTakenDays: usage.casualTaken,
+      unpaidTakenDays: usage.unpaidTaken,
+      approvedThisMonth: usage.approved,
+      pendingThisMonth: usage.pending,
+      rejectedThisMonth: usage.rejected,
+    );
+  }
 
   @override
   Future<DashboardSummaryModel> summary(DateTime date) async {
@@ -70,19 +98,19 @@ class DashboardMockDataSource implements DashboardRemoteDataSource {
           id: '1042',
           name: 'Rohan Patel',
           ecNumber: 'KC1042',
-          department: 'Sales',
+          department: JobRole.graphicDesigner,
         ),
         EmployeeSummaryModel(
           id: '1057',
           name: 'Kavya Mehta',
           ecNumber: 'KC1057',
-          department: 'Accounts',
+          department: JobRole.accountant,
         ),
         EmployeeSummaryModel(
           id: '1073',
           name: 'Arjun Joshi',
           ecNumber: 'KC1073',
-          department: 'Operations',
+          department: JobRole.tailor,
         ),
       ],
       onLeave: [
@@ -102,7 +130,7 @@ class DashboardMockDataSource implements DashboardRemoteDataSource {
             name: 'Harsh Vaghela',
             ecNumber: 'KC1061',
           ),
-          leaveType: 'Sick',
+          leaveType: 'Casual',
           endDate: today,
           days: 1,
         ),
@@ -118,12 +146,7 @@ class DashboardMockDataSource implements DashboardRemoteDataSource {
           isHalfDay: true,
         ),
       ],
-      leaveUsage: LeaveUsageModel(
-        year: today.year,
-        usedPercent: 21,
-        takenDays: 312,
-        remainingDays: 1176,
-      ),
+      leaveUsage: _leaveUsage(today),
     );
   }
 
@@ -204,12 +227,7 @@ class DashboardMockDataSource implements DashboardRemoteDataSource {
             days: 1,
           ),
       ],
-      leaveUsage: LeaveUsageModel(
-        year: today.year,
-        usedPercent: 21,
-        takenDays: 312,
-        remainingDays: 1176,
-      ),
+      leaveUsage: _leaveUsage(today),
     );
   }
 

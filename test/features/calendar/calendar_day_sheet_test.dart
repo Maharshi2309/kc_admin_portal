@@ -141,14 +141,14 @@ void main() {
   });
 
   testWidgets('approving pending leave from its day', (tester) async {
-    // Kavya Mehta (4): pending sick leave on Tue 15 Sep.
+    // Kavya Mehta (4): pending Casual leave on Tue 15 Sep.
     await _open(tester, '/employees/4/calendar/2026-09-15');
     expect(_inSheet(find.text('Pending')), findsOneWidget);
     await _tap(tester, find.widgetWithText(FilledButton, 'Approve'));
 
     expect(find.text('Leave approved for Kavya Mehta'), findsOneWidget);
     expect(_inSheet(find.text('Approved')), findsOneWidget);
-    expect(find.text('Sick leave approved'), findsOneWidget);
+    expect(find.text('Casual leave approved'), findsOneWidget);
     expect(find.textContaining('Status: Pending → Approved'), findsOneWidget);
   });
 

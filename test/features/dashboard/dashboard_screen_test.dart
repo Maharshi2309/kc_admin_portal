@@ -32,7 +32,26 @@ void main() {
     expect(find.text('86.4%'), findsOneWidget); // monthly average
     expect(find.text('Rohan Patel'), findsOneWidget);
     expect(find.text('Till 30 Sep · 3 days'), findsOneWidget);
-    expect(find.text('1,176 days'), findsOneWidget);
+    // Leave: Casual and Unpaid kept apart (2026-10-05).
+    expect(find.text('412 days'), findsOneWidget);
+    expect(find.text('of Casual leave left · all employees'), findsOneWidget);
+    expect(find.text('286 days'), findsOneWidget);
+    expect(find.text('26 days'), findsOneWidget);
+    expect(find.text('Requests this month'), findsOneWidget);
+    expect(find.text('41'), findsOneWidget);
+  });
+
+  testWidgets('the leave card opens the Balances tab', (tester) async {
+    final router = await pumpFullApp(
+      tester,
+      repository: FakeAuthRepository(sessionUser: testUser),
+    );
+    await tester.ensureVisible(find.text('Balances'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Balances'));
+    await tester.pumpAndSettle();
+    expect(currentLocation(router), '/leave?view=balances');
+    expect(find.text('Casual remaining'), findsOneWidget);
   });
 
   testWidgets('attention list shows known items only', (tester) async {
@@ -94,7 +113,7 @@ void main() {
     testWidgets('renders without overflow on ${entry.key}', (tester) async {
       await _pumpDashboard(tester, size: entry.value);
       await tester.dragUntilVisible(
-        find.text('Leave used · 2026'),
+        find.text('Leave · 2026'),
         find.byType(Scrollable).first,
         const Offset(0, -300),
       );

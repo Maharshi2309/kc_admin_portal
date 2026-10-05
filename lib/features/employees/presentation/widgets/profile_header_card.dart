@@ -4,6 +4,7 @@ import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_avatar.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
@@ -90,7 +91,6 @@ class ProfileHeaderCard extends StatelessWidget {
             minItemWidth: _detailMinWidth,
             equalHeight: false,
             children: [
-              _Detail(label: 'Email', value: employee.email),
               _Detail(
                 label: 'Mobile',
                 value: FormatUtils.mobile(employee.mobile),
@@ -101,6 +101,11 @@ class ProfileHeaderCard extends StatelessWidget {
                     '${AppDateFormat.medium(employee.joiningDate)} · '
                     '${FormatUtils.tenure(employee.joiningDate, today)}',
               ),
+              if (employee.overtimeMinutesThisYear != null)
+                _Detail(
+                  label: 'Overtime this year',
+                  value: DurationFormat.full(employee.overtimeMinutesThisYear!),
+                ),
               if (employee.updatedAt != null)
                 _Detail(
                   label: 'Last updated',
@@ -157,7 +162,7 @@ class _Identity extends StatelessWidget {
                 children: [
                   EcNumberText(employee.ecNumber, large: true, copyable: true),
                   Text(
-                    '${employee.designation.name} · ${employee.department.name}',
+                    '${employee.position.label} · ${employee.department.label}',
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.textMuted,
                     ),

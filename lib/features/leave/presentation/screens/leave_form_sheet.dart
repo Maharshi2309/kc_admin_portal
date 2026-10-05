@@ -90,8 +90,8 @@ class LeaveFormSheet extends ConsumerWidget {
         id: e.id,
         name: e.name,
         ecNumber: e.ecNumber,
-        department: e.department.name,
-        designation: e.designation.name,
+        department: e.department,
+        position: e.position,
       );
 }
 
@@ -183,6 +183,9 @@ class _LeaveFormState extends ConsumerState<_LeaveForm> {
       : LeaveStatus.approved;
   late final _remarks = TextEditingController(text: widget.initial?.remarks);
 
+  /// Save Casual days beyond the balance as a separate Unpaid leave.
+  bool _splitExcess = false;
+
   /// Show "required" messages after the first save attempt.
   bool _submitted = false;
   Map<String, String> _serverErrors = const {};
@@ -240,6 +243,11 @@ class _LeaveFormState extends ConsumerState<_LeaveForm> {
       return;
     }
 
+    // Only sent while the dates still go over the balance.
+    final request = _previewRequest;
+    final needsSplit =
+        request != null &&
+        (ref.read(leavePreviewProvider(request)).value?.needsSplit ?? false);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final saved = await ref
@@ -255,6 +263,7 @@ class _LeaveFormState extends ConsumerState<_LeaveForm> {
             reason: reason,
             remarks: _remarks.text,
             status: _status,
+            splitExcessAsUnpaid: needsSplit && _splitExcess ? true : null,
           ),
         );
     if (saved == null || !mounted) return;
@@ -272,7 +281,7 @@ class _LeaveFormState extends ConsumerState<_LeaveForm> {
     final isSaving = submission.isLoading;
     final types = ref.watch(leaveTypesProvider).value ?? const [];
     final employee = _employee;
-    final balances = employee == null
+    final balance = employee == null
         ? null
         : ref.watch(employeeLeaveBalanceProvider(employee.id)).value;
     final calendar = ref
@@ -325,7 +334,7 @@ class _LeaveFormState extends ConsumerState<_LeaveForm> {
               children: [
                 LeaveTypeCards(
                   types: types,
-                  balances: _withEditedLeaveReturned(balances ?? const []),
+                  balance: _withEditedLeaveReturned(balance),
                   selectedId: _typeId,
                   enabled: !isSaving,
                   onSelected: (id) {
@@ -342,7 +351,14 @@ class _LeaveFormState extends ConsumerState<_LeaveForm> {
             ),
           ),
           _datesField(calendar, isSaving),
-          if (_previewRequest case final request?) _Summary(request: request),
+          if (_previewRequest case final request?)
+            _Summary(
+              request: request,
+              splitExcess: _splitExcess,
+              onSplitChanged: isSaving
+                  ? null
+                  : (split) => setState(() => _splitExcess = split),
+            ),
           AppLabeledField(
             label: 'Reason',
             isRequired: true,
@@ -394,21 +410,19 @@ class _LeaveFormState extends ConsumerState<_LeaveForm> {
     );
   }
 
-  /// When editing, the leave's own days are not yet "used", so the cards
-  /// show the balance the change would start from (as the summary does).
-  List<LeaveBalanceModel> _withEditedLeaveReturned(
-    List<LeaveBalanceModel> balances,
-  ) {
+  /// When editing, the leave's own Casual days are not yet "used", so the
+  /// cards show the balance the change would start from (as the summary
+  /// does).
+  LeaveBalanceModel? _withEditedLeaveReturned(LeaveBalanceModel? balance) {
     final initial = widget.initial;
-    if (initial == null || initial.status == LeaveStatus.cancelled) {
-      return balances;
+    if (balance == null ||
+        initial == null ||
+        !initial.isPaid ||
+        initial.status == LeaveStatus.cancelled ||
+        initial.status == LeaveStatus.rejected) {
+      return balance;
     }
-    return [
-      for (final b in balances)
-        b.leaveTypeId == initial.leaveType.id && b.remaining != null
-            ? b.copyWith(remaining: b.remaining! + initial.days)
-            : b,
-    ];
+    return balance.copyWith(remaining: balance.remaining + initial.days);
   }
 
   Widget _datesField(LeaveCalendarModel? calendar, bool isSaving) {
@@ -473,21 +487,23 @@ class _LeaveFormState extends ConsumerState<_LeaveForm> {
   static const double _durationToggleWidth = 200;
 }
 
-/// "Selected · Leave days · Balance" summary calculated by the backend.
+/// "Selected · Leave days · Casual available" summary calculated by the
+/// backend. When Casual leave goes over the balance it offers to save the
+/// extra days as Unpaid (approved 2026-10-05).
 class _Summary extends ConsumerWidget {
-  const _Summary({required this.request});
+  const _Summary({
+    required this.request,
+    required this.splitExcess,
+    required this.onSplitChanged,
+  });
 
   final LeavePreviewRequest request;
+  final bool splitExcess;
+  final ValueChanged<bool>? onSplitChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preview = ref.watch(leavePreviewProvider(request));
-    final types = ref.watch(leaveTypesProvider).value ?? const [];
-    final typeName = types
-        .where((t) => t.id == request.leaveTypeId)
-        .firstOrNull
-        ?.name;
-
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s14),
       decoration: const BoxDecoration(
@@ -495,6 +511,7 @@ class _Summary extends ConsumerWidget {
         borderRadius: AppRadius.lgAll,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: AppSpacing.s8,
         children: [
           _Line(
@@ -505,20 +522,32 @@ class _Summary extends ConsumerWidget {
           ),
           switch (preview) {
             AsyncData(:final value) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: AppSpacing.s8,
               children: [
                 _Line(
                   label: 'Leave days',
                   value: '${FormatUtils.days(value.days)} · calculated',
                 ),
-                if (value.balanceBefore != null && value.balanceAfter != null)
+                if (value.availableCasual case final available?)
                   _Line(
-                    label: '${typeName ?? 'Leave'} balance',
-                    value:
-                        '${FormatUtils.count(value.balanceBefore!)} → '
-                        '${FormatUtils.days(value.balanceAfter!)}',
-                    isWarning: value.balanceAfter! < 0,
+                    label: 'Casual available',
+                    value: FormatUtils.days(available),
                   ),
+                if (value.needsSplit) ...[
+                  _Line(
+                    label: 'Paid / unpaid',
+                    value:
+                        '${FormatUtils.count(value.paidDays)} Casual + '
+                        '${FormatUtils.count(value.unpaidDays)} Unpaid',
+                    isWarning: true,
+                  ),
+                  _SplitChoice(
+                    preview: value,
+                    value: splitExcess,
+                    onChanged: onSplitChanged,
+                  ),
+                ],
               ],
             ),
             AsyncError(:final error) => _Line(
@@ -530,6 +559,75 @@ class _Summary extends ConsumerWidget {
           },
         ],
       ),
+    );
+  }
+}
+
+/// "Not enough Casual leave" with the choice to save the extra days as a
+/// separate Unpaid leave (`splitExcessAsUnpaid`); the latest days become
+/// Unpaid. Without it, saving is refused (422 `INSUFFICIENT_LEAVE_BALANCE`).
+class _SplitChoice extends StatelessWidget {
+  const _SplitChoice({
+    required this.preview,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final LeavePreviewModel preview;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onChanged != null;
+    final extra = FormatUtils.days(preview.unpaidDays);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: AppSpacing.s8,
+      children: [
+        AppAlertBanner(
+          tone: AlertTone.info,
+          title: 'Not enough Casual leave',
+          message: preview.paidDays > 0
+              ? 'Only ${FormatUtils.days(preview.paidDays)} of Casual leave '
+                    'can be used for these dates. Choose fewer days, or save '
+                    'the last $extra as Unpaid leave.'
+              : 'No Casual leave is available for these dates. Choose other '
+                    'dates, or save the leave as Unpaid.',
+        ),
+        MergeSemantics(
+          child: InkWell(
+            onTap: enabled ? () => onChanged!(!value) : null,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.s4),
+              child: Row(
+                spacing: AppSpacing.s8,
+                children: [
+                  Checkbox(
+                    value: value,
+                    onChanged: enabled
+                        ? (checked) => onChanged!(checked!)
+                        : null,
+                  ),
+                  Flexible(
+                    child: Text(
+                      preview.paidDays > 0
+                          ? 'Save the extra $extra as Unpaid'
+                          : 'Save all $extra as Unpaid',
+                      style: AppTextStyles.body.copyWith(
+                        color: enabled
+                            ? AppColors.textSecondary
+                            : AppColors.textMuted,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

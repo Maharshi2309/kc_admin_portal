@@ -21,13 +21,8 @@ abstract final class ApiConstants {
   /// `?month=YYYY-MM` → MonthlyAttendanceModel.
   static const String dashboardAttendanceChart = '/dashboard/attendance-chart';
 
-  // Master data
-  static const String departments = '/departments';
-  static String departmentDesignations(String departmentId) =>
-      '/departments/$departmentId/designations';
-
   // Employees
-  /// `?search&departmentId&designationId&status&page&pageSize` → page of
+  /// `?search&department&position&status&page&pageSize` → page of
   /// employees. `POST` creates one.
   static const String employees = '/employees';
 
@@ -43,7 +38,7 @@ abstract final class ApiConstants {
   static String employeeLeaves(String id) => '/employees/$id/leaves';
 
   // Attendance
-  /// `?date&status&search&departmentId&page&pageSize` → AttendanceDayModel.
+  /// `?date&status&search&department&page&pageSize` → AttendanceDayModel.
   /// `POST` adds a missing record.
   static const String attendance = '/attendance';
   static String attendanceRecord(String id) => '/attendance/$id';
@@ -61,7 +56,7 @@ abstract final class ApiConstants {
       '/employees/$id/attendance-log';
 
   // Leave
-  /// `?status&search&from&to&leaveTypeId&departmentId&page&pageSize` →
+  /// `?status&search&from&to&leaveTypeId&department&page&pageSize` →
   /// LeaveListModel. `POST` adds a leave.
   static const String leaves = '/leaves';
   static String leave(String id) => '/leaves/$id';
@@ -73,6 +68,9 @@ abstract final class ApiConstants {
 
   /// `POST` LeavePreviewRequest → LeavePreviewModel (days, balance).
   static const String leavePreview = '/leaves/preview';
+
+  /// Every active employee's Casual balance, paged (added 2026-10-05).
+  static const String leaveBalances = '/leave-balances';
 
   /// `?month=YYYY-MM&employeeId=…` → LeaveCalendarModel (company holidays
   /// and that employee's weekly offs).
@@ -132,6 +130,12 @@ abstract final class ApiConstants {
 
   /// 403: the signed-in user lacks the endpoint's permission.
   static const String permissionDeniedCode = 'PERMISSION_DENIED';
+
+  /// 422: Casual leave beyond the available balance (or using a future
+  /// month's day). Resend with `splitExcessAsUnpaid: true` to save the
+  /// extra days as Unpaid leave.
+  static const String insufficientLeaveBalanceCode =
+      'INSUFFICIENT_LEAVE_BALANCE';
 
   /// 409 when editing leave that is no longer pending.
   static const String leaveNotEditableCode = 'LEAVE_NOT_EDITABLE';

@@ -5,22 +5,18 @@ import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/utils/validation_utils.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/employee_mock_data_source.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
-import 'package:kc_admin_portal/features/employees/domain/utils/email_suggestion.dart';
 import 'package:kc_admin_portal/features/employees/domain/utils/schedule_rules.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
 
-EmployeeFormData _form({
-  String ec = 'KC2001',
-  String email = 'new@keshav.in',
-}) => EmployeeFormData(
+EmployeeFormData _form({String ec = 'KC2001'}) => EmployeeFormData(
   ecNumber: ec,
   name: 'New Person',
-  email: email,
   mobile: '9876543210',
-  departmentId: 'it',
-  designationId: 'qa-engineer',
+  department: JobRole.graphicDesigner,
+  position: JobRole.graphicDesigner,
   joiningDate: DateTime(2026, 10, 1),
   status: EmployeeStatus.active,
   schedule: ScheduleDraft.standard.toInput(DateTime(2026, 10, 1)),
@@ -44,25 +40,6 @@ void main() {
     });
   });
 
-  group('suggestWorkEmail', () {
-    String? suggest(String name, [String? admin = 'admin@Keshav.in']) =>
-        suggestWorkEmail(fullName: name, adminEmail: admin);
-
-    test('first.last at the admin domain, lowercase letters only', () {
-      expect(suggest('Ravi Patel'), 'ravi.patel@keshav.in');
-      expect(suggest('  Ravi  K.  Patel '), 'ravi.patel@keshav.in');
-      expect(suggest("Anne-Marie O'Neil"), 'annemarie.oneil@keshav.in');
-      expect(suggest('Priya'), 'priya@keshav.in');
-    });
-
-    test('nothing to suggest without a name or domain', () {
-      expect(suggest('   '), isNull);
-      expect(suggest('123'), isNull);
-      expect(suggest('Ravi Patel', null), isNull);
-      expect(suggest('Ravi Patel', 'no-domain@'), isNull);
-    });
-  });
-
   group('formatting', () {
     test('mobile, tenure, duration and date ranges', () {
       expect(FormatUtils.mobile('9825011234'), '+91 98250 11234');
@@ -74,8 +51,6 @@ void main() {
         FormatUtils.tenure(DateTime(2026, 10, 5), DateTime(2026, 9, 28)),
         'Joins soon',
       );
-      expect(FormatUtils.duration(521), '8h 41m');
-      expect(FormatUtils.duration(309), '5h 09m');
       expect(
         AppDateFormat.range(DateTime(2026, 9, 21), DateTime(2026, 9, 22)),
         '21 – 22 Sep 2026',
@@ -88,6 +63,33 @@ void main() {
   });
 
   group('EmployeeMockDataSource', () {
+    test('filters by department and position independently', () async {
+      final source = EmployeeMockDataSource(now: () => DateTime(2026, 9, 28));
+      final tailors = await source.list(
+        const EmployeeQuery(department: JobRole.tailor, status: null),
+      );
+      expect(tailors.items, isNotEmpty);
+      expect(
+        tailors.items.every((e) => e.department == JobRole.tailor),
+        isTrue,
+      );
+      final mixed = await source.list(
+        const EmployeeQuery(
+          department: JobRole.graphicDesigner,
+          position: JobRole.tailor,
+          status: null,
+        ),
+      );
+      expect(
+        mixed.items.every(
+          (e) =>
+              e.department == JobRole.graphicDesigner &&
+              e.position == JobRole.tailor,
+        ),
+        isTrue,
+      );
+    });
+
     late EmployeeMockDataSource source;
 
     setUp(
@@ -211,7 +213,7 @@ void main() {
 
     test('creates, updates and deactivates without deleting', () async {
       final created = await source.create(_form());
-      expect(created.department.name, 'IT');
+      expect(created.department, JobRole.graphicDesigner);
 
       final renamed = await source.update(
         created.id,

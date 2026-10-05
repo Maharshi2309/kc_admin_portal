@@ -7,6 +7,7 @@ import 'package:kc_admin_portal/app/router/route_permissions.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_alert_banner.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
@@ -26,6 +27,7 @@ import 'package:kc_admin_portal/features/dashboard/presentation/widgets/attentio
 import 'package:kc_admin_portal/features/dashboard/presentation/widgets/kpi_card.dart';
 import 'package:kc_admin_portal/features/dashboard/presentation/widgets/leave_usage_card.dart';
 import 'package:kc_admin_portal/features/dashboard/presentation/widgets/today_lists.dart';
+import 'package:kc_admin_portal/features/leave/presentation/screens/leave_screen.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
 
 /// Today at a glance. Layout from the design: KPI cards, the monthly chart
@@ -211,7 +213,14 @@ class _DashboardBody extends ConsumerWidget {
             if (summary.leaveUsage != null)
               LeaveUsageCard(
                 usage: summary.leaveUsage!,
-                onViewLeaves: link(AppRouteNames.leave),
+                onViewBalances: canOpenRoute(AppRouteNames.leave, grants)
+                    ? () => context.goNamed(
+                        AppRouteNames.leave,
+                        queryParameters: {
+                          AppRouteParams.view: LeaveView.balances.name,
+                        },
+                      )
+                    : null,
               ),
           ],
         ),
@@ -260,7 +269,7 @@ class _DashboardBody extends ConsumerWidget {
       KpiCard(
         label: 'Overtime this month',
         value: summary.overtimeMinutesThisMonth!,
-        valueText: FormatUtils.duration(summary.overtimeMinutesThisMonth!),
+        valueText: DurationFormat.short(summary.overtimeMinutesThisMonth!),
         caption: switch (summary.overtimeEmployeesThisMonth) {
           null => null,
           1 => '1 employee',

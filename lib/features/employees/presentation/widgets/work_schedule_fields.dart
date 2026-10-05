@@ -4,7 +4,7 @@ import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
-import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/widgets/app_choice_chips.dart';
 import 'package:kc_admin_portal/core/widgets/app_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_field_label.dart';
@@ -92,7 +92,7 @@ class WorkScheduleFields extends StatelessWidget {
                     value: minutes,
                     label: minutes == 0
                         ? 'No break'
-                        : FormatUtils.minutes(minutes),
+                        : DurationFormat.full(minutes),
                   ),
               ],
               onChanged: (minutes) {
@@ -187,13 +187,13 @@ class _ExpectedHours extends StatelessWidget {
               style: AppTextStyles.small.copyWith(color: AppColors.textMuted),
             ),
             Text(
-              valid ? FormatUtils.duration(draft.expectedMinutes) : '—',
+              valid ? DurationFormat.full(draft.expectedMinutes) : '—',
               style: AppTextStyles.bodyBold,
             ),
             if (valid)
               Text(
-                '${FormatUtils.duration(draft.shiftMinutes)} shift'
-                '${draft.breakMinutes == 0 ? '' : ' − ${FormatUtils.minutes(draft.breakMinutes)} break'}',
+                '${DurationFormat.full(draft.shiftMinutes)} shift'
+                '${draft.breakMinutes == 0 ? '' : ' − ${DurationFormat.full(draft.breakMinutes)} break'}',
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.textMuted,
                 ),

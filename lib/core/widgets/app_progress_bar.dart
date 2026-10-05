@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 
-/// Rounded horizontal bar (leave used, leave balance, hours worked).
+/// Rounded horizontal bar (leave balance, hours worked).
 class AppProgressBar extends StatelessWidget {
   const AppProgressBar({
     required this.value,

@@ -33,8 +33,8 @@
       "id": "3",
       "name": "Rohan Patel",
       "ecNumber": "KC1007",
-      "department": "Sales",
-      "designation": "Sales manager"
+      "department": "graphic_designer",
+      "position": "graphic_designer"
     }
   ],
   "notPunchedInTotal": 11,
@@ -53,8 +53,11 @@
   ],
   "leaveUsage": {
     "year": 2026,
-    "usedPercent": 21,
-    "takenDays": 312,
-    "remainingDays": 1176
+    "casualRemainingDays": 412,
+    "casualTakenDays": 286,
+    "unpaidTakenDays": 26,
+    "approvedThisMonth": 41,
+    "pendingThisMonth": 3,
+    "rejectedThisMonth": 2
   }
 }

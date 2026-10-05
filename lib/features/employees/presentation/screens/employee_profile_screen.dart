@@ -111,13 +111,11 @@ class _ProfileBody extends ConsumerWidget {
                 )
               : null,
         ),
-        AsyncValueView<List<LeaveBalanceModel>>(
+        AsyncValueView<LeaveBalanceModel>(
           value: balances,
           compact: true,
           onRetry: () => ref.invalidate(employeeLeaveBalanceProvider(id)),
-          isEmpty: (items) => items.isEmpty,
-          empty: const SizedBox.shrink(),
-          data: (items) => LeaveBalanceCards(balances: items),
+          data: (balance) => LeaveBalanceCards(balance: balance),
         ),
         LayoutBuilder(
           builder: (context, constraints) {

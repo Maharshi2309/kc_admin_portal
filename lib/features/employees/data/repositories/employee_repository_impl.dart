@@ -34,8 +34,7 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
       _remote.setStatus(id, status);
 
   @override
-  Future<List<LeaveBalanceModel>> leaveBalance(String id) =>
-      _remote.leaveBalance(id);
+  Future<LeaveBalanceModel> leaveBalance(String id) => _remote.leaveBalance(id);
 
   @override
   Future<List<LeaveHistoryItemModel>> leaveHistory(String id) =>
@@ -52,7 +51,6 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
   static EmployeeFormData _normalised(EmployeeFormData data) => data.copyWith(
     ecNumber: data.ecNumber.trim().toUpperCase(),
     name: data.name.trim(),
-    email: data.email.trim(),
     mobile: data.mobile.trim(),
   );
 }

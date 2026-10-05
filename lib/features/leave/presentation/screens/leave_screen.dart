@@ -16,34 +16,60 @@ import 'package:kc_admin_portal/core/widgets/app_filter_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_page.dart';
 import 'package:kc_admin_portal/core/widgets/app_pagination.dart';
 import 'package:kc_admin_portal/core/widgets/app_search_field.dart';
+import 'package:kc_admin_portal/core/widgets/app_segmented_control.dart';
 import 'package:kc_admin_portal/core/widgets/async_value_view.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/permission_providers.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
 import 'package:kc_admin_portal/features/leave/presentation/providers/leave_providers.dart';
+import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_balances_view.dart';
 import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_status_tabs.dart';
 import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_table.dart';
-import 'package:kc_admin_portal/features/master_data/presentation/providers/master_data_providers.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 
-/// Leave records for all employees (design board 08): status tabs,
+/// The Leave page's two tabs (requirement 2026-10-05).
+enum LeaveView {
+  requests('Requests'),
+  balances('Balances');
+
+  const LeaveView(this.label);
+
+  final String label;
+
+  /// `?view=balances`; anything else is Requests.
+  static LeaveView fromQuery(String? value) =>
+      value == balances.name ? balances : requests;
+}
+
+/// Leave for all employees (design board 08). Requests: status tabs,
 /// filters, approval of pending requests, and the Add leave drawer.
+/// Balances: each active employee's Casual balance, with totals.
 class LeaveScreen extends ConsumerStatefulWidget {
-  const LeaveScreen({super.key});
+  const LeaveScreen({this.view = LeaveView.requests, super.key});
+
+  final LeaveView view;
 
   @override
   ConsumerState<LeaveScreen> createState() => _LeaveScreenState();
 }
 
 class _LeaveScreenState extends ConsumerState<LeaveScreen> {
-  late final _search = TextEditingController(
-    text: ref.read(leaveQueryProvider).search,
-  );
+  late final TextEditingController _search;
 
   static const double _searchMaxWidth = 300;
+  static const double _viewSwitchWidth = 280;
   static const double _progressLineHeight = 2;
 
   /// How far back and ahead the date filter reaches.
   static const int _filterYearsBack = 5;
   static const int _filterYearsAhead = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    // Created up front: on the Balances tab nothing else reads it, and
+    // dispose() can't use ref.
+    _search = TextEditingController(text: ref.read(leaveQueryProvider).search);
+  }
 
   @override
   void dispose() {
@@ -58,13 +84,6 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final query = ref.watch(leaveQueryProvider);
-    final notifier = ref.read(leaveQueryProvider.notifier);
-    final list = ref.watch(leaveListProvider);
-    final types = ref.watch(leaveTypesProvider).value ?? const [];
-    final departments = ref.watch(departmentsProvider).value ?? const [];
-    final today = ref.watch(clockProvider)();
-
     return AppPageBody(
       children: [
         AppPageHeader(
@@ -79,125 +98,153 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
               ),
           ],
         ),
-        AppCard(
-          padding: EdgeInsets.zero,
-          clip: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (list.value case final data?)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    AppSpacing.s12,
-                    AppSpacing.s16,
-                    0,
-                  ),
-                  child: LeaveStatusTabs(
-                    counts: data.counts,
-                    selected: query.status,
-                    onSelected: notifier.setStatus,
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                child: Wrap(
-                  spacing: AppSpacing.s10,
-                  runSpacing: AppSpacing.s10,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: _searchMaxWidth,
-                      ),
-                      child: AppSearchField(
-                        hintText: 'Employee name or EC number',
-                        compact: true,
-                        controller: _search,
-                        onChanged: notifier.setSearch,
-                        onSubmitted: notifier.applySearch,
-                      ),
-                    ),
-                    AppDateRangeFilter(
-                      from: query.from,
-                      to: query.to,
-                      firstDate: DateTime(today.year - _filterYearsBack),
-                      lastDate: DateTime(
-                        today.year + _filterYearsAhead,
-                        12,
-                        31,
-                      ),
-                      onChanged: notifier.setDateRange,
-                    ),
-                    AppFilterDropdown<String>(
-                      label: 'Leave type',
-                      value: query.leaveTypeId,
-                      onChanged: notifier.setLeaveType,
-                      items: [
-                        for (final t in types)
-                          AppDropdownItem(value: t.id, label: t.name),
-                      ],
-                    ),
-                    AppFilterDropdown<String>(
-                      label: 'Department',
-                      value: query.departmentId,
-                      onChanged: notifier.setDepartment,
-                      items: [
-                        for (final d in departments)
-                          AppDropdownItem(value: d.id, label: d.name),
-                      ],
-                    ),
-                    if (query.hasFilters)
-                      AppButton(
-                        label: 'Clear filters',
-                        variant: AppButtonVariant.ghost,
-                        size: AppButtonSize.small,
-                        onPressed: _clearFilters,
-                      ),
-                  ],
-                ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: SizedBox(
+            width: _viewSwitchWidth,
+            child: AppSegmentedControl<LeaveView>(
+              semanticLabel: 'Leave view',
+              selected: widget.view,
+              onChanged: (view) => context.goNamed(
+                AppRouteNames.leave,
+                queryParameters: {
+                  if (view == LeaveView.balances)
+                    AppRouteParams.view: view.name,
+                },
               ),
-              SizedBox(
-                height: _progressLineHeight,
-                child: list.isLoading && list.hasValue
-                    ? const LinearProgressIndicator()
-                    : const Divider(height: 1, color: AppColors.border),
-              ),
-              AsyncValueView<LeaveListModel>(
-                value: list,
-                onRetry: () => ref.invalidate(leaveListProvider),
-                isEmpty: (data) => data.items.isEmpty,
-                empty: AppEmptyView(
-                  icon: Icons.event_available_outlined,
-                  title: query.hasFilters
-                      ? 'No leave matches these filters'
-                      : 'No leave records here yet',
-                  action: query.hasFilters
-                      ? AppButton(
-                          label: 'Clear filters',
-                          variant: AppButtonVariant.secondary,
-                          onPressed: _clearFilters,
-                        )
-                      : null,
-                ),
-                data: (data) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    LeaveTable(leaves: data.items),
-                    AppPagination(
-                      page: data.page,
-                      pageSize: data.pageSize,
-                      totalItems: data.total,
-                      onPageChanged: notifier.setPage,
-                      onPageSizeChanged: notifier.setPageSize,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              segments: [
+                for (final view in LeaveView.values)
+                  AppSegment(value: view, label: view.label),
+              ],
+            ),
           ),
         ),
+        switch (widget.view) {
+          LeaveView.requests => _requests(context),
+          LeaveView.balances => const LeaveBalancesView(),
+        },
       ],
+    );
+  }
+
+  Widget _requests(BuildContext context) {
+    final query = ref.watch(leaveQueryProvider);
+    final notifier = ref.read(leaveQueryProvider.notifier);
+    final list = ref.watch(leaveListProvider);
+    final types = ref.watch(leaveTypesProvider).value ?? const [];
+    final today = ref.watch(clockProvider)();
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      clip: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (list.value case final data?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s16,
+                AppSpacing.s12,
+                AppSpacing.s16,
+                0,
+              ),
+              child: LeaveStatusTabs(
+                counts: data.counts,
+                selected: query.status,
+                onSelected: notifier.setStatus,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.s16),
+            child: Wrap(
+              spacing: AppSpacing.s10,
+              runSpacing: AppSpacing.s10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: _searchMaxWidth),
+                  child: AppSearchField(
+                    hintText: 'Employee name or EC number',
+                    compact: true,
+                    controller: _search,
+                    onChanged: notifier.setSearch,
+                    onSubmitted: notifier.applySearch,
+                  ),
+                ),
+                AppDateRangeFilter(
+                  from: query.from,
+                  to: query.to,
+                  firstDate: DateTime(today.year - _filterYearsBack),
+                  lastDate: DateTime(today.year + _filterYearsAhead, 12, 31),
+                  onChanged: notifier.setDateRange,
+                ),
+                AppFilterDropdown<String>(
+                  label: 'Leave type',
+                  value: query.leaveTypeId,
+                  onChanged: notifier.setLeaveType,
+                  items: [
+                    for (final t in types)
+                      AppDropdownItem(value: t.id, label: t.name),
+                  ],
+                ),
+                AppFilterDropdown<JobRole>(
+                  label: 'Department',
+                  value: query.department,
+                  onChanged: notifier.setDepartment,
+                  items: [
+                    for (final d in JobRole.choices)
+                      AppDropdownItem(value: d, label: d.label),
+                  ],
+                ),
+                if (query.hasFilters)
+                  AppButton(
+                    label: 'Clear filters',
+                    variant: AppButtonVariant.ghost,
+                    size: AppButtonSize.small,
+                    onPressed: _clearFilters,
+                  ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: _progressLineHeight,
+            child: list.isLoading && list.hasValue
+                ? const LinearProgressIndicator()
+                : const Divider(height: 1, color: AppColors.border),
+          ),
+          AsyncValueView<LeaveListModel>(
+            value: list,
+            onRetry: () => ref.invalidate(leaveListProvider),
+            isEmpty: (data) => data.items.isEmpty,
+            empty: AppEmptyView(
+              icon: Icons.event_available_outlined,
+              title: query.hasFilters
+                  ? 'No leave matches these filters'
+                  : 'No leave records here yet',
+              action: query.hasFilters
+                  ? AppButton(
+                      label: 'Clear filters',
+                      variant: AppButtonVariant.secondary,
+                      onPressed: _clearFilters,
+                    )
+                  : null,
+            ),
+            data: (data) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                LeaveTable(leaves: data.items),
+                AppPagination(
+                  page: data.page,
+                  pageSize: data.pageSize,
+                  totalItems: data.total,
+                  onPageChanged: notifier.setPage,
+                  onPageSizeChanged: notifier.setPageSize,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

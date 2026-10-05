@@ -38,7 +38,7 @@ void main() {
       expect(find.text('Today · Mon, 28 Sep 2026'), findsOneWidget);
       expect(find.text('3 employees have not punched in yet'), findsOneWidget);
       expect(find.text('Rohan Patel'), findsOneWidget);
-      expect(find.text('38 min late'), findsWidgets);
+      expect(find.text('Late by 38 Minutes'), findsWidgets);
       // Each row shows that employee's own hours.
       expect(find.textContaining('10:00–18:30'), findsWidgets);
       expect(find.textContaining('09:00–17:30'), findsWidgets);

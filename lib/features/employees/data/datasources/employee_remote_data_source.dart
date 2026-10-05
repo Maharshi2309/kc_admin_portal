@@ -6,6 +6,8 @@ import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/network/api_client.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
+import 'package:kc_admin_portal/features/attendance/data/datasources/attendance_mock_data_source.dart';
+import 'package:kc_admin_portal/features/attendance/data/datasources/attendance_remote_data_source.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/employee_mock_data_source.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/mock_schedule_book.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
@@ -29,7 +31,7 @@ abstract interface class EmployeeRemoteDataSource {
 
   Future<EmployeeModel> setStatus(String id, EmployeeStatus status);
 
-  Future<List<LeaveBalanceModel>> leaveBalance(String id);
+  Future<LeaveBalanceModel> leaveBalance(String id);
 
   Future<List<LeaveHistoryItemModel>> leaveHistory(String id);
 
@@ -93,9 +95,9 @@ class EmployeeApiDataSource implements EmployeeRemoteDataSource {
       );
 
   @override
-  Future<List<LeaveBalanceModel>> leaveBalance(String id) => _client.get(
+  Future<LeaveBalanceModel> leaveBalance(String id) => _client.get(
     ApiConstants.employeeLeaveBalance(id),
-    parse: (json) => _list(json, LeaveBalanceModel.fromJson),
+    parse: (json) => LeaveBalanceModel.fromJson(_map(json)),
   );
 
   @override
@@ -124,7 +126,9 @@ final employeeRemoteDataSourceProvider = Provider<EmployeeRemoteDataSource>((
 ) {
   if (ref.watch(envProvider).useMockApi) {
     final leaves = ref.watch(leaveRemoteDataSourceProvider);
+    final attendance = ref.watch(attendanceRemoteDataSourceProvider);
     return EmployeeMockDataSource(
+      attendance: attendance is AttendanceMockDataSource ? attendance : null,
       guard: ref.watch(mockGuardProvider),
       now: ref.watch(clockProvider),
       latency: ref.watch(mockLatencyProvider),

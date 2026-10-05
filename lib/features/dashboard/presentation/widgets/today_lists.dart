@@ -74,7 +74,7 @@ class NotPunchedInCard extends StatelessWidget {
                     name: employee.name,
                     subtitle: [
                       employee.ecNumber,
-                      ?employee.department,
+                      ?employee.department?.label,
                     ].join(' · '),
                     subtitleIsMono: true,
                     trailing: onPunchIn == null

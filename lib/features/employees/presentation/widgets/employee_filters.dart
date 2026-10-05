@@ -9,7 +9,7 @@ import 'package:kc_admin_portal/core/widgets/app_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_filter_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_search_field.dart';
 import 'package:kc_admin_portal/features/employees/presentation/providers/employee_providers.dart';
-import 'package:kc_admin_portal/features/master_data/presentation/providers/master_data_providers.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Search and filter row above the employee table. Wraps onto several lines
@@ -26,11 +26,7 @@ class EmployeeFilters extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final query = ref.watch(employeeQueryProvider);
     final notifier = ref.read(employeeQueryProvider.notifier);
-    final departments = ref.watch(departmentsProvider).value ?? const [];
     final today = ref.watch(clockProvider)();
-    final designations = query.departmentId == null
-        ? null
-        : ref.watch(designationsProvider(query.departmentId!)).value;
 
     return Wrap(
       spacing: AppSpacing.s10,
@@ -47,27 +43,24 @@ class EmployeeFilters extends ConsumerWidget {
             onSubmitted: notifier.applySearch,
           ),
         ),
-        AppFilterDropdown<String>(
+        AppFilterDropdown<JobRole>(
           label: 'Department',
-          value: query.departmentId,
+          value: query.department,
           onChanged: notifier.setDepartment,
           items: [
-            for (final d in departments)
-              AppDropdownItem(value: d.id, label: d.name),
+            for (final d in JobRole.choices)
+              AppDropdownItem(value: d, label: d.label),
           ],
         ),
-        // Designations belong to a department, so this filter appears once
-        // a department is chosen.
-        if (designations != null)
-          AppFilterDropdown<String>(
-            label: 'Designation',
-            value: query.designationId,
-            onChanged: notifier.setDesignation,
-            items: [
-              for (final d in designations)
-                AppDropdownItem(value: d.id, label: d.name),
-            ],
-          ),
+        AppFilterDropdown<JobRole>(
+          label: 'Position',
+          value: query.position,
+          onChanged: notifier.setPosition,
+          items: [
+            for (final p in JobRole.choices)
+              AppDropdownItem(value: p, label: p.label),
+          ],
+        ),
         AppDateRangeFilter(
           label: 'Joined',
           from: query.joinedFrom,

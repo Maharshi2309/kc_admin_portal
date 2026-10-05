@@ -56,7 +56,7 @@ Future<void> _openSection(WidgetTester tester, String label) async {
 
 Future<void> _choose(WidgetTester tester, String hint, String option) async {
   final dropdown = find.byWidgetPredicate(
-    (w) => w is DropdownMenu<String> && w.hintText == hint,
+    (w) => w is DropdownMenu && w.hintText == hint,
   );
   await _tap(tester, dropdown);
   await _tap(tester, find.text(option).last);
@@ -115,7 +115,7 @@ void main() {
     await _signIn(tester, 'admin@keshav.in');
     expect(find.textContaining('Good '), findsOneWidget);
 
-    // Add an employee: EC number and email are suggested.
+    // Add an employee: the EC number is suggested.
     await _openSection(tester, 'Employees');
     await _tap(tester, find.widgetWithText(FilledButton, 'Add employee'));
     await tester.enterText(_input('Full name'), 'Ravi Patel');
@@ -126,12 +126,10 @@ void main() {
         .controller!
         .text;
     expect(ecNumber, matches(RegExp(r'^KC\d+$')));
-    expect(
-      tester.widget<TextField>(_input('Email address')).controller!.text,
-      'ravi.patel@keshav.in',
-    );
-    await _choose(tester, 'Select department', 'IT');
-    await _choose(tester, 'Select designation', 'QA engineer');
+    // Employees have no email (removed 2026-10-05).
+    expect(_input('Email address'), findsNothing);
+    await _choose(tester, 'Select department', 'Tailor');
+    await _choose(tester, 'Select position', 'Accountant');
     await _tap(tester, find.text('Select date'));
     await _tap(tester, find.text('OK'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Save employee'));

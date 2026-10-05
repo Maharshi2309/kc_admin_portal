@@ -22,6 +22,8 @@ class _KeshavAdminAppState extends ConsumerState<KeshavAdminApp> {
   /// have changed their role's permissions meanwhile.
   late final AppLifecycleListener _lifecycle;
 
+  final _messenger = GlobalKey<ScaffoldMessengerState>();
+
   @override
   void initState() {
     super.initState();
@@ -40,7 +42,16 @@ class _KeshavAdminAppState extends ConsumerState<KeshavAdminApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    // Signed out (or the session ended): the previous user's messages, e.g.
+    // "Permissions saved", must not stay on the sign-in screen, where they
+    // would also cover the Sign in button on small screens.
+    ref.listen(authControllerProvider, (previous, next) {
+      if (previous?.value != null && next.hasValue && next.value == null) {
+        _messenger.currentState?.clearSnackBars();
+      }
+    });
     return MaterialApp.router(
+      scaffoldMessengerKey: _messenger,
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,

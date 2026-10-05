@@ -137,22 +137,10 @@ void main() {
       expect(_textField(tester, 'EC number').controller!.text, 'KC1065');
     });
 
-    testWidgets('suggests the email from the name until it is edited', (
-      tester,
-    ) async {
+    testWidgets('has no email field (removed 2026-10-05)', (tester) async {
       await _open(tester, '/employees/add');
-      String email() => _textField(tester, 'Email address').controller!.text;
-
-      await _enter(tester, 'Full name', 'Ravi Patel');
-      await tester.pump();
-      expect(email(), 'ravi.patel@example.com');
-      expect(find.text('Suggested'), findsOneWidget);
-
-      await _enter(tester, 'Email address', 'ravi@example.com');
-      await _enter(tester, 'Full name', 'Ravi Kumar');
-      await tester.pump();
-      expect(email(), 'ravi@example.com');
-      expect(find.text('Suggested'), findsNothing);
+      expect(find.text('Email address'), findsNothing);
+      expect(find.text('Email'), findsNothing); // nor in the preview
     });
 
     testWidgets('adding an employee saves and opens the new profile', (
@@ -166,7 +154,7 @@ void main() {
 
       Future<void> choose(String field, String option) async {
         final dropdown = find.byWidgetPredicate(
-          (w) => w is DropdownMenu<String> && w.hintText == field,
+          (w) => w is DropdownMenu && w.hintText == field,
         );
         await tester.ensureVisible(dropdown);
         await tester.pumpAndSettle();
@@ -176,8 +164,8 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      await choose('Select department', 'IT');
-      await choose('Select designation', 'QA engineer');
+      await choose('Select department', 'Tailor');
+      await choose('Select position', 'Accountant');
 
       final date = find.text('Select date');
       await tester.ensureVisible(date);
@@ -197,7 +185,6 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('KC1065'), findsWidgets);
-      expect(find.text('ravi.patel@example.com'), findsWidgets);
       expect(find.text('Ravi Patel added'), findsOneWidget);
       // The standard schedule, from the joining date (today).
       expect(find.text('09:30 – 18:30'), findsOneWidget);
@@ -231,7 +218,30 @@ void main() {
       );
     });
 
-    testWidgets('editing shows the saved department and designation', (
+    testWidgets('department and position offer the same three choices', (
+      tester,
+    ) async {
+      await _open(tester, '/employees/add');
+      for (final hint in ['Select department', 'Select position']) {
+        final dropdown = find.byWidgetPredicate(
+          (w) => w is DropdownMenu && w.hintText == hint,
+        );
+        await tester.ensureVisible(dropdown);
+        await tester.pumpAndSettle();
+        await tester.tap(dropdown);
+        await tester.pumpAndSettle();
+        for (final option in ['Accountant', 'Graphic Designer', 'Tailor']) {
+          expect(find.text(option), findsWidgets, reason: '$hint: $option');
+        }
+        expect(find.text('IT'), findsNothing);
+        expect(find.text('Sales'), findsNothing);
+        await tester.tapAt(Offset.zero); // close the menu
+        await tester.pumpAndSettle();
+      }
+      expect(find.text('Designation'), findsNothing);
+    });
+
+    testWidgets('editing shows the saved department and position', (
       tester,
     ) async {
       await _open(tester, '/employees/1/edit');
@@ -239,15 +249,15 @@ void main() {
           .widget<TextField>(
             find.descendant(
               of: find.byWidgetPredicate(
-                (w) => w is DropdownMenu<String> && w.hintText == hint,
+                (w) => w is DropdownMenu && w.hintText == hint,
               ),
               matching: find.byType(TextField),
             ),
           )
           .controller!
           .text;
-      expect(shown('Select department'), 'IT');
-      expect(shown('Select designation'), 'Senior developer');
+      expect(shown('Select department'), 'Graphic Designer');
+      expect(shown('Select position'), 'Graphic Designer');
     });
 
     testWidgets('saving an edit returns to the updated profile', (
@@ -275,7 +285,11 @@ void main() {
       expect(find.text('Aarav Shah'), findsWidgets);
       expect(find.text('+91 98250 11234'), findsOneWidget);
       expect(find.text('12 Jan 2021 · 5 yrs 8 mos'), findsOneWidget);
+      // Casual: 1 day earned per month since January; Unpaid has no balance.
       expect(find.text('Casual leave'), findsOneWidget);
+      expect(find.textContaining('9 earned · '), findsOneWidget);
+      expect(find.text('Unpaid leave'), findsOneWidget);
+      expect(find.text('No fixed balance'), findsOneWidget);
       expect(find.text('September 2026'), findsOneWidget);
       expect(find.text('Weekly off'), findsWidgets); // schedule + legend
       expect(find.text('21 – 22 Sep 2026'), findsOneWidget);
@@ -284,15 +298,30 @@ void main() {
       expect(find.text('Working schedule'), findsOneWidget);
       expect(find.text('Since 1 Apr 2026'), findsOneWidget);
       expect(find.text('09:00 – 17:30'), findsOneWidget);
-      expect(find.text('1 h (13:00–14:00)'), findsOneWidget);
+      expect(find.text('1 Hour (13:00–14:00)'), findsOneWidget);
       expect(
         find.descendant(
           of: find.byType(WorkScheduleCard),
-          matching: find.text('7h 30m'),
+          matching: find.text('7 Hours 30 Minutes'),
         ),
         findsOneWidget,
       );
       expect(find.text('EARLIER SCHEDULES'), findsOneWidget);
+    });
+
+    testWidgets('leave history shows paid or unpaid and the balance after', (
+      tester,
+    ) async {
+      // Priya Desai: Casual 28–30 Sep and Unpaid 3–4 Aug.
+      await _open(tester, '/employees/2');
+      await tester.ensureVisible(find.text('6 days left'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Paid'), findsOneWidget);
+      expect(find.text('Not paid'), findsOneWidget);
+      expect(find.text('3 days'), findsOneWidget); // under the dates
+      expect(find.text('6 days left'), findsOneWidget); // Casual only
+      expect(find.text('Unpaid leave'), findsOneWidget); // balance card
     });
 
     testWidgets('changing the schedule adds a version from a date', (

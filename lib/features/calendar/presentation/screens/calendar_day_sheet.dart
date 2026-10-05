@@ -9,7 +9,7 @@ import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
-import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
 import 'package:kc_admin_portal/core/widgets/app_dialog.dart';
 import 'package:kc_admin_portal/core/widgets/app_side_sheet.dart';
@@ -204,7 +204,7 @@ class _Overview extends StatelessWidget {
       _ when schedule != null =>
         'Working day · ${schedule.startTime.toApi()}–'
             '${schedule.endTime.toApi()} · '
-            '${FormatUtils.duration(schedule.expectedMinutes)} expected',
+            '${DurationFormat.full(schedule.expectedMinutes)} expected',
       _ => 'Working day',
     };
     final tone = state.tone;
@@ -268,9 +268,9 @@ class _Attendance extends StatelessWidget {
               ? 'Not punched out'
               : AppDateFormat.time(attendance.punchOut!),
         ),
-      if (worked != null) ('Worked', FormatUtils.duration(worked)),
+      if (worked != null) ('Worked', DurationFormat.full(worked)),
       if (day.overtimeMinutes > 0)
-        ('Overtime', FormatUtils.compactDuration(day.overtimeMinutes)),
+        ('Overtime', DurationFormat.full(day.overtimeMinutes)),
     ];
 
     final label = hasRecord

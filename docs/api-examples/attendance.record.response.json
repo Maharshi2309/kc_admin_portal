@@ -4,8 +4,8 @@
     "id": "7",
     "name": "Arjun Joshi",
     "ecNumber": "KC1019",
-    "department": "Operations",
-    "designation": "Supervisor"
+    "department": "tailor",
+    "position": "tailor"
   },
   "date": "2026-09-28",
   "punchIn": "2026-09-28T10:08:00+05:30",
@@ -13,7 +13,8 @@
   "workedMinutes": 262,
   "workedPercent": 54.6,
   "status": "late",
-  "note": "38 min late",
+  "note": null,
+  "lateMinutes": 38,
   "correctedBy": null,
   "correctedAt": null,
   "dayKind": "working",

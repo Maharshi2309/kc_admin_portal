@@ -50,7 +50,6 @@ void main() {
         expect(currentLocation(router), '/employees/add');
         expect(_text(tester, 'Full name'), 'Ravi Patel');
         expect(_text(tester, 'Mobile number'), '9876543210');
-        expect(_text(tester, 'Email address'), 'ravi.patel@example.com');
       }
     },
   );

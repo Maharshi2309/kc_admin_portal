@@ -8,7 +8,6 @@ abstract final class FormatUtils {
   static final NumberFormat _oneDecimal = NumberFormat('0.#', 'en');
 
   static const int _monthsPerYear = 12;
-  static const int _minutesPerHour = 60;
   static const int _mobileGroup = 5;
   static const String _mobileCountryCode = '+91';
 
@@ -62,31 +61,9 @@ abstract final class FormatUtils {
     ].join(' ');
   }
 
-  /// 521 → "8h 41m", 309 → "5h 09m" (minutes always two digits).
-  /// Short durations such as a break: 30 → "30 min", 60 → "1 h",
-  /// 90 → "1 h 30 min", 0 → "No break" is up to the caller.
-  static String minutes(int minutes) {
-    final hours = minutes ~/ _minutesPerHour;
-    final rest = minutes % _minutesPerHour;
-    if (hours == 0) return '$rest min';
-    return rest == 0 ? '$hours h' : '$hours h $rest min';
-  }
-
   /// ISO weekdays as short names in week order: {6, 7} → "Sat, Sun".
   static String weekdays(Iterable<int> isoWeekdays) =>
       (isoWeekdays.toSet().toList()..sort())
           .map(AppDateFormat.weekdayShort)
           .join(', ');
-
-  /// Overtime and other extra time: 45 → "45m", 90 → "1h 30m", 120 → "2h".
-  static String compactDuration(int minutes) {
-    final hours = minutes ~/ _minutesPerHour;
-    final rest = minutes % _minutesPerHour;
-    if (hours == 0) return '${rest}m';
-    return rest == 0 ? '${hours}h' : '${hours}h ${rest}m';
-  }
-
-  static String duration(int minutes) =>
-      '${minutes ~/ _minutesPerHour}h '
-      '${(minutes % _minutesPerHour).toString().padLeft(2, '0')}m';
 }

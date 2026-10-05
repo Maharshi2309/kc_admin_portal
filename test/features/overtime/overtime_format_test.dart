@@ -9,37 +9,37 @@ void main() {
     test('15 h at 7.5 h a day → 2 days 0 hours', () {
       final ot = OvertimeDays.of(15 * 60, dayMinutes: _day);
       expect((ot.days, ot.hours, ot.minutes), (2, 0, 0));
-      expect(ot.short, '2 days');
-      expect(ot.long, '2 days');
+      expect(ot.full, '2 Days');
+      expect(ot.compact, '2d');
     });
 
     test('10 h at 7.5 h a day → 1 day 2 hours 30 minutes', () {
       final ot = OvertimeDays.of(10 * 60, dayMinutes: _day);
       expect((ot.days, ot.hours, ot.minutes), (1, 2, 30));
-      expect(ot.short, '1 day 2h 30m');
-      expect(ot.long, '1 day, 2 hours and 30 minutes');
+      expect(ot.full, '1 Day 2 Hours 30 Minutes');
+      expect(ot.compact, '1d 2h 30m');
     });
 
     test('90 min → 0 days 1 hour 30 minutes', () {
       final ot = OvertimeDays.of(90, dayMinutes: _day);
-      expect(ot.short, '0 days 1h 30m');
-      expect(ot.long, '0 days, 1 hour and 30 minutes');
+      expect(ot.full, '0 Days 1 Hour 30 Minutes');
+      expect(ot.compact, '0d 1h 30m');
     });
 
     test('8 hours is not always a day', () {
-      expect(OvertimeDays.of(480, dayMinutes: 480).short, '1 day');
-      expect(OvertimeDays.of(480, dayMinutes: _day).short, '1 day 30m');
+      expect(OvertimeDays.of(480, dayMinutes: 480).full, '1 Day');
+      expect(OvertimeDays.of(480, dayMinutes: _day).full, '1 Day 30 Minutes');
     });
   });
 
   test('without a schedule, hours and minutes only', () {
     final ot = OvertimeDays.of(25 * 60 + 5, dayMinutes: 0);
-    expect(ot.short, '25h 5m');
-    expect(ot.long, '25 hours and 5 minutes');
-    expect(OvertimeDays.of(0, dayMinutes: 0).short, '0m');
+    expect(ot.full, '25 Hours 5 Minutes');
+    expect(ot.compact, '25h 5m');
+    expect(OvertimeDays.of(0, dayMinutes: 0).full, '0 Minutes');
   });
 
   test('nothing negative', () {
-    expect(OvertimeDays.of(-30, dayMinutes: _day).short, '0 days');
+    expect(OvertimeDays.of(-30, dayMinutes: _day).full, '0 Days');
   });
 }

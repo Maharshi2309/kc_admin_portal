@@ -1,6 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
@@ -28,8 +30,14 @@ abstract class AttendanceRecordModel with _$AttendanceRecordModel {
     @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)
     required AttendanceDayStatus status,
 
-    /// Short explanation from the backend, e.g. "23 min late".
+    /// Short explanation from the backend, e.g. "Leave 2nd half". Never a
+    /// duration: those come as numbers (e.g. [lateMinutes]) and are
+    /// formatted by the app.
     String? note,
+
+    /// How late the punch-in was, after the grace period's start time; null
+    /// when on time.
+    int? lateMinutes,
     String? correctedBy,
     @CompanyDateTimeConverter() DateTime? correctedAt,
 
@@ -46,8 +54,19 @@ abstract class AttendanceRecordModel with _$AttendanceRecordModel {
     int? overtimeMinutes,
   }) = _AttendanceRecordModel;
 
+  const AttendanceRecordModel._();
+
   factory AttendanceRecordModel.fromJson(Map<String, dynamic> json) =>
       _$AttendanceRecordModelFromJson(json);
+
+  /// What to show under the status: "Late by 3 Hours 53 Minutes", else the
+  /// backend's [note].
+  String? get displayNote {
+    final late = lateMinutes;
+    return late != null && late > 0
+        ? 'Late by ${DurationFormat.full(late)}'
+        : note;
+  }
 }
 
 String? _optionalId(Object? value) => value?.toString();
@@ -131,7 +150,7 @@ abstract class AttendanceQuery with _$AttendanceQuery {
     @DateOnlyConverter() required DateTime date,
     @Default(AttendanceFilter.all) AttendanceFilter filter,
     @Default('') String search,
-    String? departmentId,
+    JobRole? department,
   }) = _AttendanceQuery;
 
   const AttendanceQuery._();
@@ -142,7 +161,7 @@ abstract class AttendanceQuery with _$AttendanceQuery {
     'date': dateToJson(date),
     'status': ?filter.apiValue,
     if (search.isNotEmpty) 'search': search,
-    'departmentId': ?departmentId,
+    'department': ?department?.code,
     'page': page,
     'pageSize': pageSize,
   };

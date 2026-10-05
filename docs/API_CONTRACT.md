@@ -2,8 +2,8 @@
 
 This is the API the Flutter admin portal is built against. Each response shape
 has a matching example in [`api-examples/`](api-examples/). The contract tests
-(`test/contract/api_contract_test.dart`) run those examples through the real
-parsing code. **If the backend differs, send us the real shape.** Endpoint
+(`test/contract/`) run those examples through the real parsing code, and
+check that every example is linked here. **If the backend differs, send us the real shape.** Endpoint
 paths live in one file (`lib/core/constants/api_constants.dart`), so changes
 are cheap.
 
@@ -13,6 +13,11 @@ confirmation.
 **V2** (schedules, overtime, holidays, calendar, users and permissions) adds the
 endpoints in §2 marked *V2*. The tables, calculation rules and migration are in
 [`DATABASE_V2.md`](DATABASE_V2.md).
+
+**V3** (2026-10-05: no employee email, fixed department and position list,
+Casual and Unpaid leave with monthly accrual, leave balances) changes are
+marked with that date. [`V3_CHANGES.md`](V3_CHANGES.md) lists all of them on
+one page.
 
 ---
 
@@ -30,7 +35,7 @@ endpoints in §2 marked *V2*. The tables, calculation rules and migration are in
 | Dates | Calendar dates as `YYYY-MM-DD` (`joiningDate`, leave `startDate`). The app never shifts them by timezone. |
 | Instants | ISO 8601 **with an offset** (`2026-09-28T09:35:00+05:30` or `…Z`). Send them with the **company time zone's** offset (`Asia/Kolkata`, `+05:30`): the app shows times in the company zone, whatever the device's zone. Times the app sends include the offset. |
 | Times of day | `"HH:mm"`, 24-hour, company time zone (schedule start/end, break window). |
-| Durations | Whole **minutes** as integers (`workedMinutes`, `overtimeMinutes`, `expectedMinutes`). Never fractional hours. |
+| Durations | Whole **minutes** as integers (`workedMinutes`, `overtimeMinutes`, `expectedMinutes`, `lateMinutes`). Never fractional hours, and never written into text: the app formats every duration itself ("3 Hours 53 Minutes"). |
 | Months | Query `month=YYYY-MM`. |
 | Nulls | Optional values may be `null` or missing. |
 | CORS (web) | Allow the portal's origin, the `Authorization` and `Content-Type` headers, and the methods `GET, POST, PATCH, PUT, DELETE`, including preflight. |
@@ -54,8 +59,8 @@ Every error sends an HTTP status code and this body:
 ```
 
 - `message` is shown to the admin as-is, so never put stack traces or SQL in it. `error` is accepted as a fallback key.
-- `code` is optional and machine-readable, for the cases the app treats differently: `PERMISSION_DENIED` (403), `LEAVE_NOT_EDITABLE`, `SCHEDULE_OVERLAP`, `LAST_PERMISSION_MANAGER`, `CANNOT_CHANGE_OWN_ACCESS` (409). Examples: [`error.forbidden.response.json`](api-examples/error.forbidden.response.json), [`error.leave-not-editable.response.json`](api-examples/error.leave-not-editable.response.json).
-- `errors` is optional. Keys match the request body fields (`ecNumber`, `email`, `endDate`, …). A value may be a string or a list of strings. The app shows the message under that field. Example: [`error.validation.response.json`](api-examples/error.validation.response.json).
+- `code` is optional and machine-readable, for the cases the app treats differently: `PERMISSION_DENIED` (403), `INSUFFICIENT_LEAVE_BALANCE` (422), `LEAVE_NOT_EDITABLE`, `SCHEDULE_OVERLAP`, `LAST_PERMISSION_MANAGER`, `CANNOT_CHANGE_OWN_ACCESS` (409). Examples: [`error.forbidden.response.json`](api-examples/error.forbidden.response.json), [`error.leave-not-editable.response.json`](api-examples/error.leave-not-editable.response.json), [`error.insufficient-leave-balance.response.json`](api-examples/error.insufficient-leave-balance.response.json).
+- `errors` is optional. Keys match the request body fields (`ecNumber`, `mobile`, `endDate`, …). A value may be a string or a list of strings. The app shows the message under that field. Example: [`error.validation.response.json`](api-examples/error.validation.response.json).
 
 | Status | App behaviour |
 |---|---|
@@ -90,12 +95,17 @@ no refresh token yet, so an expired token sends the admin back to login. **(conf
 For the web build, an httpOnly cookie would be safer than browser storage, if
 the backend can issue one.
 
-### Master data
+### Department and position (changed 2026-10-05)
 
-| Method & path | Response |
+There are no department or designation endpoints. **Department** and **Position** use one fixed list, the same for both and independent of each other. The API sends and accepts these codes and rejects anything else with `errors.department` / `errors.position`:
+
+| Code | Shown as |
 |---|---|
-| `GET /departments` | [`departments.response.json`](api-examples/departments.response.json) |
-| `GET /departments/{id}/designations` | [`designations.response.json`](api-examples/designations.response.json) |
+| `accountant` | Accountant |
+| `graphic_designer` | Graphic Designer |
+| `tailor` | Tailor |
+
+Employees carry `department` and `position` as codes. So do the `employee` summaries inside attendance, leave, user and dashboard responses. "Designation" is renamed **Position** everywhere.
 
 ### Dashboard
 
@@ -112,6 +122,10 @@ the backend can issue one.
 - `overtimeMinutesThisMonth` and `overtimeEmployeesThisMonth`: all employees' overtime from the 1st of the month to `date`. Sent only when the caller has `overtime.view`; otherwise `null`.
 - `attention`: `not_punched_in` counts only scheduled employees; it is left out when nobody is scheduled.
 - Chart `days[].percent`: present as a share of those scheduled that day. Days nobody was scheduled are left out.
+- `leaveUsage` (changed 2026-10-05; the old `usedPercent`, `takenDays` and `remainingDays` are gone, since there are no yearly quotas):
+  - `casualRemainingDays`: the sum of every **active** employee's Casual `remaining` today (§3.7 of `DATABASE_V2.md`). Unpaid leave never adds to it.
+  - `casualTakenDays` / `unpaidTakenDays`: approved Casual / Unpaid leave days dated in `year` (1 Jan – 31 Dec, including leave booked for later in the year).
+  - `approvedThisMonth`, `pendingThisMonth`, `rejectedThisMonth`: leave requests whose dates overlap the month of `date`.
 
 ### Employees
 
@@ -119,26 +133,27 @@ Employees are **never deleted**, only deactivated.
 
 | Method & path | Request | Response |
 |---|---|---|
-| `GET /employees` | Query: `search`, `departmentId`, `designationId`, `status` (`active`/`inactive`), `joinedFrom`, `joinedTo` (dates, inclusive), `page`, `pageSize` | [`employees.list.response.json`](api-examples/employees.list.response.json) |
+| `GET /employees` | Query: `search`, `department`, `position` (codes), `status` (`active`/`inactive`), `joinedFrom`, `joinedTo` (dates, inclusive), `page`, `pageSize` | [`employees.list.response.json`](api-examples/employees.list.response.json) |
 | `GET /employees/next-ec-number` | — | [`employees.next-ec-number.response.json`](api-examples/employees.next-ec-number.response.json) `{ "ecNumber": "KC1129" }` |
 | `POST /employees` | [`employees.create.request.json`](api-examples/employees.create.request.json), including the first working `schedule` (*V2*) | The created employee ([`employees.get.response.json`](api-examples/employees.get.response.json)) |
 | `GET /employees/{id}` | — | [`employees.get.response.json`](api-examples/employees.get.response.json), with the current `schedule` (*V2*) |
 | `PATCH /employees/{id}` | Same body as create, **without** `schedule` (schedule changes add a version, below) | The updated employee |
 | `PATCH /employees/{id}/status` | [`employees.status.request.json`](api-examples/employees.status.request.json) `{ "status": "inactive" }` | The updated employee |
 | `GET /employees/{id}/attendance-log` | `month=YYYY-MM` | [`employees.attendance-log.response.json`](api-examples/employees.attendance-log.response.json) |
-| `GET /employees/{id}/leave-balance` | — | [`employees.leave-balance.response.json`](api-examples/employees.leave-balance.response.json) |
-| `GET /employees/{id}/leaves` | — | [`employees.leaves.response.json`](api-examples/employees.leaves.response.json) |
+| `GET /employees/{id}/leave-balance` | — | [`employees.leave-balance.response.json`](api-examples/employees.leave-balance.response.json): one object `{ asOf, accrued, used, pending, remaining, unpaidTaken }` (changed 2026-10-05; was a list per type) |
+| `GET /employees/{id}/leaves` | — | [`employees.leaves.response.json`](api-examples/employees.leaves.response.json), each with `isPaid` and `balanceAfter` |
 
 - **`search`** matches the name or EC number.
+- **`overtimeMinutesThisYear`** (list items and `GET /employees/{id}`, added 2026-10-05): the employee's overtime from **1 January of the current year** (company time) to today, in minutes, summed from `attendance_records.overtime_minutes`. The server decides "this year" from today's date, so it rolls over on 1 January. `null` when the caller lacks `overtime.view`. The list shows it in place of the joining date; the Joined filter stays.
 - **`counts`** in the list response is `{ "active": n, "inactive": n }`. It applies every filter except `status`, so the counts don't change when the admin switches between Active and Inactive. The page subtitle shows "124 active · 4 inactive".
 - **EC number format:** `KC` followed by digits (e.g. `KC1001`). The app checks it with `^KC\d+$`.
-- **Email:** the app suggests `firstname.lastname@<admin's domain>` for new employees. The admin can change it, so the backend should only check the format and uniqueness.
+- **No email on employees** (removed 2026-10-05 at the client's request). Employee records carry no email in requests, responses, search or validation. Login emails belong to staff **users** (`/users`, `/auth/*`) and are unaffected.
 
 ### Attendance
 
 | Method & path | Request | Response |
 |---|---|---|
-| `GET /attendance` | Query: `date`, `status` (`present`/`late`/`on_leave`/`absent`; omitted means all), `search`, `departmentId`, `page`, `pageSize` | [`attendance.day.response.json`](api-examples/attendance.day.response.json): `{ summary, items, total, page, pageSize }` |
+| `GET /attendance` | Query: `date`, `status` (`present`/`late`/`on_leave`/`absent`; omitted means all), `search`, `department` (code), `page`, `pageSize` | [`attendance.day.response.json`](api-examples/attendance.day.response.json): `{ summary, items, total, page, pageSize }` |
 | `GET /attendance/{id}` | — | [`attendance.record.response.json`](api-examples/attendance.record.response.json) |
 | `POST /attendance/punch-in` | [`attendance.punch.request.json`](api-examples/attendance.punch.request.json) `{ employeeId }` | The updated record |
 | `POST /attendance/punch-out` | `{ employeeId }` | The updated record |
@@ -148,6 +163,7 @@ Employees are **never deleted**, only deactivated.
 
 - An employee with no record yet appears in `items` with `"id": null`.
 - Punches record the **server's** current time, so the app does not send a time.
+- Records carry `lateMinutes` (how late the punch-in was; `null` when on time) instead of a "38 min late" text in `note`. `note` is for other short remarks only.
 - Records carry (*V2*) `dayKind` (`working` / `holiday_worked` / `week_off_worked`), the employee's `schedule` for that date (`startTime`, `endTime`, `expectedMinutes`; null on holidays and weekly offs), `expectedMinutes` and `overtimeMinutes`. The day summary's `shiftStart`/`shiftEnd` are no longer used, because each employee has their own schedule.
 - Work on a holiday or weekly off is entered with `POST /attendance` / `PATCH /attendance/{id}` like any correction; the backend sets `dayKind`.
 - Correction `reason` is one of `forgot_to_punch`, `device_issue`, `on_field_duty`, `wrong_time_recorded` or `other`. It is required; `remarks` is optional.
@@ -158,18 +174,24 @@ Leave is **never deleted**. Cancelled leave stays in the history.
 
 | Method & path | Request | Response |
 |---|---|---|
-| `GET /leaves` | Query: `status` (`pending`/`approved`/`rejected`/`cancelled`), `search`, `from`, `to`, `leaveTypeId`, `departmentId`, `page`, `pageSize` | [`leaves.list.response.json`](api-examples/leaves.list.response.json), including `counts` per status for the tabs |
+| `GET /leaves` | Query: `status` (`pending`/`approved`/`rejected`/`cancelled`), `search`, `from`, `to`, `leaveTypeId`, `department` (code), `page`, `pageSize` | [`leaves.list.response.json`](api-examples/leaves.list.response.json), including `counts` per status for the tabs |
 | `GET /leaves/{id}` | — | [`leaves.get.response.json`](api-examples/leaves.get.response.json) |
-| `POST /leaves` | [`leaves.create.request.json`](api-examples/leaves.create.request.json) | The created leave |
-| `PATCH /leaves/{id}` | Same body as create | The updated leave. **Pending leave only**: otherwise 409 `LEAVE_NOT_EDITABLE`. |
+| `POST /leaves` | [`leaves.create.request.json`](api-examples/leaves.create.request.json); optional `splitExcessAsUnpaid: true` ([`leaves.create-split.request.json`](api-examples/leaves.create-split.request.json)) | The created leave. Casual beyond the balance: 422 `INSUFFICIENT_LEAVE_BALANCE` unless `splitExcessAsUnpaid` is set (see below). |
+| `PATCH /leaves/{id}` | Same body as create (including `splitExcessAsUnpaid`) | The updated leave. **Pending leave only**: otherwise 409 `LEAVE_NOT_EDITABLE`. |
 | `PATCH /leaves/{id}/status` | [`leaves.status.request.json`](api-examples/leaves.status.request.json) `{ "status": "approved" \| "rejected" \| "cancelled" }` | The updated leave |
-| `POST /leaves/preview` | [`leaves.preview.request.json`](api-examples/leaves.preview.request.json) (`leaveId` is set when editing) | [`leaves.preview.response.json`](api-examples/leaves.preview.response.json) `{ days, balanceBefore, balanceAfter }` |
-| `GET /leave-types` | — | [`leave-types.response.json`](api-examples/leave-types.response.json) |
+| `POST /leaves/preview` | [`leaves.preview.request.json`](api-examples/leaves.preview.request.json) (`leaveId` is set when editing) | [`leaves.preview.response.json`](api-examples/leaves.preview.response.json) `{ days, paidDays, unpaidDays, availableCasual }` (changed 2026-10-05) |
+| `GET /leave-balances` | Query: `search` (name or EC number), `department` (code), `page`, `pageSize` | [`leave-balances.response.json`](api-examples/leave-balances.response.json): `{ items: [{ employee, balance }], total, page, pageSize, summary }`. **Active employees only**, sorted by name; each `balance` is the same object as `GET /employees/{id}/leave-balance`. `summary` sums `accrued`, `used`, `pending`, `remaining` and `unpaidTaken` over **every** matching employee (not just the page) and gives their count as `employees`. (added 2026-10-05) |
+| `GET /leave-types` | — | [`leave-types.response.json`](api-examples/leave-types.response.json): only `casual` (paid, has a balance) and `unpaid` (`isPaid: false`, no balance) |
 | `GET /leave-calendar` | `month=YYYY-MM`, `employeeId` (*V2*) | [`leave-calendar.response.json`](api-examples/leave-calendar.response.json): company holidays (with `id`) and **that employee's** weekly offs (`weeklyOffDays` from the schedule on the 1st, and the exact `weekOffDates`, which also cover a mid-month schedule change), for the date picker. Without `employeeId`, no weekly offs. |
 
 - **`status` on create:** an admin adding leave may create it directly as `approved` (the design default) or as `pending`. **(confirm)**
 - **`canDecide` / `canChange`** on a leave tell the app which actions to show. The backend decides both.
 - **Editing** is allowed only while a leave is `pending` (*V2*). Approved leave can still be cancelled; it can't be edited. There's no special correction path for approved or rejected leave yet.
+- **Leave types (2026-10-05):** only **Casual** (paid) and **Unpaid**. Sick and Earned are retired; see `DATABASE_V2.md` §6 step 9 for existing records.
+- **Leave fields (2026-10-05):** `isPaid` (from the type), `balanceAfter` (Casual days left after this leave, counting Casual leave in date order; `null` for Unpaid, rejected and cancelled leave), and `unpaidPartId` (on the Casual part of a split, the id of its Unpaid part; otherwise `null`).
+- **Balance (2026-10-05):** calculated on every request, never stored. `remaining = accrued − used − pending`; `used` is approved Casual days (including leave booked for later dates), `pending` is pending Casual days (reserved), `unpaidTaken` is approved Unpaid days. Rules in `DATABASE_V2.md` §3.7.
+- **Preview:** `paidDays` is how much Casual can cover, `unpaidDays` the rest (all of it for Unpaid leave), `availableCasual` the Casual days available for those dates (`null` for Unpaid). When `unpaidDays > 0` for Casual, the app offers "Save the extra days as Unpaid".
+- **`splitExcessAsUnpaid: true`:** the server saves the covered days as Casual and the **latest** days as a separate Unpaid leave (same reason, remarks and status), both in one transaction. The Casual leave ends on its last covered working day; the Unpaid one starts on the next working day. If no Casual day is available, the whole leave is saved as Unpaid. The response is the Casual part (with `unpaidPartId`), or the Unpaid leave when nothing was paid. Without the flag, the API returns 422 `INSUFFICIENT_LEAVE_BALANCE` with a message saying how many days are available.
 
 ### Working schedules (*V2*)
 
@@ -226,6 +248,23 @@ Adding, moving or deleting a holiday recalculates attendance and leave days on t
 
 There are **no roles**: each staff user has their own list of permissions (changed 2026-10-02 at the client's request). One permission, `permission.manage`, covers everything on this page, because anyone who can set permissions could grant themselves the rest.
 
+**Users and employees are separate (2026-10-05).**
+
+| | User (`/users`) | Employee (`/employees`) |
+|---|---|---|
+| What it is | A staff login account for this portal | A person on the payroll |
+| Holds | Name, login email, active flag, permissions | EC number, name, mobile, department, position, joining date, status |
+| Owns | Sign-in and access control | Schedule, attendance, leave, overtime, calendar |
+
+**Linked employee** (`employeeId` on a user, `employee` summary in responses) is an **optional, informational** link saying "this login belongs to that employee record", e.g. user *Nisha Solanki* → employee record *Nisha Solanki*.
+
+- **Database:** `users.employee_id`, nullable and unique (one login per employee at most). See `DATABASE_V2.md` §2.4.
+- **Why it exists:** so admins can see which staff logins belong to which employees, and so a future self-service feature (e.g. an employee viewing their own leave) has the link ready.
+- **What uses it today:** only display: the Users list, the user's access page and the user form. Permissions come only from `user_permissions`. Attendance, leave, overtime and calendars belong to the employee record and never to the user. Employees don't sign in.
+- **Not linked:** the user works exactly the same; the link only adds context. Unlinking (`employeeId: null`) or deactivating either side changes nothing else.
+- **No duplication:** a user never copies employee data (EC number, department, position and so on). Responses carry the employee summary from the employee record.
+- Removing employee email (above) doesn't affect it: the link is by id, and login emails stay on users.
+
 | Method & path | Request | Response |
 |---|---|---|
 | `GET /permissions` | — | [`permissions.response.json`](api-examples/permissions.response.json): the catalogue, grouped by module, for the permission list |
@@ -248,7 +287,6 @@ Every endpoint except login checks the caller's permission and returns 403 with 
 | Endpoints | Permission |
 |---|---|
 | `GET /dashboard/*` | `dashboard.view` |
-| `GET /departments*` | any signed-in user |
 | `GET /employees`, `GET /employees/{id}`, `GET /employees/{id}/schedules`, `GET /employees/{id}/leave-balance`, `GET /employees/{id}/leaves`, `GET /employees/next-ec-number` | `employee.view` |
 | `POST /employees` | `employee.create` |
 | `PATCH /employees/{id}` | `employee.edit` |
@@ -259,7 +297,7 @@ Every endpoint except login checks the caller's permission and returns 403 with 
 | `POST /attendance`, `PATCH /attendance/{id}` | `attendance.correct` |
 | `GET /employees/{id}/overtime` | `overtime.view` |
 | `GET /employees/{id}/calendar*` | `calendar.view` |
-| `GET /leaves*`, `GET /leave-types`, `GET /leave-calendar` | `leave.view` |
+| `GET /leaves*`, `GET /leave-balances`, `GET /leave-types`, `GET /leave-calendar` | `leave.view` |
 | `POST /leaves`, `POST /leaves/preview` | `leave.create` (preview also with `leave.edit`) |
 | `PATCH /leaves/{id}` | `leave.edit` (and the leave must be pending) |
 | `PATCH /leaves/{id}/status` | `leave.approve` for `approved` / `rejected`; `leave.cancel` for `cancelled` |
@@ -276,13 +314,13 @@ The app does **not** compute any of these. It displays what the API returns.
 The dev mock only imitates them with sample values.
 
 1. **EC numbers:** they must be unique, and `next-ec-number` returns the next free one. A duplicate returns 409 or 422 with `errors.ecNumber`.
-2. **Employee email:** must be unique. A duplicate returns `errors.email`.
+2. **Employee email:** removed; employees have no email (§ Employees).
 3. **Attendance status and "late":** each employee has their own schedule (*V2*). Late means after their start time plus 15 minutes. Holidays and weekly offs are never absent. See `DATABASE_V2.md` §3.
 4. **Worked, expected and overtime minutes, and `workedPercent`** (of the expected minutes): all come from the backend, including for open punches (`DATABASE_V2.md` §3.3).
 5. **Who "Punch in all" covers:** active employees who have not punched in and are not on leave. **(confirm)**
 6. **Leave days:** the employee's working days in the range, excluding their weekly offs and company holidays, with half days counted as 0.5. A holiday added later inside approved leave gives that day back to the balance.
-7. **Balances:** quotas, carry-forward, and which types have a balance (`hasBalance`). The mock uses 12 / 8 / 15. **(confirm)**
-8. **Leave validation:** overlaps with the employee's existing leave, insufficient balance, and end before start. These return field `errors` (`startDate`, `endDate`, `leaveTypeId`).
+7. **Casual balance (approved 2026-10-05):** 1 day earned per month, carried forward without a cap or year-end reset, and no using a future month's day. Pending leave reserves balance. See `DATABASE_V2.md` §3.7. **(confirm the policy start month)**
+8. **Leave validation:** overlaps with the employee's existing leave and end before start return field `errors` (`startDate`, `endDate`, `leaveTypeId`). Casual beyond the balance returns 422 `INSUFFICIENT_LEAVE_BALANCE` (no field errors) unless `splitExcessAsUnpaid` is set.
 9. **Leave status transitions:** only `pending` → `approved`/`rejected`, and `pending`/`approved` → `cancelled`. Invalid transitions return 409. Edits are allowed only while pending (`LEAVE_NOT_EDITABLE`).
 10. **Dashboard percentages and counts:** computed server-side for the requested date or month, among employees scheduled to work (see Dashboard above).
 11. **Deactivation effects:** inactive employees are excluded from attendance and from new leave. **(confirm)**

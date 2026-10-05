@@ -6,8 +6,8 @@
         "id": "8",
         "name": "Dhruv Parmar",
         "ecNumber": "KC1022",
-        "department": "Sales",
-        "designation": "Sales executive"
+        "department": "graphic_designer",
+        "position": "tailor"
       },
       "leaveType": {
         "id": "casual",
@@ -20,7 +20,10 @@
       "reason": "family_function",
       "remarks": null,
       "status": "pending",
-      "addedBy": "Employee request"
+      "addedBy": "Employee request",
+      "isPaid": true,
+      "balanceAfter": 4,
+      "unpaidPartId": null
     }
   ],
   "total": 48,

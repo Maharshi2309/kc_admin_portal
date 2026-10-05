@@ -25,7 +25,7 @@ import 'package:kc_admin_portal/features/attendance/presentation/widgets/attenda
 import 'package:kc_admin_portal/features/attendance/presentation/widgets/day_picker.dart';
 import 'package:kc_admin_portal/features/attendance/presentation/widgets/status_filter_tiles.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/permission_providers.dart';
-import 'package:kc_admin_portal/features/master_data/presentation/providers/master_data_providers.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 
 /// Daily attendance (design board 06): pick a day, filter by status tile,
 /// punch employees in and out, and correct records.
@@ -209,7 +209,6 @@ class _ListCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final query = ref.watch(attendanceQueryProvider);
     final notifier = ref.read(attendanceQueryProvider.notifier);
-    final departments = ref.watch(departmentsProvider).value ?? const [];
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -235,13 +234,13 @@ class _ListCard extends ConsumerWidget {
                     onSubmitted: notifier.applySearch,
                   ),
                 ),
-                AppFilterDropdown<String>(
+                AppFilterDropdown<JobRole>(
                   label: 'Department',
-                  value: query.departmentId,
+                  value: query.department,
                   onChanged: notifier.setDepartment,
                   items: [
-                    for (final d in departments)
-                      AppDropdownItem(value: d.id, label: d.name),
+                    for (final d in JobRole.choices)
+                      AppDropdownItem(value: d, label: d.label),
                   ],
                 ),
               ],

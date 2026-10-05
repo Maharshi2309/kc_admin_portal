@@ -31,6 +31,13 @@ marked **(confirm)**.
 
 ## 2. Tables
 
+### 2.0 `employees` (changed 2026-10-05)
+
+| Change | Notes |
+|---|---|
+| **Drop `email`** (and its unique index) | Employees have no email. Logins are staff **users** with their own `users.email`, which stays. Nothing else references `employees.email`. |
+| **`department`, `position`** replace `department_id`, `designation_id` | Each is an enum or `VARCHAR` with a CHECK in (`accountant`, `graphic_designer`, `tailor`). They are independent of each other. Drop the `departments` and `designations` tables after migrating. |
+
 ### 2.1 `employee_work_schedules` (new)
 
 A schedule is **versioned**: a change adds a new row from its effective date,
@@ -105,11 +112,11 @@ There are **no roles**: each staff user has their own permissions (changed 2026-
 
 **`user_permissions`** (new) has the primary key `(user_id, permission_key)`: what each user may do.
 
-**`users`** (extended). These are staff login accounts; employees don't sign in.
+**`users`** (extended). These are staff login accounts; employees don't sign in. A user stores no employee data (EC number, department, position and so on); those live only on `employees`.
 
 | Column | Type | Notes |
 |---|---|---|
-| `employee_id` | FK → employees NULL, UNIQUE | Optional link to an employee record |
+| `employee_id` | FK → employees NULL, UNIQUE | Optional, informational link to the employee record of the same person (API_CONTRACT § Users and employees). Nothing else depends on it. Keep it `ON DELETE SET NULL`, although employees are deactivated rather than deleted. |
 | `is_active` | BOOLEAN DEFAULT true | Inactive users can't sign in. |
 | `last_sign_in_at` | timestamptz NULL | |
 
@@ -136,12 +143,25 @@ The application's database user has INSERT and SELECT only on this table.
 ```
 employees 1─* employee_work_schedules
 employees 1─* attendance_records *─0..1 employee_work_schedules
-employees 1─* leaves
+employees 1─* leaves *─1 leave_types
+leaves 0..1─0..1 leaves (unpaid_part_of)
+employees 1─* leave_balance_adjustments
 users *─* permissions (user_permissions)
 users 0..1─0..1 employees
 audit_logs *─1 users (actor), *─0..1 employees
 company_holidays (stand-alone; joined by date)
 ```
+
+### 2.7 Leave types and balance (2026-10-05)
+
+| Change | Notes |
+|---|---|
+| **`leave_types`** keeps only `casual` (`is_paid = true`, `has_balance = true`) and `unpaid` (`is_paid = false`, `has_balance = false`) | Add `is_paid BOOLEAN NOT NULL`. Retire `sick` and `earned` (step 9 of §6). Drop any per-type quota column: the balance is not a quota. |
+| **`leaves.unpaid_part_of`** `UUID NULL` → `leaves.id` | Set on the Unpaid part of a split leave, pointing to its Casual part. The API exposes the reverse as `unpaidPartId`. |
+| **`leave_balance_adjustments`** (new) | `id`, `employee_id` → employees, `days NUMERIC(5,1)` (positive or negative, in 0.5 steps), `effective_month DATE` (1st of a month), `reason TEXT NOT NULL`, `created_by` → users, `created_at`. For opening balances and corrections; counts as accrued from `effective_month`. Audited. |
+| **Company setting `leave_accrual_start_month`** | The first month that earns Casual leave (the mock uses January 2026). **(confirm)** |
+
+There is **no stored balance column**: §3.7 calculates it from these rows.
 
 ---
 
@@ -216,6 +236,24 @@ Also:
 
 The app shows minutes as days using the basis. For example, with a 450-minute basis, 600 minutes is 1 day 150 minutes, shown as "1 day 2 h 30 m".
 
+### 3.7 Casual leave balance (approved 2026-10-05)
+
+One backend function, `casualBalance(employeeId, asOf)`, used by
+`/employees/{id}/leave-balance`, the preview, create, update and status
+changes. Nothing is stored.
+
+- **Earned** `accrued(M)` up to and including month M = 1 × the months from the **start month** to M, plus `leave_balance_adjustments` with `effective_month ≤ M`. The start month is the later of `leave_accrual_start_month` and the joining month (the joining month counts in full, whatever the day).
+- **No accrual while inactive:** months in which the employee is inactive for the whole month don't count. **(confirm the partial-month rule)**
+- **No cap and no year-end reset:** unused days carry forward.
+- **Leave days** are counted as in rule 6 of the API contract (working days only, half days 0.5).
+- **Which leave counts:** Casual leave that is `approved` or `pending`. Rejected and cancelled leave gives its days back.
+- **No future months:** for **every** month M, the Casual days **dated** up to the end of M must not exceed `accrued(M)`. It only needs checking for months that have Casual leave. Booking ahead is fine once that month's days cover it: in March, 3 days for June (6 earned by June) are allowed.
+  - Example: 1 day per month from January, nothing used. In March 3 days are allowed, 4 are refused. In January 2 days are refused (the second would be February's).
+- **Insufficient balance** on create or update (pending leave already holds its days, so approving it can't go over): 422 `INSUFFICIENT_LEAVE_BALANCE`, unless `splitExcessAsUnpaid` is set on create/update. With the flag, the **longest run from the first day** that fits stays Casual and the remaining (latest) days become an Unpaid leave linked by `unpaid_part_of`.
+- **Response figures:** `accrued` = `accrued(current month)`; `used` = approved Casual days; `pending` = pending Casual days; `remaining = accrued − used − pending` (it can be lower than what's free for a later month, since later months add days); `unpaidTaken` = approved Unpaid days; `balanceAfter` on a leave = `accrued(month of its end date)` − Casual days dated up to its end date.
+- **Lists and totals:** `GET /leave-balances` and the dashboard's `casualRemainingDays` run the same function per active employee. With few employees this is cheap; if it gets slow, cache per employee and clear the cache on any change to that employee's leave, holidays, schedule or adjustments.
+- **Concurrency:** check and save in one transaction, locking the employee's leave rows (`SELECT … FOR UPDATE`), so two requests can't spend the same day.
+
 ---
 
 ## 4. Permissions and authorization
@@ -281,6 +319,9 @@ holds who punched and when. **(confirm)**
 4. **Holidays:** move any existing holiday data (the source of `/leave-calendar`) into `company_holidays`.
 5. **Snapshots:** run `computeDay` for all existing attendance records, in batches.
 6. **Deploy the backend first.** The old app keeps working; the new fields are optional for it. Then release the app, which needs `permissions` in `/auth/me` and `/auth/login`.
+7. **Employee email (2026-10-05):** drop `employees.email` after deploying the backend that no longer reads it. No data moves: user logins keep their own email.
+8. **Department and position (2026-10-05):** add the two columns and fill them from today's department and designation using a mapping **the client provides (confirm)**. Employees without a mapping are listed for an admin to set. Then drop `department_id`, `designation_id`, `departments` and `designations`.
+9. **Leave types (2026-10-05):** add `leave_types.is_paid`, `leaves.unpaid_part_of`, `leave_balance_adjustments` and the `leave_accrual_start_month` setting. Move existing Sick and Earned leave to Casual or Unpaid using a mapping **the client provides (confirm)**, then retire those types. Existing Casual leave dated before the start month needs an opening adjustment so balances don't go negative **(confirm the opening balances)**.
 
 ---
 
@@ -288,4 +329,7 @@ holds who punched and when. **(confirm)**
 
 - **Password setup for new staff users:** the app never sends passwords for other users. Assumed: `POST /users` emails an invitation link where the user sets their password. **(confirm)**
 - **Break length of the current global shift,** for migration step 3. **(confirm)**
+- **Casual leave start month** (`leave_accrual_start_month`), opening balances, and the mapping of existing Sick/Earned leave (§2.7, §6 step 9). **(confirm)**
+- **Inactive employees on the Balances list:** left out (they earn nothing while inactive). **(confirm)**
+- **Inactive months:** whether a partly inactive month still earns its Casual day (§3.7). **(confirm)**
 - **Punch auditing:** whether punches need audit rows (§5). **(confirm)**

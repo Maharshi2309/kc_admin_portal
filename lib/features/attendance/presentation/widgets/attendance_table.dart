@@ -8,7 +8,7 @@ import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
-import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/widgets/app_avatar.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
 import 'package:kc_admin_portal/core/widgets/app_icon_button.dart';
@@ -117,7 +117,7 @@ class _EmployeeCell extends ConsumerWidget {
               Text(
                 [
                   employee.ecNumber,
-                  ?employee.department,
+                  ?employee.department?.label,
                   ?_shiftText(record),
                 ].join(' · '),
                 overflow: TextOverflow.ellipsis,
@@ -181,21 +181,13 @@ class _WorkedCell extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: AppSpacing.s4,
       children: [
-        Text.rich(
-          TextSpan(
-            text: FormatUtils.duration(minutes),
-            children: [
-              if (expected > 0)
-                TextSpan(
-                  text: ' of ${FormatUtils.duration(expected)}',
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textMuted,
-                  ),
-                ),
-            ],
+        Text(DurationFormat.full(minutes), style: AppTextStyles.body),
+        // On its own line, so "of 8 Hours" never breaks in two.
+        if (expected > 0)
+          Text(
+            'of ${DurationFormat.full(expected)}',
+            style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
           ),
-          style: AppTextStyles.body,
-        ),
         if (record.workedPercent != null)
           SizedBox(
             width: _barWidth,
@@ -230,9 +222,9 @@ class _StatusCell extends StatelessWidget {
       spacing: AppSpacing.s4,
       children: [
         AttendanceStatusBadge(record.status),
-        if (record.note != null)
+        if (record.displayNote != null)
           Text(
-            record.note!,
+            record.displayNote!,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
           ),
@@ -364,8 +356,8 @@ class _MobileItem extends StatelessWidget {
       if (record.punchIn != null) 'In ${AppDateFormat.time(record.punchIn!)}',
       if (record.punchOut != null)
         'Out ${AppDateFormat.time(record.punchOut!)}',
-      if (worked != null) FormatUtils.duration(worked),
-      ?record.note,
+      if (worked != null) DurationFormat.full(worked),
+      ?record.displayNote,
     ].join(' · ');
     final overtime = record.overtimeMinutes ?? 0;
     final hasExtras =

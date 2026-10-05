@@ -156,8 +156,8 @@ class _Results extends ConsumerWidget {
                           id: e.id,
                           name: e.name,
                           ecNumber: e.ecNumber,
-                          department: e.department.name,
-                          designation: e.designation.name,
+                          department: e.department,
+                          position: e.position,
                         ),
                       ),
                       child: Padding(
@@ -174,7 +174,7 @@ class _Results extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              '${e.ecNumber} · ${e.department.name}',
+                              '${e.ecNumber} · ${e.department.label}',
                               style: muted,
                             ),
                           ],
@@ -220,7 +220,7 @@ class _SelectedCard extends StatelessWidget {
               children: [
                 Text(employee.name, style: AppTextStyles.bodyBold),
                 Text(
-                  [employee.ecNumber, ?employee.designation].join(' · '),
+                  [employee.ecNumber, ?employee.position?.label].join(' · '),
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.textMuted,
                   ),

@@ -7,6 +7,7 @@ import 'package:kc_admin_portal/features/attendance/data/models/attendance_model
 import 'package:kc_admin_portal/features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'package:kc_admin_portal/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:kc_admin_portal/features/attendance/presentation/providers/attendance_providers.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/fake_auth.dart';
@@ -58,9 +59,12 @@ void main() {
       final container = createTestContainer();
       container.read(attendanceQueryProvider.notifier)
         ..setSearch('ish')
-        ..setDepartment('it');
+        ..setDepartment(JobRole.graphicDesigner);
       expect(container.read(attendanceQueryProvider).search, '');
-      expect(container.read(attendanceQueryProvider).departmentId, 'it');
+      expect(
+        container.read(attendanceQueryProvider).department,
+        JobRole.graphicDesigner,
+      );
 
       await Future<void>.delayed(
         AttendanceQueryNotifier.searchDebounce +

@@ -12,10 +12,17 @@ _EmployeeModel _$EmployeeModelFromJson(
   id: idFromJson(json['id']),
   ecNumber: json['ecNumber'] as String,
   name: json['name'] as String,
-  email: json['email'] as String,
   mobile: json['mobile'] as String,
-  department: NamedRef.fromJson(json['department'] as Map<String, dynamic>),
-  designation: NamedRef.fromJson(json['designation'] as Map<String, dynamic>),
+  department: $enumDecode(
+    _$JobRoleEnumMap,
+    json['department'],
+    unknownValue: JobRole.unknown,
+  ),
+  position: $enumDecode(
+    _$JobRoleEnumMap,
+    json['position'],
+    unknownValue: JobRole.unknown,
+  ),
   joiningDate: const DateOnlyConverter().fromJson(
     json['joiningDate'] as String,
   ),
@@ -37,6 +44,7 @@ _EmployeeModel _$EmployeeModelFromJson(
   schedule: json['schedule'] == null
       ? null
       : WorkScheduleModel.fromJson(json['schedule'] as Map<String, dynamic>),
+  overtimeMinutesThisYear: (json['overtimeMinutesThisYear'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$EmployeeModelToJson(_EmployeeModel instance) =>
@@ -44,10 +52,9 @@ Map<String, dynamic> _$EmployeeModelToJson(_EmployeeModel instance) =>
       'id': instance.id,
       'ecNumber': instance.ecNumber,
       'name': instance.name,
-      'email': instance.email,
       'mobile': instance.mobile,
-      'department': instance.department.toJson(),
-      'designation': instance.designation.toJson(),
+      'department': _$JobRoleEnumMap[instance.department]!,
+      'position': _$JobRoleEnumMap[instance.position]!,
       'joiningDate': const DateOnlyConverter().toJson(instance.joiningDate),
       'status': _$EmployeeStatusEnumMap[instance.status]!,
       'todayStatus': _$AttendanceDayStatusEnumMap[instance.todayStatus],
@@ -57,7 +64,15 @@ Map<String, dynamic> _$EmployeeModelToJson(_EmployeeModel instance) =>
       ),
       'updatedBy': instance.updatedBy,
       'schedule': instance.schedule?.toJson(),
+      'overtimeMinutesThisYear': instance.overtimeMinutesThisYear,
     };
+
+const _$JobRoleEnumMap = {
+  JobRole.accountant: 'accountant',
+  JobRole.graphicDesigner: 'graphic_designer',
+  JobRole.tailor: 'tailor',
+  JobRole.unknown: 'unknown',
+};
 
 const _$EmployeeStatusEnumMap = {
   EmployeeStatus.active: 'active',
@@ -90,10 +105,9 @@ _EmployeeFormData _$EmployeeFormDataFromJson(Map<String, dynamic> json) =>
     _EmployeeFormData(
       ecNumber: json['ecNumber'] as String,
       name: json['name'] as String,
-      email: json['email'] as String,
       mobile: json['mobile'] as String,
-      departmentId: json['departmentId'] as String,
-      designationId: json['designationId'] as String,
+      department: $enumDecode(_$JobRoleEnumMap, json['department']),
+      position: $enumDecode(_$JobRoleEnumMap, json['position']),
       joiningDate: DateTime.parse(json['joiningDate'] as String),
       status: $enumDecode(_$EmployeeStatusEnumMap, json['status']),
       schedule: json['schedule'] == null
@@ -107,10 +121,9 @@ Map<String, dynamic> _$EmployeeFormDataToJson(_EmployeeFormData instance) =>
     <String, dynamic>{
       'ecNumber': instance.ecNumber,
       'name': instance.name,
-      'email': instance.email,
       'mobile': instance.mobile,
-      'departmentId': instance.departmentId,
-      'designationId': instance.designationId,
+      'department': _$JobRoleEnumMap[instance.department]!,
+      'position': _$JobRoleEnumMap[instance.position]!,
       'joiningDate': dateToJson(instance.joiningDate),
       'status': _$EmployeeStatusEnumMap[instance.status]!,
       'schedule': ?instance.schedule?.toJson(),
@@ -168,6 +181,8 @@ _LeaveHistoryItemModel _$LeaveHistoryItemModelFromJson(
     json['status'],
     unknownValue: LeaveStatus.unknown,
   ),
+  isPaid: json['isPaid'] as bool? ?? true,
+  balanceAfter: (json['balanceAfter'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$LeaveHistoryItemModelToJson(
@@ -180,6 +195,8 @@ Map<String, dynamic> _$LeaveHistoryItemModelToJson(
   'days': instance.days,
   'reason': instance.reason,
   'status': _$LeaveStatusEnumMap[instance.status]!,
+  'isPaid': instance.isPaid,
+  'balanceAfter': instance.balanceAfter,
 };
 
 const _$LeaveStatusEnumMap = {

@@ -8,6 +8,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
@@ -23,6 +25,7 @@ import 'package:kc_admin_portal/features/users/data/models/user_account_models.d
 import 'package:kc_admin_portal/shared/models/audit_entry_model.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
 
@@ -96,10 +99,9 @@ void main() {
       final body = EmployeeFormData(
         ecNumber: 'KC1129',
         name: 'Rahul Sharma',
-        email: 'rahul.sharma@keshav.in',
         mobile: '9876543210',
-        departmentId: '4',
-        designationId: '21',
+        department: JobRole.graphicDesigner,
+        position: JobRole.graphicDesigner,
         joiningDate: _sep28,
         status: EmployeeStatus.active,
         schedule: schedule,
@@ -111,10 +113,9 @@ void main() {
       final body = EmployeeFormData(
         ecNumber: 'KC1129',
         name: 'Rahul Sharma',
-        email: 'rahul.sharma@keshav.in',
         mobile: '9876543210',
-        departmentId: '4',
-        designationId: '21',
+        department: JobRole.graphicDesigner,
+        position: JobRole.graphicDesigner,
         joiningDate: _sep28,
         status: EmployeeStatus.active,
       ).toJson();
@@ -355,6 +356,19 @@ void main() {
       expect(error, isA<ValidationException>());
       expect((error as ValidationException).code, 'LEAVE_NOT_EDITABLE');
       expect(error.message, 'Only pending leave can be edited.');
+    });
+
+    test('Casual beyond the balance is a 422 with a code', () {
+      final error = ErrorHandler.fromResponse(
+        422,
+        _example('error.insufficient-leave-balance.response.json'),
+      );
+      expect(error, isA<ValidationException>());
+      expect(
+        (error as ValidationException).code,
+        ApiConstants.insufficientLeaveBalanceCode,
+      );
+      expect(error.message, startsWith('Only 7 days of Casual leave'));
     });
 
     test('a missing permission is a 403 with the server message', () {

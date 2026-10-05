@@ -93,6 +93,9 @@ abstract final class AppRouteParams {
   /// Pre-selects an employee, e.g. `/leave/add?employeeId=42` from a profile.
   static const String employeeId = 'employeeId';
 
+  /// The Leave page's tab: `/leave?view=balances` (Requests otherwise).
+  static const String view = 'view';
+
   /// A calendar date, `YYYY-MM-DD`.
   static const String date = 'date';
 

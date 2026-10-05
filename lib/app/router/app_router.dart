@@ -297,7 +297,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutePaths.leave,
                 name: AppRouteNames.leave,
-                builder: (context, state) => const LeaveScreen(),
+                builder: (context, state) => LeaveScreen(
+                  view: LeaveView.fromQuery(
+                    state.uri.queryParameters[AppRouteParams.view],
+                  ),
+                ),
                 routes: [
                   GoRoute(
                     path: AppRoutePaths.add,

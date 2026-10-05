@@ -6,6 +6,7 @@ import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
@@ -136,13 +137,13 @@ class _Report extends StatelessWidget {
             if (expected != null)
               _Figure(
                 label: 'Expected',
-                value: FormatUtils.duration(expected),
+                value: DurationFormat.full(expected),
                 caption: 'By the working schedule',
               ),
             if (worked != null)
               _Figure(
                 label: 'Worked',
-                value: FormatUtils.duration(worked),
+                value: DurationFormat.full(worked),
                 caption: expected == null || expected == 0
                     ? 'Including holiday and week-off work'
                     : '${FormatUtils.percent(worked * 100 / expected)} of '
@@ -150,12 +151,12 @@ class _Report extends StatelessWidget {
               ),
             _Figure(
               label: 'Overtime',
-              value: total.short,
-              semanticValue: total.long,
+              value: total.full,
+              semanticValue: total.full,
               caption: total.hasDayLength
-                  ? '${FormatUtils.duration(report.totalMinutes)} · a day '
-                        'is ${FormatUtils.duration(report.dayBasisMinutes)}'
-                  : FormatUtils.duration(report.totalMinutes),
+                  ? '${DurationFormat.full(report.totalMinutes)} · a day '
+                        'is ${DurationFormat.full(report.dayBasisMinutes)}'
+                  : DurationFormat.full(report.totalMinutes),
               highlight: true,
             ),
           ],
@@ -235,7 +236,7 @@ class _Months extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String time(int? minutes) =>
-        minutes == null ? '—' : FormatUtils.duration(minutes);
+        minutes == null ? '—' : DurationFormat.full(minutes);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: AppSpacing.s8,
@@ -254,7 +255,7 @@ class _Months extends StatelessWidget {
               ),
               Text(
                 'Worked ${time(m.workedMinutes)} · '
-                'overtime ${FormatUtils.duration(m.minutes)}',
+                'overtime ${DurationFormat.full(m.minutes)}',
                 style: AppTextStyles.small,
               ),
             ],
@@ -271,19 +272,19 @@ class _Months extends StatelessWidget {
             ),
             AppDataColumn(
               label: 'Expected',
-              minWidth: 100,
+              minWidth: 150,
               cellBuilder: (context, m) => Text(time(m.expectedMinutes)),
             ),
             AppDataColumn(
               label: 'Worked',
-              minWidth: 100,
+              minWidth: 150,
               cellBuilder: (context, m) => Text(time(m.workedMinutes)),
             ),
             AppDataColumn(
               label: 'Overtime',
-              minWidth: 100,
+              minWidth: 150,
               cellBuilder: (context, m) => Text(
-                FormatUtils.duration(m.minutes),
+                DurationFormat.full(m.minutes),
                 style: AppTextStyles.bodySemibold,
               ),
             ),
@@ -320,7 +321,7 @@ class _DaysState extends State<_Days> {
     }
     final shown = _all ? days : days.take(_preview).toList();
     String asDays(OvertimeDayModel d) =>
-        OvertimeDays.of(d.overtimeMinutes, dayMinutes: d.dayBasisMinutes).short;
+        OvertimeDays.of(d.overtimeMinutes, dayMinutes: d.dayBasisMinutes).full;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -336,43 +337,34 @@ class _DaysState extends State<_Days> {
         ResponsiveDataView<OvertimeDayModel>(
           rows: shown,
           rowKey: (d) => d.date.toIso8601String(),
-          mobileItemBuilder: (context, d) => Row(
-            spacing: AppSpacing.s12,
+          // Stacked: full durations are too long to sit side by side.
+          mobileItemBuilder: (context, d) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: AppSpacing.s4,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: AppSpacing.s4,
-                  children: [
-                    Text(
-                      AppDateFormat.long(d.date),
-                      style: AppTextStyles.bodySemibold,
-                    ),
-                    Text(
-                      'Worked ${FormatUtils.duration(d.workedMinutes)} of '
-                      '${FormatUtils.duration(d.expectedMinutes)}',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    DayKindBadge(d.dayKind),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Wrap(
+                spacing: AppSpacing.s8,
+                runSpacing: AppSpacing.s4,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
-                    FormatUtils.duration(d.overtimeMinutes),
+                    AppDateFormat.long(d.date),
                     style: AppTextStyles.bodySemibold,
                   ),
-                  Text(
-                    asDays(d),
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textMuted,
-                    ),
-                  ),
+                  DayKindBadge(d.dayKind),
                 ],
+              ),
+              Text(
+                'Overtime ${DurationFormat.full(d.overtimeMinutes)} '
+                '(${asDays(d)})',
+                style: AppTextStyles.small,
+              ),
+              Text(
+                'Worked ${DurationFormat.full(d.workedMinutes)} of '
+                '${DurationFormat.full(d.expectedMinutes)}',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textMuted,
+                ),
               ),
             ],
           ),
@@ -396,28 +388,28 @@ class _DaysState extends State<_Days> {
             ),
             AppDataColumn(
               label: 'Expected',
-              minWidth: 90,
+              minWidth: 150,
               priority: 1,
               cellBuilder: (context, d) =>
-                  Text(FormatUtils.duration(d.expectedMinutes)),
+                  Text(DurationFormat.full(d.expectedMinutes)),
             ),
             AppDataColumn(
               label: 'Worked',
-              minWidth: 90,
+              minWidth: 150,
               cellBuilder: (context, d) =>
-                  Text(FormatUtils.duration(d.workedMinutes)),
+                  Text(DurationFormat.full(d.workedMinutes)),
             ),
             AppDataColumn(
               label: 'Overtime',
-              minWidth: 90,
+              minWidth: 150,
               cellBuilder: (context, d) => Text(
-                FormatUtils.duration(d.overtimeMinutes),
+                DurationFormat.full(d.overtimeMinutes),
                 style: AppTextStyles.bodySemibold,
               ),
             ),
             AppDataColumn(
               label: 'As days',
-              minWidth: 120,
+              minWidth: 170,
               priority: 1,
               cellBuilder: (context, d) => Text(asDays(d)),
             ),

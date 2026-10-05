@@ -187,7 +187,8 @@ void main() {
       );
       final late = _compute(_thursday, punchIn: _t(_thursday, 9, 16));
       expect(late.status, AttendanceDayStatus.late);
-      expect(late.note, '16 min late');
+      expect(late.lateMinutes, 16);
+      expect(late.note, isNull); // durations are never text
     });
 
     test('no punch on a working day is absent', () {

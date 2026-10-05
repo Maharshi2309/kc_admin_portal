@@ -134,8 +134,8 @@ class MockAccessStore {
     id: e.id,
     name: e.name,
     ecNumber: e.ecNumber,
-    department: e.department.name,
-    designation: e.designation.name,
+    department: e.department,
+    position: e.position,
   );
 
   List<UserAccountModel> get users => List.unmodifiable(_users);

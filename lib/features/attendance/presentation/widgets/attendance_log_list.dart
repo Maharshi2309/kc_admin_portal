@@ -8,7 +8,7 @@ import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
-import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/widgets/app_empty_view.dart';
 import 'package:kc_admin_portal/core/widgets/app_icon_button.dart';
 import 'package:kc_admin_portal/core/widgets/async_value_view.dart';
@@ -129,7 +129,7 @@ class AttendanceLogList extends ConsumerWidget {
             cellBuilder: (context, r) => Text(
               r.workedMinutes == null
                   ? '—'
-                  : FormatUtils.duration(r.workedMinutes!),
+                  : DurationFormat.full(r.workedMinutes!),
             ),
           ),
           AppDataColumn(

@@ -30,6 +30,7 @@ _AttendanceRecordModel _$AttendanceRecordModelFromJson(
     unknownValue: AttendanceDayStatus.unknown,
   ),
   note: json['note'] as String?,
+  lateMinutes: (json['lateMinutes'] as num?)?.toInt(),
   correctedBy: json['correctedBy'] as String?,
   correctedAt: _$JsonConverterFromJson<String, DateTime>(
     json['correctedAt'],
@@ -69,6 +70,7 @@ Map<String, dynamic> _$AttendanceRecordModelToJson(
   'workedPercent': instance.workedPercent,
   'status': _$AttendanceDayStatusEnumMap[instance.status]!,
   'note': instance.note,
+  'lateMinutes': instance.lateMinutes,
   'correctedBy': instance.correctedBy,
   'correctedAt': _$JsonConverterToJson<String, DateTime>(
     instance.correctedAt,

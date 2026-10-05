@@ -12,8 +12,16 @@ _EmployeeSummaryModel _$EmployeeSummaryModelFromJson(
   id: idFromJson(json['id']),
   name: json['name'] as String,
   ecNumber: json['ecNumber'] as String,
-  department: json['department'] as String?,
-  designation: json['designation'] as String?,
+  department: $enumDecodeNullable(
+    _$JobRoleEnumMap,
+    json['department'],
+    unknownValue: JobRole.unknown,
+  ),
+  position: $enumDecodeNullable(
+    _$JobRoleEnumMap,
+    json['position'],
+    unknownValue: JobRole.unknown,
+  ),
 );
 
 Map<String, dynamic> _$EmployeeSummaryModelToJson(
@@ -22,6 +30,13 @@ Map<String, dynamic> _$EmployeeSummaryModelToJson(
   'id': instance.id,
   'name': instance.name,
   'ecNumber': instance.ecNumber,
-  'department': instance.department,
-  'designation': instance.designation,
+  'department': _$JobRoleEnumMap[instance.department],
+  'position': _$JobRoleEnumMap[instance.position],
+};
+
+const _$JobRoleEnumMap = {
+  JobRole.accountant: 'accountant',
+  JobRole.graphicDesigner: 'graphic_designer',
+  JobRole.tailor: 'tailor',
+  JobRole.unknown: 'unknown',
 };

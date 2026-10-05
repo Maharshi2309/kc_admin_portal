@@ -22,7 +22,7 @@ abstract interface class EmployeeRepository {
   /// Activates or deactivates an employee.
   Future<EmployeeModel> setStatus(String id, EmployeeStatus status);
 
-  Future<List<LeaveBalanceModel>> leaveBalance(String id);
+  Future<LeaveBalanceModel> leaveBalance(String id);
 
   Future<List<LeaveHistoryItemModel>> leaveHistory(String id);
 

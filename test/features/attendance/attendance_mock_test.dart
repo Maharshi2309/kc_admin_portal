@@ -34,7 +34,7 @@ void main() {
       isTrue,
     );
     // Minutes late count from the employee's own start time.
-    expect(late.items.first.note, '38 min late');
+    expect(late.items.first.lateMinutes, 38);
   });
 
   group("each employee's own schedule", () {

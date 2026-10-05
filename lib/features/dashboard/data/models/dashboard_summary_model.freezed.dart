@@ -992,7 +992,11 @@ $EmployeeSummaryModelCopyWith<$Res> get employee {
 /// @nodoc
 mixin _$LeaveUsageModel {
 
- int get year; double get usedPercent; double get takenDays; double get remainingDays;
+ int get year;/// Casual days left today, summed over active employees.
+ double get casualRemainingDays;/// Approved Casual days dated in [year].
+ double get casualTakenDays;/// Approved Unpaid days dated in [year].
+ double get unpaidTakenDays;/// Leave requests whose dates overlap the current month, by status.
+ int get approvedThisMonth; int get pendingThisMonth; int get rejectedThisMonth;
 /// Create a copy of LeaveUsageModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1005,16 +1009,16 @@ $LeaveUsageModelCopyWith<LeaveUsageModel> get copyWith => _$LeaveUsageModelCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaveUsageModel&&(identical(other.year, year) || other.year == year)&&(identical(other.usedPercent, usedPercent) || other.usedPercent == usedPercent)&&(identical(other.takenDays, takenDays) || other.takenDays == takenDays)&&(identical(other.remainingDays, remainingDays) || other.remainingDays == remainingDays));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaveUsageModel&&(identical(other.year, year) || other.year == year)&&(identical(other.casualRemainingDays, casualRemainingDays) || other.casualRemainingDays == casualRemainingDays)&&(identical(other.casualTakenDays, casualTakenDays) || other.casualTakenDays == casualTakenDays)&&(identical(other.unpaidTakenDays, unpaidTakenDays) || other.unpaidTakenDays == unpaidTakenDays)&&(identical(other.approvedThisMonth, approvedThisMonth) || other.approvedThisMonth == approvedThisMonth)&&(identical(other.pendingThisMonth, pendingThisMonth) || other.pendingThisMonth == pendingThisMonth)&&(identical(other.rejectedThisMonth, rejectedThisMonth) || other.rejectedThisMonth == rejectedThisMonth));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,year,usedPercent,takenDays,remainingDays);
+int get hashCode => Object.hash(runtimeType,year,casualRemainingDays,casualTakenDays,unpaidTakenDays,approvedThisMonth,pendingThisMonth,rejectedThisMonth);
 
 @override
 String toString() {
-  return 'LeaveUsageModel(year: $year, usedPercent: $usedPercent, takenDays: $takenDays, remainingDays: $remainingDays)';
+  return 'LeaveUsageModel(year: $year, casualRemainingDays: $casualRemainingDays, casualTakenDays: $casualTakenDays, unpaidTakenDays: $unpaidTakenDays, approvedThisMonth: $approvedThisMonth, pendingThisMonth: $pendingThisMonth, rejectedThisMonth: $rejectedThisMonth)';
 }
 
 
@@ -1025,7 +1029,7 @@ abstract mixin class $LeaveUsageModelCopyWith<$Res>  {
   factory $LeaveUsageModelCopyWith(LeaveUsageModel value, $Res Function(LeaveUsageModel) _then) = _$LeaveUsageModelCopyWithImpl;
 @useResult
 $Res call({
- int year, double usedPercent, double takenDays, double remainingDays
+ int year, double casualRemainingDays, double casualTakenDays, double unpaidTakenDays, int approvedThisMonth, int pendingThisMonth, int rejectedThisMonth
 });
 
 
@@ -1042,13 +1046,16 @@ class _$LeaveUsageModelCopyWithImpl<$Res>
 
 /// Create a copy of LeaveUsageModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? year = null,Object? usedPercent = null,Object? takenDays = null,Object? remainingDays = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? year = null,Object? casualRemainingDays = null,Object? casualTakenDays = null,Object? unpaidTakenDays = null,Object? approvedThisMonth = null,Object? pendingThisMonth = null,Object? rejectedThisMonth = null,}) {
   return _then(_self.copyWith(
 year: null == year ? _self.year : year // ignore: cast_nullable_to_non_nullable
-as int,usedPercent: null == usedPercent ? _self.usedPercent : usedPercent // ignore: cast_nullable_to_non_nullable
-as double,takenDays: null == takenDays ? _self.takenDays : takenDays // ignore: cast_nullable_to_non_nullable
-as double,remainingDays: null == remainingDays ? _self.remainingDays : remainingDays // ignore: cast_nullable_to_non_nullable
-as double,
+as int,casualRemainingDays: null == casualRemainingDays ? _self.casualRemainingDays : casualRemainingDays // ignore: cast_nullable_to_non_nullable
+as double,casualTakenDays: null == casualTakenDays ? _self.casualTakenDays : casualTakenDays // ignore: cast_nullable_to_non_nullable
+as double,unpaidTakenDays: null == unpaidTakenDays ? _self.unpaidTakenDays : unpaidTakenDays // ignore: cast_nullable_to_non_nullable
+as double,approvedThisMonth: null == approvedThisMonth ? _self.approvedThisMonth : approvedThisMonth // ignore: cast_nullable_to_non_nullable
+as int,pendingThisMonth: null == pendingThisMonth ? _self.pendingThisMonth : pendingThisMonth // ignore: cast_nullable_to_non_nullable
+as int,rejectedThisMonth: null == rejectedThisMonth ? _self.rejectedThisMonth : rejectedThisMonth // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -1133,10 +1140,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int year,  double usedPercent,  double takenDays,  double remainingDays)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int year,  double casualRemainingDays,  double casualTakenDays,  double unpaidTakenDays,  int approvedThisMonth,  int pendingThisMonth,  int rejectedThisMonth)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LeaveUsageModel() when $default != null:
-return $default(_that.year,_that.usedPercent,_that.takenDays,_that.remainingDays);case _:
+return $default(_that.year,_that.casualRemainingDays,_that.casualTakenDays,_that.unpaidTakenDays,_that.approvedThisMonth,_that.pendingThisMonth,_that.rejectedThisMonth);case _:
   return orElse();
 
 }
@@ -1154,10 +1161,10 @@ return $default(_that.year,_that.usedPercent,_that.takenDays,_that.remainingDays
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int year,  double usedPercent,  double takenDays,  double remainingDays)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int year,  double casualRemainingDays,  double casualTakenDays,  double unpaidTakenDays,  int approvedThisMonth,  int pendingThisMonth,  int rejectedThisMonth)  $default,) {final _that = this;
 switch (_that) {
 case _LeaveUsageModel():
-return $default(_that.year,_that.usedPercent,_that.takenDays,_that.remainingDays);case _:
+return $default(_that.year,_that.casualRemainingDays,_that.casualTakenDays,_that.unpaidTakenDays,_that.approvedThisMonth,_that.pendingThisMonth,_that.rejectedThisMonth);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1174,10 +1181,10 @@ return $default(_that.year,_that.usedPercent,_that.takenDays,_that.remainingDays
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int year,  double usedPercent,  double takenDays,  double remainingDays)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int year,  double casualRemainingDays,  double casualTakenDays,  double unpaidTakenDays,  int approvedThisMonth,  int pendingThisMonth,  int rejectedThisMonth)?  $default,) {final _that = this;
 switch (_that) {
 case _LeaveUsageModel() when $default != null:
-return $default(_that.year,_that.usedPercent,_that.takenDays,_that.remainingDays);case _:
+return $default(_that.year,_that.casualRemainingDays,_that.casualTakenDays,_that.unpaidTakenDays,_that.approvedThisMonth,_that.pendingThisMonth,_that.rejectedThisMonth);case _:
   return null;
 
 }
@@ -1189,13 +1196,20 @@ return $default(_that.year,_that.usedPercent,_that.takenDays,_that.remainingDays
 @JsonSerializable()
 
 class _LeaveUsageModel implements LeaveUsageModel {
-  const _LeaveUsageModel({required this.year, required this.usedPercent, required this.takenDays, required this.remainingDays});
+  const _LeaveUsageModel({required this.year, required this.casualRemainingDays, required this.casualTakenDays, required this.unpaidTakenDays, this.approvedThisMonth = 0, this.pendingThisMonth = 0, this.rejectedThisMonth = 0});
   factory _LeaveUsageModel.fromJson(Map<String, dynamic> json) => _$LeaveUsageModelFromJson(json);
 
 @override final  int year;
-@override final  double usedPercent;
-@override final  double takenDays;
-@override final  double remainingDays;
+/// Casual days left today, summed over active employees.
+@override final  double casualRemainingDays;
+/// Approved Casual days dated in [year].
+@override final  double casualTakenDays;
+/// Approved Unpaid days dated in [year].
+@override final  double unpaidTakenDays;
+/// Leave requests whose dates overlap the current month, by status.
+@override@JsonKey() final  int approvedThisMonth;
+@override@JsonKey() final  int pendingThisMonth;
+@override@JsonKey() final  int rejectedThisMonth;
 
 /// Create a copy of LeaveUsageModel
 /// with the given fields replaced by the non-null parameter values.
@@ -1210,16 +1224,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaveUsageModel&&(identical(other.year, year) || other.year == year)&&(identical(other.usedPercent, usedPercent) || other.usedPercent == usedPercent)&&(identical(other.takenDays, takenDays) || other.takenDays == takenDays)&&(identical(other.remainingDays, remainingDays) || other.remainingDays == remainingDays));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaveUsageModel&&(identical(other.year, year) || other.year == year)&&(identical(other.casualRemainingDays, casualRemainingDays) || other.casualRemainingDays == casualRemainingDays)&&(identical(other.casualTakenDays, casualTakenDays) || other.casualTakenDays == casualTakenDays)&&(identical(other.unpaidTakenDays, unpaidTakenDays) || other.unpaidTakenDays == unpaidTakenDays)&&(identical(other.approvedThisMonth, approvedThisMonth) || other.approvedThisMonth == approvedThisMonth)&&(identical(other.pendingThisMonth, pendingThisMonth) || other.pendingThisMonth == pendingThisMonth)&&(identical(other.rejectedThisMonth, rejectedThisMonth) || other.rejectedThisMonth == rejectedThisMonth));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,year,usedPercent,takenDays,remainingDays);
+int get hashCode => Object.hash(runtimeType,year,casualRemainingDays,casualTakenDays,unpaidTakenDays,approvedThisMonth,pendingThisMonth,rejectedThisMonth);
 
 @override
 String toString() {
-  return 'LeaveUsageModel(year: $year, usedPercent: $usedPercent, takenDays: $takenDays, remainingDays: $remainingDays)';
+  return 'LeaveUsageModel(year: $year, casualRemainingDays: $casualRemainingDays, casualTakenDays: $casualTakenDays, unpaidTakenDays: $unpaidTakenDays, approvedThisMonth: $approvedThisMonth, pendingThisMonth: $pendingThisMonth, rejectedThisMonth: $rejectedThisMonth)';
 }
 
 
@@ -1230,7 +1244,7 @@ abstract mixin class _$LeaveUsageModelCopyWith<$Res> implements $LeaveUsageModel
   factory _$LeaveUsageModelCopyWith(_LeaveUsageModel value, $Res Function(_LeaveUsageModel) _then) = __$LeaveUsageModelCopyWithImpl;
 @override @useResult
 $Res call({
- int year, double usedPercent, double takenDays, double remainingDays
+ int year, double casualRemainingDays, double casualTakenDays, double unpaidTakenDays, int approvedThisMonth, int pendingThisMonth, int rejectedThisMonth
 });
 
 
@@ -1247,13 +1261,16 @@ class __$LeaveUsageModelCopyWithImpl<$Res>
 
 /// Create a copy of LeaveUsageModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? year = null,Object? usedPercent = null,Object? takenDays = null,Object? remainingDays = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? year = null,Object? casualRemainingDays = null,Object? casualTakenDays = null,Object? unpaidTakenDays = null,Object? approvedThisMonth = null,Object? pendingThisMonth = null,Object? rejectedThisMonth = null,}) {
   return _then(_LeaveUsageModel(
 year: null == year ? _self.year : year // ignore: cast_nullable_to_non_nullable
-as int,usedPercent: null == usedPercent ? _self.usedPercent : usedPercent // ignore: cast_nullable_to_non_nullable
-as double,takenDays: null == takenDays ? _self.takenDays : takenDays // ignore: cast_nullable_to_non_nullable
-as double,remainingDays: null == remainingDays ? _self.remainingDays : remainingDays // ignore: cast_nullable_to_non_nullable
-as double,
+as int,casualRemainingDays: null == casualRemainingDays ? _self.casualRemainingDays : casualRemainingDays // ignore: cast_nullable_to_non_nullable
+as double,casualTakenDays: null == casualTakenDays ? _self.casualTakenDays : casualTakenDays // ignore: cast_nullable_to_non_nullable
+as double,unpaidTakenDays: null == unpaidTakenDays ? _self.unpaidTakenDays : unpaidTakenDays // ignore: cast_nullable_to_non_nullable
+as double,approvedThisMonth: null == approvedThisMonth ? _self.approvedThisMonth : approvedThisMonth // ignore: cast_nullable_to_non_nullable
+as int,pendingThisMonth: null == pendingThisMonth ? _self.pendingThisMonth : pendingThisMonth // ignore: cast_nullable_to_non_nullable
+as int,rejectedThisMonth: null == rejectedThisMonth ? _self.rejectedThisMonth : rejectedThisMonth // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

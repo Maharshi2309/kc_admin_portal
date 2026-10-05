@@ -10,6 +10,7 @@ import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/utils/validation_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_alert_banner.dart';
@@ -22,21 +23,17 @@ import 'package:kc_admin_portal/core/widgets/app_field_label.dart';
 import 'package:kc_admin_portal/core/widgets/app_page.dart';
 import 'package:kc_admin_portal/core/widgets/app_segmented_control.dart';
 import 'package:kc_admin_portal/core/widgets/app_snackbar.dart';
-import 'package:kc_admin_portal/core/widgets/app_status_badge.dart';
 import 'package:kc_admin_portal/core/widgets/app_text_field.dart';
 import 'package:kc_admin_portal/core/widgets/async_value_view.dart';
 import 'package:kc_admin_portal/core/widgets/form_footer_bar.dart';
 import 'package:kc_admin_portal/core/widgets/responsive_grid.dart';
-import 'package:kc_admin_portal/features/auth/presentation/providers/auth_controller.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
-import 'package:kc_admin_portal/features/employees/domain/utils/email_suggestion.dart';
 import 'package:kc_admin_portal/features/employees/domain/utils/schedule_rules.dart';
 import 'package:kc_admin_portal/features/employees/presentation/providers/employee_providers.dart';
 import 'package:kc_admin_portal/features/employees/presentation/widgets/employee_preview_card.dart';
 import 'package:kc_admin_portal/features/employees/presentation/widgets/work_schedule_card.dart';
 import 'package:kc_admin_portal/features/employees/presentation/widgets/work_schedule_fields.dart';
-import 'package:kc_admin_portal/features/master_data/data/models/master_data_models.dart';
-import 'package:kc_admin_portal/features/master_data/presentation/providers/master_data_providers.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Add employee (`employeeId == null`) or edit one (design board 04).
@@ -80,10 +77,13 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   final _formKey = GlobalKey<FormState>();
   late final _ecNumber = TextEditingController(text: widget.initial?.ecNumber);
   late final _name = TextEditingController(text: widget.initial?.name);
-  late final _email = TextEditingController(text: widget.initial?.email);
   late final _mobile = TextEditingController(text: widget.initial?.mobile);
-  late String? _departmentId = widget.initial?.department.id;
-  late String? _designationId = widget.initial?.designation.id;
+  late JobRole? _department = _known(widget.initial?.department);
+  late JobRole? _position = _known(widget.initial?.position);
+
+  /// A value this app version doesn't know must be chosen again.
+  static JobRole? _known(JobRole? value) =>
+      JobRole.choices.contains(value) ? value : null;
   late DateTime? _joiningDate = widget.initial?.joiningDate;
   late EmployeeStatus _status =
       widget.initial?.status == EmployeeStatus.inactive
@@ -103,10 +103,6 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   /// The EC number was typed by the admin, so a suggestion must not
   /// overwrite it.
   bool _ecEdited = false;
-
-  /// Adding only: the email still holds the suggestion built from the name,
-  /// so it keeps following the name until the admin edits it.
-  late bool _emailSuggested = !_isEditing;
 
   bool get _isEditing => widget.initial != null;
 
@@ -142,19 +138,10 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
 
   @override
   void dispose() {
-    for (final controller in [_ecNumber, _name, _email, _mobile]) {
+    for (final controller in [_ecNumber, _name, _mobile]) {
       controller.dispose();
     }
     super.dispose();
-  }
-
-  void _suggestEmail() {
-    if (!_emailSuggested) return;
-    final suggestion = suggestWorkEmail(
-      fullName: _name.text,
-      adminEmail: ref.read(authControllerProvider).value?.email,
-    );
-    _email.text = suggestion ?? '';
   }
 
   void _clearServerError(String field) {
@@ -165,10 +152,9 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   List<String> get _missingRequired => [
     if (_ecNumber.text.trim().isEmpty) 'EC number',
     if (_name.text.trim().isEmpty) 'Full name',
-    if (_email.text.trim().isEmpty) 'Email address',
     if (_mobile.text.trim().isEmpty) 'Mobile number',
-    if (_departmentId == null) 'Department',
-    if (_designationId == null) 'Designation',
+    if (_department == null) 'Department',
+    if (_position == null) 'Position',
     if (_joiningDate == null) 'Joining date',
   ];
 
@@ -196,10 +182,9 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
           data: EmployeeFormData(
             ecNumber: _ecNumber.text,
             name: _name.text,
-            email: _email.text,
             mobile: _mobile.text,
-            departmentId: _departmentId!,
-            designationId: _designationId!,
+            department: _department!,
+            position: _position!,
             joiningDate: _joiningDate!,
             status: _status,
             schedule: schedule,
@@ -224,15 +209,14 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
 
   void _resetForAnother() {
     _formKey.currentState!.reset();
-    for (final controller in [_ecNumber, _name, _email, _mobile]) {
+    for (final controller in [_ecNumber, _name, _mobile]) {
       controller.clear();
     }
     ref.invalidate(nextEcNumberProvider);
     setState(() {
       _ecEdited = false;
-      _emailSuggested = true;
-      _departmentId = null;
-      _designationId = null;
+      _department = null;
+      _position = null;
       _joiningDate = null;
       _status = EmployeeStatus.active;
       _schedule = ScheduleDraft.standard;
@@ -282,7 +266,7 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
         : null;
 
     final footer = ListenableBuilder(
-      listenable: Listenable.merge([_ecNumber, _name, _email, _mobile]),
+      listenable: Listenable.merge([_ecNumber, _name, _mobile]),
       builder: (context, _) => FormFooterBar(
         hint: _footerHint(),
         actions: [
@@ -336,12 +320,7 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
                 ),
                 if (generalError != null) AppAlertBanner(message: generalError),
                 ListenableBuilder(
-                  listenable: Listenable.merge([
-                    _ecNumber,
-                    _name,
-                    _email,
-                    _mobile,
-                  ]),
+                  listenable: Listenable.merge([_ecNumber, _name, _mobile]),
                   builder: (context, _) => LayoutBuilder(
                     builder: (context, constraints) =>
                         constraints.maxWidth >= _previewMinWidth
@@ -375,24 +354,12 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   }
 
   Widget _preview() {
-    final departments = ref.watch(departmentsProvider).value ?? const [];
-    final designations = _departmentId == null
-        ? const <DesignationModel>[]
-        : ref.watch(designationsProvider(_departmentId!)).value ?? const [];
-
     return EmployeePreviewCard(
       name: _name.text,
       ecNumber: _ecNumber.text,
-      email: _email.text,
       mobile: _mobile.text,
-      departmentName: departments
-          .where((d) => d.id == _departmentId)
-          .firstOrNull
-          ?.name,
-      designationName: designations
-          .where((d) => d.id == _designationId)
-          .firstOrNull
-          ?.name,
+      departmentName: _department?.label,
+      positionName: _position?.label,
       joiningDate: _joiningDate,
     );
   }
@@ -485,30 +452,7 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
       autofillHints: const [AutofillHints.name],
       errorText: _serverErrors['name'],
       validator: (value) => Validators.required(value, field: 'Full name'),
-      onChanged: (_) {
-        _suggestEmail();
-        _clearServerError('name');
-      },
-    ),
-    AppTextField(
-      label: 'Email address',
-      isRequired: true,
-      controller: _email,
-      enabled: !isSaving,
-      keyboardType: TextInputType.emailAddress,
-      autofillHints: const [AutofillHints.email],
-      labelTrailing: _emailSuggested && _email.text.isNotEmpty
-          ? const AppStatusBadge(label: 'Suggested', tone: StatusTone.info)
-          : null,
-      helperText: _emailSuggested && _email.text.isNotEmpty
-          ? 'Filled from the name — edit only if different'
-          : null,
-      errorText: _serverErrors['email'],
-      validator: Validators.email,
-      onChanged: (_) {
-        if (_emailSuggested) setState(() => _emailSuggested = false);
-        _clearServerError('email');
-      },
+      onChanged: (_) => _clearServerError('name'),
     ),
     AppTextField(
       label: 'Mobile number',
@@ -530,60 +474,43 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   ];
 
   List<Widget> _jobFields(bool isSaving) {
-    final departments = ref.watch(departmentsProvider);
-    final designations = _departmentId == null
-        ? null
-        : ref.watch(designationsProvider(_departmentId!));
     final today = ref.watch(clockProvider)().dateOnly;
 
     return [
-      AppDropdown<String>(
+      // Department and position use the same list and don't depend on
+      // each other.
+      AppDropdown<JobRole>(
         label: 'Department',
         isRequired: true,
-        searchable: true,
-        enabled: !isSaving && departments.hasValue,
-        hintText: departments.hasError
-            ? 'Could not load departments'
-            : 'Select department',
-        value: _departmentId,
-        errorText: _serverErrors['departmentId'],
+        enabled: !isSaving,
+        hintText: 'Select department',
+        value: _department,
+        errorText: _serverErrors['department'],
         validator: Validators.requiredValue('Department'),
         items: [
-          for (final d in departments.value ?? const <DepartmentModel>[])
-            AppDropdownItem(
-              value: d.id,
-              label: d.name,
-              meta: d.employeeCount == null
-                  ? null
-                  : '${d.employeeCount} people',
-            ),
+          for (final d in JobRole.choices)
+            AppDropdownItem(value: d, label: d.label),
         ],
-        onChanged: (id) {
-          _clearServerError('departmentId');
-          setState(() {
-            if (id != _departmentId) _designationId = null;
-            _departmentId = id;
-          });
+        onChanged: (value) {
+          _clearServerError('department');
+          setState(() => _department = value);
         },
       ),
-      AppDropdown<String>(
-        label: 'Designation',
+      AppDropdown<JobRole>(
+        label: 'Position',
         isRequired: true,
-        enabled: !isSaving && designations?.hasValue == true,
-        hintText: _departmentId == null
-            ? 'Choose a department first'
-            : 'Select designation',
-        helperText: 'Only designations of the chosen department',
-        value: _designationId,
-        errorText: _serverErrors['designationId'],
-        validator: Validators.requiredValue('Designation'),
+        enabled: !isSaving,
+        hintText: 'Select position',
+        value: _position,
+        errorText: _serverErrors['position'],
+        validator: Validators.requiredValue('Position'),
         items: [
-          for (final d in designations?.value ?? const <DesignationModel>[])
-            AppDropdownItem(value: d.id, label: d.name),
+          for (final p in JobRole.choices)
+            AppDropdownItem(value: p, label: p.label),
         ],
-        onChanged: (id) {
-          _clearServerError('designationId');
-          setState(() => _designationId = id);
+        onChanged: (value) {
+          _clearServerError('position');
+          setState(() => _position = value);
         },
       ),
       AppDatePicker(
@@ -639,7 +566,7 @@ class _CurrentSchedule extends StatelessWidget {
             WorkScheduleCard.breakText(schedule),
             if (schedule.weeklyOffDays.isNotEmpty)
               '${FormatUtils.weekdays(schedule.weeklyOffDays)} off',
-            '${FormatUtils.duration(schedule.expectedMinutes)} a day',
+            '${DurationFormat.full(schedule.expectedMinutes)} a day',
           ].join(' · ');
 
     return Wrap(

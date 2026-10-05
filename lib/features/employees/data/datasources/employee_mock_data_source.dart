@@ -6,15 +6,15 @@ import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
+import 'package:kc_admin_portal/features/attendance/data/datasources/attendance_mock_data_source.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/employee_remote_data_source.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/mock_schedule_book.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/features/employees/domain/utils/schedule_rules.dart';
 import 'package:kc_admin_portal/features/holidays/data/datasources/mock_holiday_store.dart';
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_mock_data_source.dart';
-import 'package:kc_admin_portal/features/master_data/data/datasources/master_data_mock_data_source.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
-import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
 
@@ -34,6 +34,7 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
     this.leaves,
     MockScheduleBook? schedules,
     this.holidays,
+    this.attendance,
   }) : _employees = store ?? seed(now()),
        _schedules = schedules ?? _seededBook(now, store ?? seed(now()));
 
@@ -53,6 +54,10 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
   /// Company holidays, when shared with the holiday mock.
   final MockHolidayStore? holidays;
 
+  /// When set, each employee's current-year overtime comes from the same
+  /// attendance records the Attendance page shows.
+  final AttendanceMockDataSource? attendance;
+
   static MockScheduleBook _seededBook(
     DateTime Function() now,
     List<EmployeeModel> employees,
@@ -60,192 +65,207 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
       MockScheduleBook(now: now)
         ..seed([for (final e in employees) (id: e.id, joined: e.joiningDate)]);
 
-  /// The employee with today's schedule, as the API returns it.
-  EmployeeModel _withSchedule(EmployeeModel employee) =>
-      employee.copyWith(schedule: _schedules.on(employee.id, now()));
+  /// The employee as the API returns it: today's schedule, and this year's
+  /// overtime for callers who may see overtime.
+  EmployeeModel _withSchedule(EmployeeModel employee) => employee.copyWith(
+    schedule: _schedules.on(employee.id, now()),
+    overtimeMinutesThisYear: guard.has(AppPermission.overtimeView)
+        ? _overtimeThisYear(employee.id)
+        : null,
+  );
+
+  /// 1 January of the current year to today, from the attendance records.
+  int? _overtimeThisYear(String employeeId) {
+    final source = attendance;
+    if (source == null) return null;
+    final today = now().dateOnly;
+    return source
+        .recordsBetween(employeeId, DateTime(today.year), today)
+        .fold<int>(0, (sum, r) => sum + (r.overtimeMinutes ?? 0));
+  }
 
   static const String _ecPrefix = 'KC';
 
-  // (name, departmentId, designationId, mobile, joined, status, today)
-  static final List<(String, String, String, String, DateTime, bool)> _people =
-      [
-        (
-          'Aarav Shah',
-          'it',
-          'senior-developer',
-          '9825011234',
-          DateTime(2021, 1, 12),
-          true,
-        ),
-        (
-          'Priya Desai',
-          'operations',
-          'operations-executive',
-          '9879520417',
-          DateTime(2021, 6, 3),
-          true,
-        ),
-        (
-          'Rohan Patel',
-          'sales',
-          'sales-manager',
-          '9909044120',
-          DateTime(2022, 11, 18),
-          true,
-        ),
-        (
-          'Kavya Mehta',
-          'accounts',
-          'accountant',
-          '9727730981',
-          DateTime(2023, 3, 9),
-          true,
-        ),
-        (
-          'Harsh Vaghela',
-          'it',
-          'qa-engineer',
-          '9099081264',
-          DateTime(2023, 5, 22),
-          true,
-        ),
-        (
-          'Meera Rathod',
-          'hr',
-          'hr-executive',
-          '9898056310',
-          DateTime(2023, 8, 1),
-          true,
-        ),
-        (
-          'Arjun Joshi',
-          'operations',
-          'supervisor',
-          '9327011845',
-          DateTime(2023, 12, 14),
-          true,
-        ),
-        (
-          'Dhruv Parmar',
-          'sales',
-          'sales-executive',
-          '9714062209',
-          DateTime(2024, 2, 5),
-          true,
-        ),
-        (
-          'Nisha Solanki',
-          'hr',
-          'recruiter',
-          '9824177053',
-          DateTime(2024, 6, 17),
-          true,
-        ),
-        (
-          'Sanjay Makwana',
-          'accounts',
-          'accounts-assistant',
-          '9662048117',
-          DateTime(2024, 9, 2),
-          true,
-        ),
-        (
-          'Ishaan Trivedi',
-          'it',
-          'senior-developer',
-          '9825502211',
-          DateTime(2022, 4, 11),
-          true,
-        ),
-        (
-          'Ananya Bhatt',
-          'sales',
-          'sales-executive',
-          '9978812345',
-          DateTime(2022, 7, 25),
-          true,
-        ),
-        (
-          'Vivek Chauhan',
-          'operations',
-          'supervisor',
-          '9426055123',
-          DateTime(2020, 10, 5),
-          true,
-        ),
-        (
-          'Riya Pandya',
-          'accounts',
-          'accountant',
-          '9737011122',
-          DateTime(2021, 12, 1),
-          true,
-        ),
-        (
-          'Karan Thakkar',
-          'it',
-          'qa-engineer',
-          '9898765432',
-          DateTime(2024, 1, 15),
-          true,
-        ),
-        (
-          'Pooja Jadeja',
-          'hr',
-          'hr-executive',
-          '9510022334',
-          DateTime(2025, 3, 3),
-          true,
-        ),
-        (
-          'Manav Dave',
-          'operations',
-          'operations-executive',
-          '9624412233',
-          DateTime(2025, 6, 9),
-          true,
-        ),
-        (
-          'Sneha Raval',
-          'sales',
-          'sales-manager',
-          '9909911223',
-          DateTime(2019, 8, 19),
-          true,
-        ),
-        (
-          'Yash Gohil',
-          'operations',
-          'operations-executive',
-          '9825133221',
-          DateTime(2025, 9, 1),
-          true,
-        ),
-        (
-          'Tanvi Oza',
-          'accounts',
-          'accounts-assistant',
-          '9879001122',
-          DateTime(2022, 2, 14),
-          false,
-        ),
-        (
-          'Nirav Shukla',
-          'it',
-          'senior-developer',
-          '9428011233',
-          DateTime(2020, 5, 4),
-          false,
-        ),
-        (
-          'Hetal Vyas',
-          'sales',
-          'sales-executive',
-          '9537744556',
-          DateTime(2021, 9, 20),
-          false,
-        ),
-      ];
+  // (name, department, position, mobile, joined, active)
+  static final List<(String, JobRole, JobRole, String, DateTime, bool)>
+  _people = [
+    (
+      'Aarav Shah',
+      JobRole.graphicDesigner,
+      JobRole.graphicDesigner,
+      '9825011234',
+      DateTime(2021, 1, 12),
+      true,
+    ),
+    (
+      'Priya Desai',
+      JobRole.tailor,
+      JobRole.tailor,
+      '9879520417',
+      DateTime(2021, 6, 3),
+      true,
+    ),
+    (
+      'Rohan Patel',
+      JobRole.graphicDesigner,
+      JobRole.graphicDesigner,
+      '9909044120',
+      DateTime(2022, 11, 18),
+      true,
+    ),
+    (
+      'Kavya Mehta',
+      JobRole.accountant,
+      JobRole.accountant,
+      '9727730981',
+      DateTime(2023, 3, 9),
+      true,
+    ),
+    (
+      'Harsh Vaghela',
+      JobRole.graphicDesigner,
+      JobRole.graphicDesigner,
+      '9099081264',
+      DateTime(2023, 5, 22),
+      true,
+    ),
+    (
+      'Meera Rathod',
+      JobRole.accountant,
+      JobRole.accountant,
+      '9898056310',
+      DateTime(2023, 8, 1),
+      true,
+    ),
+    (
+      'Arjun Joshi',
+      JobRole.tailor,
+      JobRole.tailor,
+      '9327011845',
+      DateTime(2023, 12, 14),
+      true,
+    ),
+    (
+      'Dhruv Parmar',
+      JobRole.graphicDesigner,
+      JobRole.tailor,
+      '9714062209',
+      DateTime(2024, 2, 5),
+      true,
+    ),
+    (
+      'Nisha Solanki',
+      JobRole.accountant,
+      JobRole.accountant,
+      '9824177053',
+      DateTime(2024, 6, 17),
+      true,
+    ),
+    (
+      'Sanjay Makwana',
+      JobRole.accountant,
+      JobRole.accountant,
+      '9662048117',
+      DateTime(2024, 9, 2),
+      true,
+    ),
+    (
+      'Ishaan Trivedi',
+      JobRole.graphicDesigner,
+      JobRole.graphicDesigner,
+      '9825502211',
+      DateTime(2022, 4, 11),
+      true,
+    ),
+    (
+      'Ananya Bhatt',
+      JobRole.graphicDesigner,
+      JobRole.tailor,
+      '9978812345',
+      DateTime(2022, 7, 25),
+      true,
+    ),
+    (
+      'Vivek Chauhan',
+      JobRole.tailor,
+      JobRole.tailor,
+      '9426055123',
+      DateTime(2020, 10, 5),
+      true,
+    ),
+    (
+      'Riya Pandya',
+      JobRole.accountant,
+      JobRole.accountant,
+      '9737011122',
+      DateTime(2021, 12, 1),
+      true,
+    ),
+    (
+      'Karan Thakkar',
+      JobRole.graphicDesigner,
+      JobRole.graphicDesigner,
+      '9898765432',
+      DateTime(2024, 1, 15),
+      true,
+    ),
+    (
+      'Pooja Jadeja',
+      JobRole.accountant,
+      JobRole.accountant,
+      '9510022334',
+      DateTime(2025, 3, 3),
+      true,
+    ),
+    (
+      'Manav Dave',
+      JobRole.tailor,
+      JobRole.tailor,
+      '9624412233',
+      DateTime(2025, 6, 9),
+      true,
+    ),
+    (
+      'Sneha Raval',
+      JobRole.graphicDesigner,
+      JobRole.graphicDesigner,
+      '9909911223',
+      DateTime(2019, 8, 19),
+      true,
+    ),
+    (
+      'Yash Gohil',
+      JobRole.tailor,
+      JobRole.tailor,
+      '9825133221',
+      DateTime(2025, 9, 1),
+      true,
+    ),
+    (
+      'Tanvi Oza',
+      JobRole.accountant,
+      JobRole.accountant,
+      '9879001122',
+      DateTime(2022, 2, 14),
+      false,
+    ),
+    (
+      'Nirav Shukla',
+      JobRole.graphicDesigner,
+      JobRole.graphicDesigner,
+      '9428011233',
+      DateTime(2020, 5, 4),
+      false,
+    ),
+    (
+      'Hetal Vyas',
+      JobRole.graphicDesigner,
+      JobRole.tailor,
+      '9537744556',
+      DateTime(2021, 9, 20),
+      false,
+    ),
+  ];
 
   static const List<AttendanceDayStatus> _todayCycle = [
     AttendanceDayStatus.present,
@@ -274,20 +294,18 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
   static EmployeeModel _build({
     required String id,
     required String ecNumber,
-    required (String, String, String, String, DateTime, bool) person,
+    required (String, JobRole, JobRole, String, DateTime, bool) person,
     AttendanceDayStatus? today,
     DateTime? updatedAt,
   }) {
-    final (name, departmentId, designationId, mobile, joined, active) = person;
-    final email = '${name.toLowerCase().replaceAll(' ', '.')}@keshav.in';
+    final (name, department, position, mobile, joined, active) = person;
     return EmployeeModel(
       id: id,
       ecNumber: ecNumber,
       name: name,
-      email: email,
       mobile: mobile,
-      department: _department(departmentId),
-      designation: _designation(departmentId, designationId),
+      department: department,
+      position: position,
       joiningDate: joined,
       status: active ? EmployeeStatus.active : EmployeeStatus.inactive,
       todayStatus: today,
@@ -296,31 +314,15 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
     );
   }
 
-  static NamedRef _department(String id) {
-    final department = MasterDataMockDataSource.sampleDepartments
-        .where((d) => d.id == id)
-        .firstOrNull;
-    if (department == null) {
-      throw const ValidationException(
-        'Choose a department',
-        fieldErrors: {'departmentId': 'Choose a department'},
+  /// The API accepts only the fixed list (unknown → field error).
+  static JobRole _known(JobRole value, String field, String label) {
+    if (!JobRole.choices.contains(value)) {
+      throw ValidationException(
+        'Choose a $label',
+        fieldErrors: {field: 'Choose a $label'},
       );
     }
-    return NamedRef(id: department.id, name: department.name);
-  }
-
-  static NamedRef _designation(String departmentId, String id) {
-    final designation = MasterDataMockDataSource
-        .sampleDesignations[departmentId]
-        ?.where((d) => d.id == id)
-        .firstOrNull;
-    if (designation == null) {
-      throw const ValidationException(
-        'Choose a designation of the selected department',
-        fieldErrors: {'designationId': 'Choose a designation'},
-      );
-    }
-    return NamedRef(id: designation.id, name: designation.name);
+    return value;
   }
 
   Future<void> _wait() => Future<void>.delayed(latency);
@@ -333,14 +335,12 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
     return employee;
   }
 
-  /// Rejects duplicate EC numbers and emails, like a real server would.
+  /// Rejects duplicate EC numbers, like a real server would.
   void _checkUnique(EmployeeFormData data, {String? exceptId}) {
     final others = _employees.where((e) => e.id != exceptId);
     final errors = <String, String>{
       if (others.any((e) => e.ecNumber == data.ecNumber))
         'ecNumber': 'This EC number is already in use',
-      if (others.any((e) => e.email.toLowerCase() == data.email.toLowerCase()))
-        'email': 'This email is already in use',
     };
     if (errors.isNotEmpty) {
       throw ValidationException(errors.values.first, fieldErrors: errors);
@@ -362,15 +362,9 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
               e.ecNumber.toLowerCase().contains(search),
         )
         .where(
-          (e) =>
-              query.departmentId == null ||
-              e.department.id == query.departmentId,
+          (e) => query.department == null || e.department == query.department,
         )
-        .where(
-          (e) =>
-              query.designationId == null ||
-              e.designation.id == query.designationId,
-        )
+        .where((e) => query.position == null || e.position == query.position)
         .where(
           (e) =>
               (joinedFrom == null || !e.joiningDate.isBefore(joinedFrom)) &&
@@ -442,10 +436,9 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
       id: '${_employees.length + 1}',
       ecNumber: data.ecNumber,
       name: data.name,
-      email: data.email,
       mobile: data.mobile,
-      department: _department(data.departmentId),
-      designation: _designation(data.departmentId, data.designationId),
+      department: _known(data.department, 'department', 'department'),
+      position: _known(data.position, 'position', 'position'),
       joiningDate: data.joiningDate,
       status: data.status,
       updatedAt: now(),
@@ -465,10 +458,9 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
     final updated = current.copyWith(
       ecNumber: data.ecNumber,
       name: data.name,
-      email: data.email,
       mobile: data.mobile,
-      department: _department(data.departmentId),
-      designation: _designation(data.departmentId, data.designationId),
+      department: _known(data.department, 'department', 'department'),
+      position: _known(data.position, 'position', 'position'),
       joiningDate: data.joiningDate,
       status: data.status,
       updatedAt: now(),
@@ -493,33 +485,24 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
   }
 
   @override
-  Future<List<LeaveBalanceModel>> leaveBalance(String id) async {
+  Future<LeaveBalanceModel> leaveBalance(String id) async {
     await _wait();
     guard.require(AppPermission.employeeView);
-    _find(id);
+    final employee = _find(id);
     final source = leaves;
-    if (source != null) return source.balances(id);
-    return const [
-      LeaveBalanceModel(
-        leaveType: 'Casual leave',
-        quota: 12,
-        used: 5,
-        remaining: 7,
-      ),
-      LeaveBalanceModel(
-        leaveType: 'Sick leave',
-        quota: 8,
-        used: 2,
-        remaining: 6,
-      ),
-      LeaveBalanceModel(
-        leaveType: 'Earned leave',
-        quota: 15,
-        used: 2,
-        remaining: 13,
-      ),
-      LeaveBalanceModel(leaveType: 'Unpaid leave', used: 0),
-    ];
+    if (source != null) return source.balance(id);
+    // Without the leave mock: earned since January (no leave taken).
+    final today = now().dateOnly;
+    final accrued = LeaveMockDataSource.accrual.accruedThrough(
+      employee.joiningDate,
+      today,
+    );
+    return LeaveBalanceModel(
+      asOf: today,
+      accrued: accrued,
+      used: 0,
+      remaining: accrued,
+    );
   }
 
   @override
@@ -545,6 +528,7 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
       days: days,
       reason: reason,
       status: LeaveStatus.approved,
+      isPaid: type != 'Unpaid',
     );
     return [
       item(
@@ -563,12 +547,19 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
         1,
         'Personal work',
       ),
-      item(3, DateTime(year, 7, 4), DateTime(year, 7, 4), 'Sick', 1, 'Medical'),
+      item(
+        3,
+        DateTime(year, 7, 4),
+        DateTime(year, 7, 4),
+        'Casual',
+        1,
+        'Medical',
+      ),
       item(
         4,
         DateTime(year, 5, 14),
         DateTime(year, 5, 15),
-        'Earned',
+        'Unpaid',
         2,
         'Travel',
       ),
@@ -584,7 +575,7 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
         6,
         DateTime(year, 2, 16),
         DateTime(year, 2, 16),
-        'Sick',
+        'Casual',
         1,
         'Medical',
       ),

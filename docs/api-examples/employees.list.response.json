@@ -4,16 +4,9 @@
       "id": "1",
       "ecNumber": "KC1001",
       "name": "Aarav Shah",
-      "email": "aarav.shah@keshav.in",
       "mobile": "9825011234",
-      "department": {
-        "id": "3",
-        "name": "IT"
-      },
-      "designation": {
-        "id": "12",
-        "name": "Senior developer"
-      },
+      "department": "graphic_designer",
+      "position": "graphic_designer",
       "joiningDate": "2021-01-12",
       "status": "active",
       "todayStatus": "present",
@@ -37,7 +30,8 @@
           "name": "Admin"
         },
         "createdAt": "2026-03-25T10:15:00+05:30"
-      }
+      },
+      "overtimeMinutesThisYear": 765
     }
   ],
   "total": 124,

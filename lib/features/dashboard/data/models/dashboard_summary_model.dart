@@ -16,10 +16,13 @@ part 'dashboard_summary_model.g.dart';
 /// V2 (approved 2026-09-30): holidays and weekly offs are never counted as
 /// absences, and today's figures cover only employees scheduled to work.
 ///
+/// Leave statistics are [LeaveUsageModel] (Casual and Unpaid kept apart,
+/// 2026-10-05).
+///
 /// TODO — REQUIREMENT CONFIRMATION REQUIRED: the requirement document also
 /// lists Total Working Employees, Leave Percentage and more charts (Present
-/// vs Absent, Leave statistics, Leave utilization) which the design does
-/// not show. Add them here once the final dashboard content is confirmed.
+/// vs Absent, Leave utilization) which the design does not show. Add them
+/// here once the final dashboard content is confirmed.
 @freezed
 abstract class DashboardSummaryModel with _$DashboardSummaryModel {
   const factory DashboardSummaryModel({
@@ -107,14 +110,26 @@ abstract class LeaveTodayModel with _$LeaveTodayModel {
       _$LeaveTodayModelFromJson(json);
 }
 
-/// Organisation-wide leave usage for the current leave year.
+/// Organisation-wide leave figures (changed 2026-10-05): Casual (paid) and
+/// Unpaid are kept apart, and Unpaid never counts as remaining paid leave.
 @freezed
 abstract class LeaveUsageModel with _$LeaveUsageModel {
   const factory LeaveUsageModel({
     required int year,
-    required double usedPercent,
-    required double takenDays,
-    required double remainingDays,
+
+    /// Casual days left today, summed over active employees.
+    required double casualRemainingDays,
+
+    /// Approved Casual days dated in [year].
+    required double casualTakenDays,
+
+    /// Approved Unpaid days dated in [year].
+    required double unpaidTakenDays,
+
+    /// Leave requests whose dates overlap the current month, by status.
+    @Default(0) int approvedThisMonth,
+    @Default(0) int pendingThisMonth,
+    @Default(0) int rejectedThisMonth,
   }) = _LeaveUsageModel;
 
   factory LeaveUsageModel.fromJson(Map<String, dynamic> json) =>

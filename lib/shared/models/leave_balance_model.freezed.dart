@@ -15,11 +15,12 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LeaveBalanceModel {
 
-/// Matches `LeaveTypeModel.id`, so the leave drawer can show each
-/// type's balance.
- String? get leaveTypeId; String get leaveType;/// Days allowed per year; `null` when the type is not limited by a
-/// balance (e.g. unpaid leave).
- double? get quota; double get used; double? get remaining;
+/// The day the figures are for (today, company time).
+@DateOnlyConverter() DateTime get asOf;/// Casual days earned up to and including the current month.
+ double get accrued;/// Approved Casual days (including leave booked for later dates).
+ double get used;/// Pending Casual days: reserved until approved or rejected.
+ double get pending; double get remaining;/// Approved Unpaid days.
+ double get unpaidTaken;
 /// Create a copy of LeaveBalanceModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -32,16 +33,16 @@ $LeaveBalanceModelCopyWith<LeaveBalanceModel> get copyWith => _$LeaveBalanceMode
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaveBalanceModel&&(identical(other.leaveTypeId, leaveTypeId) || other.leaveTypeId == leaveTypeId)&&(identical(other.leaveType, leaveType) || other.leaveType == leaveType)&&(identical(other.quota, quota) || other.quota == quota)&&(identical(other.used, used) || other.used == used)&&(identical(other.remaining, remaining) || other.remaining == remaining));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaveBalanceModel&&(identical(other.asOf, asOf) || other.asOf == asOf)&&(identical(other.accrued, accrued) || other.accrued == accrued)&&(identical(other.used, used) || other.used == used)&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&(identical(other.unpaidTaken, unpaidTaken) || other.unpaidTaken == unpaidTaken));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,leaveTypeId,leaveType,quota,used,remaining);
+int get hashCode => Object.hash(runtimeType,asOf,accrued,used,pending,remaining,unpaidTaken);
 
 @override
 String toString() {
-  return 'LeaveBalanceModel(leaveTypeId: $leaveTypeId, leaveType: $leaveType, quota: $quota, used: $used, remaining: $remaining)';
+  return 'LeaveBalanceModel(asOf: $asOf, accrued: $accrued, used: $used, pending: $pending, remaining: $remaining, unpaidTaken: $unpaidTaken)';
 }
 
 
@@ -52,7 +53,7 @@ abstract mixin class $LeaveBalanceModelCopyWith<$Res>  {
   factory $LeaveBalanceModelCopyWith(LeaveBalanceModel value, $Res Function(LeaveBalanceModel) _then) = _$LeaveBalanceModelCopyWithImpl;
 @useResult
 $Res call({
- String? leaveTypeId, String leaveType, double? quota, double used, double? remaining
+@DateOnlyConverter() DateTime asOf, double accrued, double used, double pending, double remaining, double unpaidTaken
 });
 
 
@@ -69,14 +70,15 @@ class _$LeaveBalanceModelCopyWithImpl<$Res>
 
 /// Create a copy of LeaveBalanceModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? leaveTypeId = freezed,Object? leaveType = null,Object? quota = freezed,Object? used = null,Object? remaining = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? asOf = null,Object? accrued = null,Object? used = null,Object? pending = null,Object? remaining = null,Object? unpaidTaken = null,}) {
   return _then(_self.copyWith(
-leaveTypeId: freezed == leaveTypeId ? _self.leaveTypeId : leaveTypeId // ignore: cast_nullable_to_non_nullable
-as String?,leaveType: null == leaveType ? _self.leaveType : leaveType // ignore: cast_nullable_to_non_nullable
-as String,quota: freezed == quota ? _self.quota : quota // ignore: cast_nullable_to_non_nullable
-as double?,used: null == used ? _self.used : used // ignore: cast_nullable_to_non_nullable
-as double,remaining: freezed == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
-as double?,
+asOf: null == asOf ? _self.asOf : asOf // ignore: cast_nullable_to_non_nullable
+as DateTime,accrued: null == accrued ? _self.accrued : accrued // ignore: cast_nullable_to_non_nullable
+as double,used: null == used ? _self.used : used // ignore: cast_nullable_to_non_nullable
+as double,pending: null == pending ? _self.pending : pending // ignore: cast_nullable_to_non_nullable
+as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
+as double,unpaidTaken: null == unpaidTaken ? _self.unpaidTaken : unpaidTaken // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 
@@ -161,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? leaveTypeId,  String leaveType,  double? quota,  double used,  double? remaining)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime asOf,  double accrued,  double used,  double pending,  double remaining,  double unpaidTaken)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LeaveBalanceModel() when $default != null:
-return $default(_that.leaveTypeId,_that.leaveType,_that.quota,_that.used,_that.remaining);case _:
+return $default(_that.asOf,_that.accrued,_that.used,_that.pending,_that.remaining,_that.unpaidTaken);case _:
   return orElse();
 
 }
@@ -182,10 +184,10 @@ return $default(_that.leaveTypeId,_that.leaveType,_that.quota,_that.used,_that.r
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? leaveTypeId,  String leaveType,  double? quota,  double used,  double? remaining)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime asOf,  double accrued,  double used,  double pending,  double remaining,  double unpaidTaken)  $default,) {final _that = this;
 switch (_that) {
 case _LeaveBalanceModel():
-return $default(_that.leaveTypeId,_that.leaveType,_that.quota,_that.used,_that.remaining);case _:
+return $default(_that.asOf,_that.accrued,_that.used,_that.pending,_that.remaining,_that.unpaidTaken);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +204,10 @@ return $default(_that.leaveTypeId,_that.leaveType,_that.quota,_that.used,_that.r
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? leaveTypeId,  String leaveType,  double? quota,  double used,  double? remaining)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@DateOnlyConverter()  DateTime asOf,  double accrued,  double used,  double pending,  double remaining,  double unpaidTaken)?  $default,) {final _that = this;
 switch (_that) {
 case _LeaveBalanceModel() when $default != null:
-return $default(_that.leaveTypeId,_that.leaveType,_that.quota,_that.used,_that.remaining);case _:
+return $default(_that.asOf,_that.accrued,_that.used,_that.pending,_that.remaining,_that.unpaidTaken);case _:
   return null;
 
 }
@@ -217,18 +219,20 @@ return $default(_that.leaveTypeId,_that.leaveType,_that.quota,_that.used,_that.r
 @JsonSerializable()
 
 class _LeaveBalanceModel implements LeaveBalanceModel {
-  const _LeaveBalanceModel({this.leaveTypeId, required this.leaveType, this.quota, required this.used, this.remaining});
+  const _LeaveBalanceModel({@DateOnlyConverter() required this.asOf, required this.accrued, required this.used, this.pending = 0, required this.remaining, this.unpaidTaken = 0});
   factory _LeaveBalanceModel.fromJson(Map<String, dynamic> json) => _$LeaveBalanceModelFromJson(json);
 
-/// Matches `LeaveTypeModel.id`, so the leave drawer can show each
-/// type's balance.
-@override final  String? leaveTypeId;
-@override final  String leaveType;
-/// Days allowed per year; `null` when the type is not limited by a
-/// balance (e.g. unpaid leave).
-@override final  double? quota;
+/// The day the figures are for (today, company time).
+@override@DateOnlyConverter() final  DateTime asOf;
+/// Casual days earned up to and including the current month.
+@override final  double accrued;
+/// Approved Casual days (including leave booked for later dates).
 @override final  double used;
-@override final  double? remaining;
+/// Pending Casual days: reserved until approved or rejected.
+@override@JsonKey() final  double pending;
+@override final  double remaining;
+/// Approved Unpaid days.
+@override@JsonKey() final  double unpaidTaken;
 
 /// Create a copy of LeaveBalanceModel
 /// with the given fields replaced by the non-null parameter values.
@@ -243,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaveBalanceModel&&(identical(other.leaveTypeId, leaveTypeId) || other.leaveTypeId == leaveTypeId)&&(identical(other.leaveType, leaveType) || other.leaveType == leaveType)&&(identical(other.quota, quota) || other.quota == quota)&&(identical(other.used, used) || other.used == used)&&(identical(other.remaining, remaining) || other.remaining == remaining));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaveBalanceModel&&(identical(other.asOf, asOf) || other.asOf == asOf)&&(identical(other.accrued, accrued) || other.accrued == accrued)&&(identical(other.used, used) || other.used == used)&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&(identical(other.unpaidTaken, unpaidTaken) || other.unpaidTaken == unpaidTaken));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,leaveTypeId,leaveType,quota,used,remaining);
+int get hashCode => Object.hash(runtimeType,asOf,accrued,used,pending,remaining,unpaidTaken);
 
 @override
 String toString() {
-  return 'LeaveBalanceModel(leaveTypeId: $leaveTypeId, leaveType: $leaveType, quota: $quota, used: $used, remaining: $remaining)';
+  return 'LeaveBalanceModel(asOf: $asOf, accrued: $accrued, used: $used, pending: $pending, remaining: $remaining, unpaidTaken: $unpaidTaken)';
 }
 
 
@@ -263,7 +267,7 @@ abstract mixin class _$LeaveBalanceModelCopyWith<$Res> implements $LeaveBalanceM
   factory _$LeaveBalanceModelCopyWith(_LeaveBalanceModel value, $Res Function(_LeaveBalanceModel) _then) = __$LeaveBalanceModelCopyWithImpl;
 @override @useResult
 $Res call({
- String? leaveTypeId, String leaveType, double? quota, double used, double? remaining
+@DateOnlyConverter() DateTime asOf, double accrued, double used, double pending, double remaining, double unpaidTaken
 });
 
 
@@ -280,14 +284,15 @@ class __$LeaveBalanceModelCopyWithImpl<$Res>
 
 /// Create a copy of LeaveBalanceModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? leaveTypeId = freezed,Object? leaveType = null,Object? quota = freezed,Object? used = null,Object? remaining = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? asOf = null,Object? accrued = null,Object? used = null,Object? pending = null,Object? remaining = null,Object? unpaidTaken = null,}) {
   return _then(_LeaveBalanceModel(
-leaveTypeId: freezed == leaveTypeId ? _self.leaveTypeId : leaveTypeId // ignore: cast_nullable_to_non_nullable
-as String?,leaveType: null == leaveType ? _self.leaveType : leaveType // ignore: cast_nullable_to_non_nullable
-as String,quota: freezed == quota ? _self.quota : quota // ignore: cast_nullable_to_non_nullable
-as double?,used: null == used ? _self.used : used // ignore: cast_nullable_to_non_nullable
-as double,remaining: freezed == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
-as double?,
+asOf: null == asOf ? _self.asOf : asOf // ignore: cast_nullable_to_non_nullable
+as DateTime,accrued: null == accrued ? _self.accrued : accrued // ignore: cast_nullable_to_non_nullable
+as double,used: null == used ? _self.used : used // ignore: cast_nullable_to_non_nullable
+as double,pending: null == pending ? _self.pending : pending // ignore: cast_nullable_to_non_nullable
+as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
+as double,unpaidTaken: null == unpaidTaken ? _self.unpaidTaken : unpaidTaken // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 

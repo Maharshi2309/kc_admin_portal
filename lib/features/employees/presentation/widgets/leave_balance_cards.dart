@@ -9,12 +9,12 @@ import 'package:kc_admin_portal/core/widgets/app_progress_bar.dart';
 import 'package:kc_admin_portal/core/widgets/responsive_grid.dart';
 import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
 
-/// One card per leave type with the backend's quota, used and remaining
-/// days (design board 05).
+/// The employee's Casual balance (earned, used, pending, remaining) and the
+/// Unpaid days taken, as calculated by the backend (design board 05).
 class LeaveBalanceCards extends StatelessWidget {
-  const LeaveBalanceCards({required this.balances, super.key});
+  const LeaveBalanceCards({required this.balance, super.key});
 
-  final List<LeaveBalanceModel> balances;
+  final LeaveBalanceModel balance;
 
   static const double _minCardWidth = 200;
 
@@ -23,23 +23,61 @@ class LeaveBalanceCards extends StatelessWidget {
     return ResponsiveGrid(
       minItemWidth: _minCardWidth,
       children: [
-        for (final balance in balances) _BalanceCard(balance: balance),
+        _BalanceCard(
+          title: 'Casual leave',
+          note: '1 day earned each month',
+          value: balance.remaining,
+          unit: 'left',
+          progress: balance.accrued > 0
+              ? (balance.remaining / balance.accrued).clamp(0, 1).toDouble()
+              : 0,
+          progressLabel:
+              '${FormatUtils.count(balance.remaining)} of '
+              '${FormatUtils.days(balance.accrued)} left',
+          footer: [
+            '${FormatUtils.count(balance.accrued)} earned',
+            '${FormatUtils.count(balance.used)} used',
+            if (balance.pending > 0)
+              '${FormatUtils.count(balance.pending)} pending',
+          ].join(' · '),
+        ),
+        _BalanceCard(
+          title: 'Unpaid leave',
+          note: 'No fixed balance',
+          value: balance.unpaidTaken,
+          unit: 'taken',
+          footer: 'Not paid · not limited by balance',
+        ),
       ],
     );
   }
 }
 
 class _BalanceCard extends StatelessWidget {
-  const _BalanceCard({required this.balance});
+  const _BalanceCard({
+    required this.title,
+    required this.note,
+    required this.value,
+    required this.unit,
+    required this.footer,
+    this.progress,
+    this.progressLabel,
+  });
 
-  final LeaveBalanceModel balance;
+  final String title;
+  final String note;
+  final double value;
+
+  /// "left" or "taken", after "N day(s)".
+  final String unit;
+  final String footer;
+  final double? progress;
+  final String? progressLabel;
 
   @override
   Widget build(BuildContext context) {
-    final quota = balance.quota;
-    final remaining = balance.remaining;
-    final limited = quota != null && quota > 0 && remaining != null;
     final muted = AppTextStyles.caption.copyWith(color: AppColors.textMuted);
+    final count = FormatUtils.count(value);
 
     return AppCard(
       padding: const EdgeInsets.symmetric(
@@ -50,49 +88,33 @@ class _BalanceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: AppSpacing.s10,
         children: [
-          // The quota moves under the name when both don't fit.
+          // The note moves under the title when both don't fit.
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             spacing: AppSpacing.s8,
             children: [
               Text(
-                balance.leaveType,
+                title,
                 style: AppTextStyles.smallSemibold.copyWith(
                   fontWeight: AppTextStyles.bold,
                 ),
               ),
-              Text(
-                limited ? '${FormatUtils.count(quota)} / year' : 'As needed',
-                style: muted,
-              ),
+              Text(note, style: muted),
             ],
           ),
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.end,
             spacing: AppSpacing.s6,
             children: [
+              Text(count, style: AppTextStyles.statMedium),
               Text(
-                FormatUtils.count(limited ? remaining : balance.used),
-                style: AppTextStyles.statMedium,
-              ),
-              Text(
-                limited ? 'days left' : 'days taken',
+                '${value == 1 ? 'day' : 'days'} $unit',
                 style: AppTextStyles.small.copyWith(color: AppColors.textMuted),
               ),
             ],
           ),
-          AppProgressBar(
-            value: limited ? remaining / quota : 0,
-            semanticLabel: limited
-                ? '${FormatUtils.count(remaining)} of ${FormatUtils.count(quota)} days left'
-                : null,
-          ),
-          Text(
-            limited
-                ? '${FormatUtils.count(balance.used)} used'
-                : 'Not limited by balance',
-            style: muted,
-          ),
+          AppProgressBar(value: progress ?? 0, semanticLabel: progressLabel),
+          Text(footer, style: muted),
         ],
       ),
     );

@@ -32,7 +32,7 @@ CalendarDayModel _day(
 CalendarLeaveModel _leave(LeaveStatus status, {bool half = false}) =>
     CalendarLeaveModel(
       id: 'l',
-      leaveType: const NamedRef(id: 'sick', name: 'Sick'),
+      leaveType: const NamedRef(id: 'casual', name: 'Casual'),
       status: status,
       isHalfDay: half,
     );
@@ -127,7 +127,7 @@ void main() {
       ]);
       expect(
         leaveShortOf(_day(past, leaves: [_leave(LeaveStatus.approved)])),
-        'SL',
+        'CL',
       );
     });
   });

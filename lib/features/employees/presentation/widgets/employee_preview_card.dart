@@ -14,20 +14,18 @@ class EmployeePreviewCard extends StatelessWidget {
   const EmployeePreviewCard({
     required this.name,
     required this.ecNumber,
-    required this.email,
     required this.mobile,
     required this.departmentName,
-    required this.designationName,
+    required this.positionName,
     required this.joiningDate,
     super.key,
   });
 
   final String name;
   final String ecNumber;
-  final String email;
   final String mobile;
   final String? departmentName;
-  final String? designationName;
+  final String? positionName;
   final DateTime? joiningDate;
 
   static const String _placeholder = '—';
@@ -57,7 +55,7 @@ class EmployeePreviewCard extends StatelessWidget {
                       style: AppTextStyles.sectionTitle,
                     ),
                     Text(
-                      '${designationName ?? 'Designation'} · '
+                      '${positionName ?? 'Position'} · '
                       '${departmentName ?? 'Department'}',
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.small.copyWith(
@@ -75,7 +73,6 @@ class EmployeePreviewCard extends StatelessWidget {
                 ? const Text(_placeholder)
                 : EcNumberText(ecNumber.trim().toUpperCase()),
           ),
-          _Row(label: 'Email', value: email),
           _Row(
             label: 'Mobile',
             value: mobile.isEmpty ? '' : FormatUtils.mobile(mobile),

@@ -1,16 +1,8 @@
-[
-  {
-    "leaveTypeId": "casual",
-    "leaveType": "Casual leave",
-    "quota": 12,
-    "used": 5,
-    "remaining": 7
-  },
-  {
-    "leaveTypeId": "unpaid",
-    "leaveType": "Unpaid leave",
-    "quota": null,
-    "used": 0,
-    "remaining": null
-  }
-]
+{
+  "asOf": "2026-09-28",
+  "accrued": 9,
+  "used": 2,
+  "pending": 1,
+  "remaining": 6,
+  "unpaidTaken": 1
+}

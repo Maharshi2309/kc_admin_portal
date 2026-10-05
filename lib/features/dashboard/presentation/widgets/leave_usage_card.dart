@@ -6,70 +6,90 @@ import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
 import 'package:kc_admin_portal/core/widgets/app_link.dart';
-import 'package:kc_admin_portal/core/widgets/app_progress_bar.dart';
 import 'package:kc_admin_portal/features/dashboard/data/models/dashboard_summary_model.dart';
 
-/// Organisation-wide leave used this year (all figures from the backend).
+/// Organisation-wide leave (all figures from the backend): Casual left,
+/// Casual and Unpaid taken this year, and this month's requests by status.
+/// Unpaid leave is never counted as remaining paid leave.
 class LeaveUsageCard extends StatelessWidget {
   const LeaveUsageCard({
     required this.usage,
-    required this.onViewLeaves,
+    required this.onViewBalances,
     super.key,
   });
 
   final LeaveUsageModel usage;
 
-  /// Null hides the link (the role can't open Leaves).
-  final VoidCallback? onViewLeaves;
-
-  static const double _percentPerFraction = 100;
+  /// Null hides the link (the user can't open Leaves).
+  final VoidCallback? onViewBalances;
 
   @override
   Widget build(BuildContext context) {
-    final percent = FormatUtils.percent(usage.usedPercent);
+    final remaining = FormatUtils.days(usage.casualRemainingDays);
+    final muted = AppTextStyles.small.copyWith(color: AppColors.textMuted);
 
     return SectionCard(
-      title: 'Leave used · ${usage.year}',
+      title: 'Leave · ${usage.year}',
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s24,
         vertical: AppSpacing.s20,
       ),
       gap: AppSpacing.s14,
-      trailing: onViewLeaves == null
+      trailing: onViewBalances == null
           ? null
-          : AppLink(label: 'Leaves', onPressed: onViewLeaves),
+          : AppLink(label: 'Balances', onPressed: onViewBalances),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: AppSpacing.s14,
         children: [
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.end,
-            spacing: AppSpacing.s8,
-            children: [
-              Text(percent, style: AppTextStyles.statLarge),
-              Text(
-                'of all leave used',
-                style: AppTextStyles.small.copyWith(color: AppColors.textMuted),
-              ),
-            ],
-          ),
-          AppProgressBar(
-            value: usage.usedPercent / _percentPerFraction,
-            thick: true,
-            semanticLabel: '$percent of all leave used',
+          Semantics(
+            label: '$remaining of Casual leave left, all employees',
+            excludeSemantics: true,
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.end,
+              spacing: AppSpacing.s8,
+              children: [
+                Text(remaining, style: AppTextStyles.statLarge),
+                Text('of Casual leave left · all employees', style: muted),
+              ],
+            ),
           ),
           Row(
             children: [
               Expanded(
                 child: _Figure(
-                  label: 'Taken',
-                  value: FormatUtils.days(usage.takenDays),
+                  label: 'Casual taken',
+                  value: FormatUtils.days(usage.casualTakenDays),
                 ),
               ),
               Expanded(
                 child: _Figure(
-                  label: 'Remaining',
-                  value: FormatUtils.days(usage.remainingDays),
+                  label: 'Unpaid taken',
+                  value: FormatUtils.days(usage.unpaidTakenDays),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 1, color: AppColors.border),
+          Text('Requests this month', style: muted),
+          Row(
+            children: [
+              Expanded(
+                child: _Figure(
+                  label: 'Approved',
+                  value: FormatUtils.count(usage.approvedThisMonth),
+                ),
+              ),
+              Expanded(
+                child: _Figure(
+                  label: 'Pending',
+                  value: FormatUtils.count(usage.pendingThisMonth),
+                ),
+              ),
+              Expanded(
+                child: _Figure(
+                  label: 'Rejected',
+                  value: FormatUtils.count(usage.rejectedThisMonth),
                 ),
               ),
             ],
@@ -88,16 +108,18 @@ class _Figure extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: AppSpacing.s2,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
-        ),
-        Text(value, style: AppTextStyles.statXSmall),
-      ],
+    return MergeSemantics(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: AppSpacing.s2,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+          ),
+          Text(value, style: AppTextStyles.statXSmall),
+        ],
+      ),
     );
   }
 }

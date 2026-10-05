@@ -95,10 +95,7 @@ void main() {
           const LeaveQuery(search: 'Priya'),
         )).items.firstWhere((l) => l.startDate == DateTime(2026, 9, 28));
         expect(before.days, 3);
-        final remainingBefore = leave
-            .balances('2')
-            .firstWhere((b) => b.leaveTypeId == 'casual')
-            .remaining!;
+        final remainingBefore = leave.balance('2').remaining;
 
         final holiday = await source.create(
           HolidayInput(date: DateTime(2026, 9, 29), name: 'Company Holiday'),
@@ -107,13 +104,7 @@ void main() {
           const LeaveQuery(search: 'Priya'),
         )).items.firstWhere((l) => l.startDate == DateTime(2026, 9, 28));
         expect(after.days, 2);
-        expect(
-          leave
-              .balances('2')
-              .firstWhere((b) => b.leaveTypeId == 'casual')
-              .remaining,
-          remainingBefore + 1,
-        );
+        expect(leave.balance('2').remaining, remainingBefore + 1);
 
         // Deleting it takes the day again.
         await source.delete(holiday.id);

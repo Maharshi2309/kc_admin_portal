@@ -19,6 +19,7 @@ class DayResult {
     this.workedMinutes,
     this.workedPercent,
     this.note,
+    this.lateMinutes,
   });
 
   final CalendarDayType dayType;
@@ -33,8 +34,11 @@ class DayResult {
   /// Worked share of the expected time, 0–100, for the progress bar.
   final double? workedPercent;
 
-  /// Short explanation, e.g. "38 min late".
+  /// Short explanation, e.g. "Not in yet". Never a duration.
   final String? note;
+
+  /// How late the punch-in was; null when on time.
+  final int? lateMinutes;
 }
 
 /// DEV ONLY (`USE_MOCK_API=true`): the backend's `computeDay`
@@ -105,7 +109,7 @@ abstract final class MockDayCalculator {
           };
 
     // §3.4 Status and "late".
-    final (status, note) = _status(
+    final (status, note, lateMinutes) = _status(
       dayType: dayType,
       schedule: schedule,
       leave: leave,
@@ -126,6 +130,7 @@ abstract final class MockDayCalculator {
           ? null
           : math.min(100, worked * 100 / expected).toDouble(),
       note: note,
+      lateMinutes: lateMinutes,
     );
   }
 
@@ -149,7 +154,7 @@ abstract final class MockDayCalculator {
     return covers ? length : 0;
   }
 
-  static (AttendanceDayStatus, String?) _status({
+  static (AttendanceDayStatus, String?, int?) _status({
     required CalendarDayType dayType,
     required WorkScheduleModel? schedule,
     required DayLeave leave,
@@ -159,12 +164,14 @@ abstract final class MockDayCalculator {
     required DateTime? punchIn,
   }) {
     if (dayType != CalendarDayType.working) {
-      if (punchIn != null) return (AttendanceDayStatus.present, null);
+      if (punchIn != null) return (AttendanceDayStatus.present, null, null);
       return dayType == CalendarDayType.holiday
-          ? (AttendanceDayStatus.holiday, null)
-          : (AttendanceDayStatus.weeklyOff, null);
+          ? (AttendanceDayStatus.holiday, null, null)
+          : (AttendanceDayStatus.weeklyOff, null, null);
     }
-    if (leave == DayLeave.fullDay) return (AttendanceDayStatus.onLeave, null);
+    if (leave == DayLeave.fullDay) {
+      return (AttendanceDayStatus.onLeave, null, null);
+    }
 
     final start = schedule == null
         ? null
@@ -172,15 +179,21 @@ abstract final class MockDayCalculator {
     if (punchIn == null) {
       final dueBy = start?.add(const Duration(minutes: lateGraceMinutes));
       final notDueYet = isToday && dueBy != null && now.isBefore(dueBy);
-      return (AttendanceDayStatus.absent, notDueYet ? 'Not in yet' : null);
+      return (
+        AttendanceDayStatus.absent,
+        notDueYet ? 'Not in yet' : null,
+        null,
+      );
     }
-    if (leave == DayLeave.halfDay) return (AttendanceDayStatus.halfDay, null);
+    if (leave == DayLeave.halfDay) {
+      return (AttendanceDayStatus.halfDay, null, null);
+    }
     if (start != null) {
       final lateBy = punchIn.difference(start).inMinutes;
       if (lateBy > lateGraceMinutes) {
-        return (AttendanceDayStatus.late, '$lateBy min late');
+        return (AttendanceDayStatus.late, null, lateBy);
       }
     }
-    return (AttendanceDayStatus.present, null);
+    return (AttendanceDayStatus.present, null, null);
   }
 }

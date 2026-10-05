@@ -14,13 +14,15 @@ import 'package:kc_admin_portal/features/employees/presentation/providers/employ
 import 'package:kc_admin_portal/shared/widgets/status_badges.dart';
 
 /// An employee's leaves (design board 05), shown in the profile's history
-/// card.
+/// card: dates, type with paid/unpaid, days, the Casual balance left after
+/// each leave (from the backend), reason and status.
 class LeaveHistoryList extends ConsumerWidget {
   const LeaveHistoryList({required this.employeeId, super.key});
 
   final String employeeId;
 
-  /// The five columns fit from this width (reason drops first).
+  /// The main columns fit from this width (reason, then balance drop
+  /// first).
   static const double _tableMinWidth = 480;
 
   @override
@@ -47,27 +49,58 @@ class LeaveHistoryList extends ConsumerWidget {
           AppDataColumn(
             label: 'Dates',
             flex: 2,
-            minWidth: 170,
-            cellBuilder: (context, item) => Text(
-              AppDateFormat.range(item.startDate, item.endDate),
-              style: AppTextStyles.bodySemibold,
+            minWidth: 150,
+            // The day count goes under the dates so "Balance after" fits
+            // the profile's half-width card.
+            cellBuilder: (context, item) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppDateFormat.range(item.startDate, item.endDate),
+                  style: AppTextStyles.bodySemibold,
+                ),
+                Text(
+                  FormatUtils.days(item.days),
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
             ),
           ),
           AppDataColumn(
             label: 'Type',
-            minWidth: 100,
-            cellBuilder: (context, item) => Text(item.leaveType),
+            minWidth: 90,
+            cellBuilder: (context, item) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.leaveType),
+                Text(
+                  payLabel(item),
+                  style: AppTextStyles.caption.copyWith(
+                    color: item.isPaid
+                        ? AppColors.textMuted
+                        : AppColors.warningFg,
+                  ),
+                ),
+              ],
+            ),
           ),
           AppDataColumn(
-            label: 'Days',
-            minWidth: 70,
-            cellBuilder: (context, item) => Text(FormatUtils.count(item.days)),
+            label: 'Balance after',
+            // Fits the header on one line.
+            minWidth: 140,
+            priority: 1,
+            cellBuilder: (context, item) => Text(
+              balanceText(item) ?? '—',
+              style: item.balanceAfter == null ? muted : null,
+            ),
           ),
           AppDataColumn(
             label: 'Reason',
             flex: 2,
             minWidth: 140,
-            priority: 1,
+            priority: 2,
             cellBuilder: (context, item) => Text(
               item.reason ?? '—',
               overflow: TextOverflow.ellipsis,
@@ -84,6 +117,17 @@ class LeaveHistoryList extends ConsumerWidget {
     );
   }
 }
+
+/// "Paid" / "Not paid".
+String payLabel(LeaveHistoryItemModel item) =>
+    item.isPaid ? 'Paid' : 'Not paid';
+
+/// "7 days left"; null when the leave doesn't use the Casual balance
+/// (Unpaid, rejected or cancelled).
+String? balanceText(LeaveHistoryItemModel item) => switch (item.balanceAfter) {
+  final after? => '${FormatUtils.days(after)} left',
+  null => null,
+};
 
 class _MobileItem extends StatelessWidget {
   const _MobileItem({required this.item});
@@ -106,8 +150,10 @@ class _MobileItem extends StatelessWidget {
               ),
               Text(
                 [
-                  item.leaveType,
+                  '${item.leaveType} (${payLabel(item).toLowerCase()})',
                   FormatUtils.days(item.days),
+                  if (item.balanceAfter case final after?)
+                    '${FormatUtils.days(after)} left after',
                   ?item.reason,
                 ].join(' · '),
                 style: AppTextStyles.caption.copyWith(

@@ -1,3 +1,5 @@
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
+
 /// Overtime shown as working days of the employee's own length
 /// (approved 2026-09-30): never "8 hours = 1 day".
 ///
@@ -27,28 +29,27 @@ class OvertimeDays {
   /// False without a schedule: then only hours and minutes are shown.
   final bool hasDayLength;
 
-  /// "2 days", "1 day 2h 30m", "0 days 1h 30m"; "25h" without a day
-  /// length.
-  String get short {
-    final time = [if (hours > 0) '${hours}h', if (minutes > 0) '${minutes}m'];
-    if (!hasDayLength) return time.isEmpty ? '0m' : time.join(' ');
-    return [days == 1 ? '1 day' : '$days days', ...time].join(' ');
-  }
-
-  /// For screen readers: "1 day, 2 hours and 30 minutes".
-  String get long {
-    String unit(int n, String one) => n == 1 ? '1 $one' : '$n ${one}s';
+  /// "2 Days", "1 Day 2 Hours 30 Minutes", "0 Days 1 Hour 30 Minutes";
+  /// without a day length, just the time ("25 Hours").
+  String get full {
     final time = [
-      if (hours > 0) unit(hours, 'hour'),
-      if (minutes > 0) unit(minutes, 'minute'),
+      if (hours > 0) DurationFormat.unit(hours, 'Hour'),
+      if (minutes > 0) DurationFormat.unit(minutes, 'Minute'),
     ];
     if (!hasDayLength) {
-      return time.isEmpty ? '0 minutes' : time.join(' and ');
+      return time.isEmpty ? DurationFormat.full(0) : time.join(' ');
     }
-    final dayText = unit(days, 'day');
-    return time.isEmpty ? dayText : '$dayText, ${time.join(' and ')}';
+    return [DurationFormat.unit(days, 'Day'), ...time].join(' ');
+  }
+
+  /// Where space is tight: "1d 2h 30m", "2d", "0d 1h 30m"; "25h" without a
+  /// day length.
+  String get compact {
+    final time = [if (hours > 0) '${hours}h', if (minutes > 0) '${minutes}m'];
+    if (!hasDayLength) return time.isEmpty ? '0m' : time.join(' ');
+    return ['${days}d', ...time].join(' ');
   }
 
   @override
-  String toString() => short;
+  String toString() => full;
 }

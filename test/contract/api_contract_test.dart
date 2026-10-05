@@ -25,12 +25,12 @@ import 'package:kc_admin_portal/features/employees/data/models/employee_models.d
 import 'package:kc_admin_portal/features/holidays/data/datasources/holiday_remote_data_source.dart';
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_remote_data_source.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
-import 'package:kc_admin_portal/features/master_data/data/datasources/master_data_remote_data_source.dart';
 import 'package:kc_admin_portal/features/overtime/data/datasources/overtime_remote_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/datasources/user_remote_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/models/user_account_models.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
 
@@ -109,19 +109,25 @@ void main() {
     });
   });
 
-  group('master data', () {
-    test('departments and designations', () async {
-      server
-        ..on('GET', '/departments', 'departments.response.json')
-        ..on(
-          'GET',
-          '/departments/3/designations',
-          'designations.response.json',
-        );
-      final source = MasterDataApiDataSource(client);
+  group('department and position', () {
+    test('codes in and out, one shared list', () {
+      expect(JobRole.choices.map((r) => r.code), [
+        'accountant',
+        'graphic_designer',
+        'tailor',
+      ]);
+      final employee = EmployeeModel.fromJson(
+        _example('employees.get.response.json')! as Map<String, dynamic>,
+      );
+      expect(JobRole.choices, contains(employee.department));
+      expect(JobRole.choices, contains(employee.position));
+    });
 
-      expect((await source.departments()).first.employeeCount, 22);
-      expect((await source.designations('3')).first.name, 'Senior developer');
+    test('an unknown code from a newer backend is not fatal', () {
+      final json = Map<String, dynamic>.of(
+        _example('employees.get.response.json')! as Map<String, dynamic>,
+      )..['position'] = 'pattern_maker';
+      expect(EmployeeModel.fromJson(json).position, JobRole.unknown);
     });
   });
 
@@ -140,6 +146,11 @@ void main() {
       expect(server.last!.queryParameters, {'date': '2026-09-28'});
       expect(summary.attention.first.kind, AttentionKind.notPunchedIn);
       expect(summary.onLeave.single.endDate, DateTime(2026, 9, 30));
+      final usage = summary.leaveUsage!;
+      expect(usage.casualRemainingDays, 412);
+      expect(usage.casualTakenDays, 286);
+      expect(usage.unpaidTakenDays, 26);
+      expect(usage.pendingThisMonth, 3);
 
       final chart = await source.monthlyAttendance(DateTime(2026, 9));
       expect(server.last!.queryParameters, {'month': '2026-09'});
@@ -156,7 +167,7 @@ void main() {
       final page = await source.list(
         EmployeeQuery(
           search: 'aarav',
-          departmentId: '3',
+          department: JobRole.tailor,
           joinedFrom: DateTime(2021),
           joinedTo: DateTime(2021, 12, 31),
         ),
@@ -164,7 +175,7 @@ void main() {
 
       expect(server.last!.queryParameters, {
         'search': 'aarav',
-        'departmentId': '3',
+        'department': 'tailor',
         'joinedFrom': '2021-01-01',
         'joinedTo': '2021-12-31',
         'status': 'active',
@@ -172,6 +183,7 @@ void main() {
         'pageSize': 10,
       });
       expect(page.counts, const EmployeeStatusCounts(active: 124, inactive: 4));
+      expect(page.items.single.overtimeMinutesThisYear, 765);
       final employee = page.items.single;
       expect(employee.ecNumber, 'KC1001');
       expect(employee.joiningDate, DateTime(2021, 1, 12));
@@ -188,10 +200,9 @@ void main() {
         EmployeeFormData(
           ecNumber: 'KC1129',
           name: 'Rahul Sharma',
-          email: 'rahul.sharma@keshav.in',
           mobile: '9876543210',
-          departmentId: '4',
-          designationId: '21',
+          department: JobRole.graphicDesigner,
+          position: JobRole.graphicDesigner,
           joiningDate: DateTime(2026, 9, 28),
           status: EmployeeStatus.active,
           schedule: WorkScheduleInput(
@@ -234,11 +245,18 @@ void main() {
         )
         ..on('GET', '/employees/1/leaves', 'employees.leaves.response.json');
 
-      final balances = await source.leaveBalance('1');
-      expect(balances.last.quota, isNull);
+      final balance = await source.leaveBalance('1');
+      expect(balance.asOf, DateTime(2026, 9, 28));
+      expect(balance.accrued, 9);
+      expect(balance.pending, 1);
+      expect(balance.remaining, 6);
+      expect(balance.unpaidTaken, 1);
 
       final leaves = await source.leaveHistory('1');
-      expect(leaves.single.status, LeaveStatus.approved);
+      expect(leaves.first.isPaid, isFalse);
+      expect(leaves.first.balanceAfter, isNull);
+      expect(leaves.last.status, LeaveStatus.approved);
+      expect(leaves.last.balanceAfter, 7);
     });
   });
 
@@ -269,7 +287,8 @@ void main() {
       final late = day.items.last;
       // Shown as company wall-clock time on any device.
       expect(late.punchIn, DateTime(2026, 9, 28, 10, 8));
-      expect(late.note, '38 min late');
+      expect(late.lateMinutes, 38);
+      expect(late.displayNote, 'Late by 38 Minutes');
     });
 
     test('punch in / out and bulk', () async {
@@ -386,12 +405,43 @@ void main() {
         status: LeaveStatus.approved,
       );
 
-      await source.create(data);
+      final created = await source.create(data);
       expect(server.lastBody, _example('leaves.create.request.json'));
+      expect(created.isPaid, isTrue);
+      expect(created.balanceAfter, 4);
+      expect(created.unpaidPartId, isNull);
+
+      // Extra days saved as Unpaid: the flag is sent only when asked.
+      await source.create(
+        data.copyWith(
+          startDate: DateTime(2026, 10, 12),
+          endDate: DateTime(2026, 10, 20),
+          splitExcessAsUnpaid: true,
+        ),
+      );
+      expect(server.lastBody, _example('leaves.create-split.request.json'));
       await source.update('41', data);
       expect(server.last!.method, 'PATCH');
       await source.setStatus('41', LeaveStatus.approved);
       expect(server.lastBody, _example('leaves.status.request.json'));
+    });
+
+    test('balances list (GET /leave-balances)', () async {
+      server.on('GET', '/leave-balances', 'leave-balances.response.json');
+      final list = await source.balances(
+        const LeaveBalanceQuery(search: 'D', department: JobRole.tailor),
+      );
+      expect(server.last!.queryParameters, {
+        'search': 'D',
+        'department': 'tailor',
+        'page': 1,
+        'pageSize': 10,
+      });
+      expect(list.items.first.employee.department, JobRole.graphicDesigner);
+      expect(list.items.first.balance.pending, 3);
+      expect(list.items.last.balance.unpaidTaken, 2);
+      expect(list.summary.employees, 19);
+      expect(list.summary.remaining, 148.5);
     });
 
     test('types, preview and calendar', () async {
@@ -400,7 +450,9 @@ void main() {
         ..on('POST', '/leaves/preview', 'leaves.preview.response.json')
         ..on('GET', '/leave-calendar', 'leave-calendar.response.json');
 
-      expect((await source.types()).last.hasBalance, isFalse);
+      final types = await source.types();
+      expect(types.last.hasBalance, isFalse);
+      expect(types.last.isPaid, isFalse);
 
       final preview = await source.preview(
         LeavePreviewRequest(
@@ -412,7 +464,10 @@ void main() {
         ),
       );
       expect(server.lastBody, _example('leaves.preview.request.json'));
-      expect(preview.balanceAfter, 9);
+      expect(preview.paidDays, 7);
+      expect(preview.unpaidDays, 1);
+      expect(preview.availableCasual, 7);
+      expect(preview.needsSplit, isTrue);
 
       final calendar = await source.calendar(
         DateTime(2026, 10),
@@ -442,10 +497,9 @@ void main() {
         EmployeeFormData(
           ecNumber: 'KC1001',
           name: 'X',
-          email: 'x@keshav.in',
           mobile: '9876543210',
-          departmentId: '4',
-          designationId: '21',
+          department: JobRole.graphicDesigner,
+          position: JobRole.graphicDesigner,
           joiningDate: DateTime(2026, 9, 28),
           status: EmployeeStatus.active,
         ),

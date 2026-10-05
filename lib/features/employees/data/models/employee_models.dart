@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
-import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
 
@@ -18,12 +18,11 @@ abstract class EmployeeModel with _$EmployeeModel {
     /// "KC" followed by digits, e.g. "KC1001".
     required String ecNumber,
     required String name,
-    required String email,
 
     /// 10 digits without the country code, e.g. "9825011234".
     required String mobile,
-    required NamedRef department,
-    required NamedRef designation,
+    @JsonKey(unknownEnumValue: JobRole.unknown) required JobRole department,
+    @JsonKey(unknownEnumValue: JobRole.unknown) required JobRole position,
     @DateOnlyConverter() required DateTime joiningDate,
     @JsonKey(unknownEnumValue: EmployeeStatus.unknown)
     required EmployeeStatus status,
@@ -36,6 +35,11 @@ abstract class EmployeeModel with _$EmployeeModel {
 
     /// The schedule in effect today (history: `GET /employees/{id}/schedules`).
     WorkScheduleModel? schedule,
+
+    /// Overtime from 1 January of the current year (company time) to today,
+    /// in minutes, calculated by the backend from the attendance records.
+    /// Null when the caller lacks `overtime.view`, or from an older backend.
+    int? overtimeMinutesThisYear,
   }) = _EmployeeModel;
 
   factory EmployeeModel.fromJson(Map<String, dynamic> json) =>
@@ -48,10 +52,9 @@ abstract class EmployeeFormData with _$EmployeeFormData {
   const factory EmployeeFormData({
     required String ecNumber,
     required String name,
-    required String email,
     required String mobile,
-    required String departmentId,
-    required String designationId,
+    required JobRole department,
+    required JobRole position,
     @JsonKey(toJson: dateToJson) required DateTime joiningDate,
     required EmployeeStatus status,
 
@@ -98,8 +101,8 @@ abstract class EmployeeStatusCounts with _$EmployeeStatusCounts {
 abstract class EmployeeQuery with _$EmployeeQuery {
   const factory EmployeeQuery({
     @Default('') String search,
-    String? departmentId,
-    String? designationId,
+    JobRole? department,
+    JobRole? position,
 
     /// "Joined" filter (design board 03): joining date within this range.
     @DateOnlyConverter() DateTime? joinedFrom,
@@ -117,15 +120,15 @@ abstract class EmployeeQuery with _$EmployeeQuery {
 
   bool get hasFilters =>
       search.isNotEmpty ||
-      departmentId != null ||
-      designationId != null ||
+      department != null ||
+      position != null ||
       joinedFrom != null ||
       status != EmployeeStatus.active;
 
   Map<String, Object?> toQueryParameters() => {
     if (search.isNotEmpty) 'search': search,
-    'departmentId': ?departmentId,
-    'designationId': ?designationId,
+    'department': ?department?.code,
+    'position': ?position?.code,
     if (joinedFrom != null) 'joinedFrom': dateToJson(joinedFrom!),
     if (joinedTo != null) 'joinedTo': dateToJson(joinedTo!),
     'status': ?status?.name,
@@ -145,6 +148,13 @@ abstract class LeaveHistoryItemModel with _$LeaveHistoryItemModel {
     required double days,
     String? reason,
     @JsonKey(unknownEnumValue: LeaveStatus.unknown) required LeaveStatus status,
+
+    /// Paid (Casual) or Unpaid.
+    @Default(true) bool isPaid,
+
+    /// Casual days left after this leave (date order); null for unpaid or
+    /// rejected / cancelled leave.
+    double? balanceAfter,
   }) = _LeaveHistoryItemModel;
 
   factory LeaveHistoryItemModel.fromJson(Map<String, dynamic> json) =>

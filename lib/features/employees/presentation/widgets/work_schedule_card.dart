@@ -6,6 +6,7 @@ import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
 import 'package:kc_admin_portal/core/widgets/app_link.dart';
@@ -93,7 +94,7 @@ class WorkScheduleCard extends ConsumerWidget {
                 ),
                 _Fact(
                   label: 'Expected per day',
-                  value: FormatUtils.duration(schedule.expectedMinutes),
+                  value: DurationFormat.full(schedule.expectedMinutes),
                   emphasised: true,
                 ),
               ],
@@ -113,7 +114,7 @@ class WorkScheduleCard extends ConsumerWidget {
   /// "1 h (13:00–14:00)", "30 min" or "No break".
   static String breakText(WorkScheduleModel schedule) {
     if (schedule.breakMinutes == 0) return 'No break';
-    final length = FormatUtils.minutes(schedule.breakMinutes);
+    final length = DurationFormat.full(schedule.breakMinutes);
     final start = schedule.breakStart;
     final end = schedule.breakEnd;
     return start == null || end == null
@@ -174,7 +175,7 @@ class _VersionRow extends StatelessWidget {
       WorkScheduleCard.breakText(version),
       if (version.weeklyOffDays.isNotEmpty)
         '${FormatUtils.weekdays(version.weeklyOffDays)} off',
-      '${FormatUtils.duration(version.expectedMinutes)} a day',
+      '${DurationFormat.full(version.expectedMinutes)} a day',
     ].join(' · ');
 
     return Wrap(

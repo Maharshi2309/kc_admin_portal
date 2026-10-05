@@ -21,6 +21,9 @@ abstract interface class LeaveRepository {
   /// Days and balance the backend would count for [request].
   Future<LeavePreviewModel> preview(LeavePreviewRequest request);
 
+  /// Every active employee's Casual balance, with totals for the filters.
+  Future<LeaveBalanceListModel> balances(LeaveBalanceQuery query);
+
   /// Company holidays, and [employeeId]'s weekly offs when given.
   Future<LeaveCalendarModel> calendar(DateTime month, {String? employeeId});
 }

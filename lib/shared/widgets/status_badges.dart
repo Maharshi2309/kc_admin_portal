@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/widgets/app_status_badge.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
@@ -71,7 +71,7 @@ class OvertimeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppStatusBadge(
-    label: '+${FormatUtils.compactDuration(minutes)} overtime',
+    label: '+${DurationFormat.short(minutes)} overtime',
     tone: StatusTone.info,
   );
 }

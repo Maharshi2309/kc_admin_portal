@@ -17,8 +17,12 @@ mixin _$AttendanceRecordModel {
 
 /// `null` when nothing is recorded yet (not punched in).
 @JsonKey(fromJson: _optionalId) String? get id; EmployeeSummaryModel get employee;@DateOnlyConverter() DateTime get date;@CompanyDateTimeConverter() DateTime? get punchIn;@CompanyDateTimeConverter() DateTime? get punchOut; int? get workedMinutes;/// Share of the shift worked, 0–100, for the progress bar.
- double? get workedPercent;@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus get status;/// Short explanation from the backend, e.g. "23 min late".
- String? get note; String? get correctedBy;@CompanyDateTimeConverter() DateTime? get correctedAt;/// Work on a holiday or weekly off is recorded as its own kind.
+ double? get workedPercent;@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus get status;/// Short explanation from the backend, e.g. "Leave 2nd half". Never a
+/// duration: those come as numbers (e.g. [lateMinutes]) and are
+/// formatted by the app.
+ String? get note;/// How late the punch-in was, after the grace period's start time; null
+/// when on time.
+ int? get lateMinutes; String? get correctedBy;@CompanyDateTimeConverter() DateTime? get correctedAt;/// Work on a holiday or weekly off is recorded as its own kind.
 @JsonKey(unknownEnumValue: AttendanceDayKind.unknown) AttendanceDayKind get dayKind;/// The employee's schedule on [date]; null on holidays and weekly offs.
  ScheduleSnapshotModel? get schedule;/// 0 on holidays and weekly offs; halved on half-day leave.
  int? get expectedMinutes; int? get overtimeMinutes;
@@ -34,16 +38,16 @@ $AttendanceRecordModelCopyWith<AttendanceRecordModel> get copyWith => _$Attendan
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceRecordModel&&(identical(other.id, id) || other.id == id)&&(identical(other.employee, employee) || other.employee == employee)&&(identical(other.date, date) || other.date == date)&&(identical(other.punchIn, punchIn) || other.punchIn == punchIn)&&(identical(other.punchOut, punchOut) || other.punchOut == punchOut)&&(identical(other.workedMinutes, workedMinutes) || other.workedMinutes == workedMinutes)&&(identical(other.workedPercent, workedPercent) || other.workedPercent == workedPercent)&&(identical(other.status, status) || other.status == status)&&(identical(other.note, note) || other.note == note)&&(identical(other.correctedBy, correctedBy) || other.correctedBy == correctedBy)&&(identical(other.correctedAt, correctedAt) || other.correctedAt == correctedAt)&&(identical(other.dayKind, dayKind) || other.dayKind == dayKind)&&(identical(other.schedule, schedule) || other.schedule == schedule)&&(identical(other.expectedMinutes, expectedMinutes) || other.expectedMinutes == expectedMinutes)&&(identical(other.overtimeMinutes, overtimeMinutes) || other.overtimeMinutes == overtimeMinutes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceRecordModel&&(identical(other.id, id) || other.id == id)&&(identical(other.employee, employee) || other.employee == employee)&&(identical(other.date, date) || other.date == date)&&(identical(other.punchIn, punchIn) || other.punchIn == punchIn)&&(identical(other.punchOut, punchOut) || other.punchOut == punchOut)&&(identical(other.workedMinutes, workedMinutes) || other.workedMinutes == workedMinutes)&&(identical(other.workedPercent, workedPercent) || other.workedPercent == workedPercent)&&(identical(other.status, status) || other.status == status)&&(identical(other.note, note) || other.note == note)&&(identical(other.lateMinutes, lateMinutes) || other.lateMinutes == lateMinutes)&&(identical(other.correctedBy, correctedBy) || other.correctedBy == correctedBy)&&(identical(other.correctedAt, correctedAt) || other.correctedAt == correctedAt)&&(identical(other.dayKind, dayKind) || other.dayKind == dayKind)&&(identical(other.schedule, schedule) || other.schedule == schedule)&&(identical(other.expectedMinutes, expectedMinutes) || other.expectedMinutes == expectedMinutes)&&(identical(other.overtimeMinutes, overtimeMinutes) || other.overtimeMinutes == overtimeMinutes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,employee,date,punchIn,punchOut,workedMinutes,workedPercent,status,note,correctedBy,correctedAt,dayKind,schedule,expectedMinutes,overtimeMinutes);
+int get hashCode => Object.hash(runtimeType,id,employee,date,punchIn,punchOut,workedMinutes,workedPercent,status,note,lateMinutes,correctedBy,correctedAt,dayKind,schedule,expectedMinutes,overtimeMinutes);
 
 @override
 String toString() {
-  return 'AttendanceRecordModel(id: $id, employee: $employee, date: $date, punchIn: $punchIn, punchOut: $punchOut, workedMinutes: $workedMinutes, workedPercent: $workedPercent, status: $status, note: $note, correctedBy: $correctedBy, correctedAt: $correctedAt, dayKind: $dayKind, schedule: $schedule, expectedMinutes: $expectedMinutes, overtimeMinutes: $overtimeMinutes)';
+  return 'AttendanceRecordModel(id: $id, employee: $employee, date: $date, punchIn: $punchIn, punchOut: $punchOut, workedMinutes: $workedMinutes, workedPercent: $workedPercent, status: $status, note: $note, lateMinutes: $lateMinutes, correctedBy: $correctedBy, correctedAt: $correctedAt, dayKind: $dayKind, schedule: $schedule, expectedMinutes: $expectedMinutes, overtimeMinutes: $overtimeMinutes)';
 }
 
 
@@ -54,7 +58,7 @@ abstract mixin class $AttendanceRecordModelCopyWith<$Res>  {
   factory $AttendanceRecordModelCopyWith(AttendanceRecordModel value, $Res Function(AttendanceRecordModel) _then) = _$AttendanceRecordModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(fromJson: _optionalId) String? id, EmployeeSummaryModel employee,@DateOnlyConverter() DateTime date,@CompanyDateTimeConverter() DateTime? punchIn,@CompanyDateTimeConverter() DateTime? punchOut, int? workedMinutes, double? workedPercent,@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus status, String? note, String? correctedBy,@CompanyDateTimeConverter() DateTime? correctedAt,@JsonKey(unknownEnumValue: AttendanceDayKind.unknown) AttendanceDayKind dayKind, ScheduleSnapshotModel? schedule, int? expectedMinutes, int? overtimeMinutes
+@JsonKey(fromJson: _optionalId) String? id, EmployeeSummaryModel employee,@DateOnlyConverter() DateTime date,@CompanyDateTimeConverter() DateTime? punchIn,@CompanyDateTimeConverter() DateTime? punchOut, int? workedMinutes, double? workedPercent,@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus status, String? note, int? lateMinutes, String? correctedBy,@CompanyDateTimeConverter() DateTime? correctedAt,@JsonKey(unknownEnumValue: AttendanceDayKind.unknown) AttendanceDayKind dayKind, ScheduleSnapshotModel? schedule, int? expectedMinutes, int? overtimeMinutes
 });
 
 
@@ -71,7 +75,7 @@ class _$AttendanceRecordModelCopyWithImpl<$Res>
 
 /// Create a copy of AttendanceRecordModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? employee = null,Object? date = null,Object? punchIn = freezed,Object? punchOut = freezed,Object? workedMinutes = freezed,Object? workedPercent = freezed,Object? status = null,Object? note = freezed,Object? correctedBy = freezed,Object? correctedAt = freezed,Object? dayKind = null,Object? schedule = freezed,Object? expectedMinutes = freezed,Object? overtimeMinutes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? employee = null,Object? date = null,Object? punchIn = freezed,Object? punchOut = freezed,Object? workedMinutes = freezed,Object? workedPercent = freezed,Object? status = null,Object? note = freezed,Object? lateMinutes = freezed,Object? correctedBy = freezed,Object? correctedAt = freezed,Object? dayKind = null,Object? schedule = freezed,Object? expectedMinutes = freezed,Object? overtimeMinutes = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,employee: null == employee ? _self.employee : employee // ignore: cast_nullable_to_non_nullable
@@ -82,7 +86,8 @@ as DateTime?,workedMinutes: freezed == workedMinutes ? _self.workedMinutes : wor
 as int?,workedPercent: freezed == workedPercent ? _self.workedPercent : workedPercent // ignore: cast_nullable_to_non_nullable
 as double?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as AttendanceDayStatus,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
-as String?,correctedBy: freezed == correctedBy ? _self.correctedBy : correctedBy // ignore: cast_nullable_to_non_nullable
+as String?,lateMinutes: freezed == lateMinutes ? _self.lateMinutes : lateMinutes // ignore: cast_nullable_to_non_nullable
+as int?,correctedBy: freezed == correctedBy ? _self.correctedBy : correctedBy // ignore: cast_nullable_to_non_nullable
 as String?,correctedAt: freezed == correctedAt ? _self.correctedAt : correctedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,dayKind: null == dayKind ? _self.dayKind : dayKind // ignore: cast_nullable_to_non_nullable
 as AttendanceDayKind,schedule: freezed == schedule ? _self.schedule : schedule // ignore: cast_nullable_to_non_nullable
@@ -194,10 +199,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: _optionalId)  String? id,  EmployeeSummaryModel employee, @DateOnlyConverter()  DateTime date, @CompanyDateTimeConverter()  DateTime? punchIn, @CompanyDateTimeConverter()  DateTime? punchOut,  int? workedMinutes,  double? workedPercent, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus status,  String? note,  String? correctedBy, @CompanyDateTimeConverter()  DateTime? correctedAt, @JsonKey(unknownEnumValue: AttendanceDayKind.unknown)  AttendanceDayKind dayKind,  ScheduleSnapshotModel? schedule,  int? expectedMinutes,  int? overtimeMinutes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: _optionalId)  String? id,  EmployeeSummaryModel employee, @DateOnlyConverter()  DateTime date, @CompanyDateTimeConverter()  DateTime? punchIn, @CompanyDateTimeConverter()  DateTime? punchOut,  int? workedMinutes,  double? workedPercent, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus status,  String? note,  int? lateMinutes,  String? correctedBy, @CompanyDateTimeConverter()  DateTime? correctedAt, @JsonKey(unknownEnumValue: AttendanceDayKind.unknown)  AttendanceDayKind dayKind,  ScheduleSnapshotModel? schedule,  int? expectedMinutes,  int? overtimeMinutes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AttendanceRecordModel() when $default != null:
-return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,_that.workedMinutes,_that.workedPercent,_that.status,_that.note,_that.correctedBy,_that.correctedAt,_that.dayKind,_that.schedule,_that.expectedMinutes,_that.overtimeMinutes);case _:
+return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,_that.workedMinutes,_that.workedPercent,_that.status,_that.note,_that.lateMinutes,_that.correctedBy,_that.correctedAt,_that.dayKind,_that.schedule,_that.expectedMinutes,_that.overtimeMinutes);case _:
   return orElse();
 
 }
@@ -215,10 +220,10 @@ return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: _optionalId)  String? id,  EmployeeSummaryModel employee, @DateOnlyConverter()  DateTime date, @CompanyDateTimeConverter()  DateTime? punchIn, @CompanyDateTimeConverter()  DateTime? punchOut,  int? workedMinutes,  double? workedPercent, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus status,  String? note,  String? correctedBy, @CompanyDateTimeConverter()  DateTime? correctedAt, @JsonKey(unknownEnumValue: AttendanceDayKind.unknown)  AttendanceDayKind dayKind,  ScheduleSnapshotModel? schedule,  int? expectedMinutes,  int? overtimeMinutes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: _optionalId)  String? id,  EmployeeSummaryModel employee, @DateOnlyConverter()  DateTime date, @CompanyDateTimeConverter()  DateTime? punchIn, @CompanyDateTimeConverter()  DateTime? punchOut,  int? workedMinutes,  double? workedPercent, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus status,  String? note,  int? lateMinutes,  String? correctedBy, @CompanyDateTimeConverter()  DateTime? correctedAt, @JsonKey(unknownEnumValue: AttendanceDayKind.unknown)  AttendanceDayKind dayKind,  ScheduleSnapshotModel? schedule,  int? expectedMinutes,  int? overtimeMinutes)  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceRecordModel():
-return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,_that.workedMinutes,_that.workedPercent,_that.status,_that.note,_that.correctedBy,_that.correctedAt,_that.dayKind,_that.schedule,_that.expectedMinutes,_that.overtimeMinutes);case _:
+return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,_that.workedMinutes,_that.workedPercent,_that.status,_that.note,_that.lateMinutes,_that.correctedBy,_that.correctedAt,_that.dayKind,_that.schedule,_that.expectedMinutes,_that.overtimeMinutes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -235,10 +240,10 @@ return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: _optionalId)  String? id,  EmployeeSummaryModel employee, @DateOnlyConverter()  DateTime date, @CompanyDateTimeConverter()  DateTime? punchIn, @CompanyDateTimeConverter()  DateTime? punchOut,  int? workedMinutes,  double? workedPercent, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus status,  String? note,  String? correctedBy, @CompanyDateTimeConverter()  DateTime? correctedAt, @JsonKey(unknownEnumValue: AttendanceDayKind.unknown)  AttendanceDayKind dayKind,  ScheduleSnapshotModel? schedule,  int? expectedMinutes,  int? overtimeMinutes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: _optionalId)  String? id,  EmployeeSummaryModel employee, @DateOnlyConverter()  DateTime date, @CompanyDateTimeConverter()  DateTime? punchIn, @CompanyDateTimeConverter()  DateTime? punchOut,  int? workedMinutes,  double? workedPercent, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus status,  String? note,  int? lateMinutes,  String? correctedBy, @CompanyDateTimeConverter()  DateTime? correctedAt, @JsonKey(unknownEnumValue: AttendanceDayKind.unknown)  AttendanceDayKind dayKind,  ScheduleSnapshotModel? schedule,  int? expectedMinutes,  int? overtimeMinutes)?  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceRecordModel() when $default != null:
-return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,_that.workedMinutes,_that.workedPercent,_that.status,_that.note,_that.correctedBy,_that.correctedAt,_that.dayKind,_that.schedule,_that.expectedMinutes,_that.overtimeMinutes);case _:
+return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,_that.workedMinutes,_that.workedPercent,_that.status,_that.note,_that.lateMinutes,_that.correctedBy,_that.correctedAt,_that.dayKind,_that.schedule,_that.expectedMinutes,_that.overtimeMinutes);case _:
   return null;
 
 }
@@ -249,8 +254,8 @@ return $default(_that.id,_that.employee,_that.date,_that.punchIn,_that.punchOut,
 /// @nodoc
 @JsonSerializable()
 
-class _AttendanceRecordModel implements AttendanceRecordModel {
-  const _AttendanceRecordModel({@JsonKey(fromJson: _optionalId) this.id, required this.employee, @DateOnlyConverter() required this.date, @CompanyDateTimeConverter() this.punchIn, @CompanyDateTimeConverter() this.punchOut, this.workedMinutes, this.workedPercent, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) required this.status, this.note, this.correctedBy, @CompanyDateTimeConverter() this.correctedAt, @JsonKey(unknownEnumValue: AttendanceDayKind.unknown) this.dayKind = AttendanceDayKind.working, this.schedule, this.expectedMinutes, this.overtimeMinutes});
+class _AttendanceRecordModel extends AttendanceRecordModel {
+  const _AttendanceRecordModel({@JsonKey(fromJson: _optionalId) this.id, required this.employee, @DateOnlyConverter() required this.date, @CompanyDateTimeConverter() this.punchIn, @CompanyDateTimeConverter() this.punchOut, this.workedMinutes, this.workedPercent, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) required this.status, this.note, this.lateMinutes, this.correctedBy, @CompanyDateTimeConverter() this.correctedAt, @JsonKey(unknownEnumValue: AttendanceDayKind.unknown) this.dayKind = AttendanceDayKind.working, this.schedule, this.expectedMinutes, this.overtimeMinutes}): super._();
   factory _AttendanceRecordModel.fromJson(Map<String, dynamic> json) => _$AttendanceRecordModelFromJson(json);
 
 /// `null` when nothing is recorded yet (not punched in).
@@ -263,8 +268,13 @@ class _AttendanceRecordModel implements AttendanceRecordModel {
 /// Share of the shift worked, 0–100, for the progress bar.
 @override final  double? workedPercent;
 @override@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) final  AttendanceDayStatus status;
-/// Short explanation from the backend, e.g. "23 min late".
+/// Short explanation from the backend, e.g. "Leave 2nd half". Never a
+/// duration: those come as numbers (e.g. [lateMinutes]) and are
+/// formatted by the app.
 @override final  String? note;
+/// How late the punch-in was, after the grace period's start time; null
+/// when on time.
+@override final  int? lateMinutes;
 @override final  String? correctedBy;
 @override@CompanyDateTimeConverter() final  DateTime? correctedAt;
 /// Work on a holiday or weekly off is recorded as its own kind.
@@ -288,16 +298,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceRecordModel&&(identical(other.id, id) || other.id == id)&&(identical(other.employee, employee) || other.employee == employee)&&(identical(other.date, date) || other.date == date)&&(identical(other.punchIn, punchIn) || other.punchIn == punchIn)&&(identical(other.punchOut, punchOut) || other.punchOut == punchOut)&&(identical(other.workedMinutes, workedMinutes) || other.workedMinutes == workedMinutes)&&(identical(other.workedPercent, workedPercent) || other.workedPercent == workedPercent)&&(identical(other.status, status) || other.status == status)&&(identical(other.note, note) || other.note == note)&&(identical(other.correctedBy, correctedBy) || other.correctedBy == correctedBy)&&(identical(other.correctedAt, correctedAt) || other.correctedAt == correctedAt)&&(identical(other.dayKind, dayKind) || other.dayKind == dayKind)&&(identical(other.schedule, schedule) || other.schedule == schedule)&&(identical(other.expectedMinutes, expectedMinutes) || other.expectedMinutes == expectedMinutes)&&(identical(other.overtimeMinutes, overtimeMinutes) || other.overtimeMinutes == overtimeMinutes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceRecordModel&&(identical(other.id, id) || other.id == id)&&(identical(other.employee, employee) || other.employee == employee)&&(identical(other.date, date) || other.date == date)&&(identical(other.punchIn, punchIn) || other.punchIn == punchIn)&&(identical(other.punchOut, punchOut) || other.punchOut == punchOut)&&(identical(other.workedMinutes, workedMinutes) || other.workedMinutes == workedMinutes)&&(identical(other.workedPercent, workedPercent) || other.workedPercent == workedPercent)&&(identical(other.status, status) || other.status == status)&&(identical(other.note, note) || other.note == note)&&(identical(other.lateMinutes, lateMinutes) || other.lateMinutes == lateMinutes)&&(identical(other.correctedBy, correctedBy) || other.correctedBy == correctedBy)&&(identical(other.correctedAt, correctedAt) || other.correctedAt == correctedAt)&&(identical(other.dayKind, dayKind) || other.dayKind == dayKind)&&(identical(other.schedule, schedule) || other.schedule == schedule)&&(identical(other.expectedMinutes, expectedMinutes) || other.expectedMinutes == expectedMinutes)&&(identical(other.overtimeMinutes, overtimeMinutes) || other.overtimeMinutes == overtimeMinutes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,employee,date,punchIn,punchOut,workedMinutes,workedPercent,status,note,correctedBy,correctedAt,dayKind,schedule,expectedMinutes,overtimeMinutes);
+int get hashCode => Object.hash(runtimeType,id,employee,date,punchIn,punchOut,workedMinutes,workedPercent,status,note,lateMinutes,correctedBy,correctedAt,dayKind,schedule,expectedMinutes,overtimeMinutes);
 
 @override
 String toString() {
-  return 'AttendanceRecordModel(id: $id, employee: $employee, date: $date, punchIn: $punchIn, punchOut: $punchOut, workedMinutes: $workedMinutes, workedPercent: $workedPercent, status: $status, note: $note, correctedBy: $correctedBy, correctedAt: $correctedAt, dayKind: $dayKind, schedule: $schedule, expectedMinutes: $expectedMinutes, overtimeMinutes: $overtimeMinutes)';
+  return 'AttendanceRecordModel(id: $id, employee: $employee, date: $date, punchIn: $punchIn, punchOut: $punchOut, workedMinutes: $workedMinutes, workedPercent: $workedPercent, status: $status, note: $note, lateMinutes: $lateMinutes, correctedBy: $correctedBy, correctedAt: $correctedAt, dayKind: $dayKind, schedule: $schedule, expectedMinutes: $expectedMinutes, overtimeMinutes: $overtimeMinutes)';
 }
 
 
@@ -308,7 +318,7 @@ abstract mixin class _$AttendanceRecordModelCopyWith<$Res> implements $Attendanc
   factory _$AttendanceRecordModelCopyWith(_AttendanceRecordModel value, $Res Function(_AttendanceRecordModel) _then) = __$AttendanceRecordModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(fromJson: _optionalId) String? id, EmployeeSummaryModel employee,@DateOnlyConverter() DateTime date,@CompanyDateTimeConverter() DateTime? punchIn,@CompanyDateTimeConverter() DateTime? punchOut, int? workedMinutes, double? workedPercent,@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus status, String? note, String? correctedBy,@CompanyDateTimeConverter() DateTime? correctedAt,@JsonKey(unknownEnumValue: AttendanceDayKind.unknown) AttendanceDayKind dayKind, ScheduleSnapshotModel? schedule, int? expectedMinutes, int? overtimeMinutes
+@JsonKey(fromJson: _optionalId) String? id, EmployeeSummaryModel employee,@DateOnlyConverter() DateTime date,@CompanyDateTimeConverter() DateTime? punchIn,@CompanyDateTimeConverter() DateTime? punchOut, int? workedMinutes, double? workedPercent,@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus status, String? note, int? lateMinutes, String? correctedBy,@CompanyDateTimeConverter() DateTime? correctedAt,@JsonKey(unknownEnumValue: AttendanceDayKind.unknown) AttendanceDayKind dayKind, ScheduleSnapshotModel? schedule, int? expectedMinutes, int? overtimeMinutes
 });
 
 
@@ -325,7 +335,7 @@ class __$AttendanceRecordModelCopyWithImpl<$Res>
 
 /// Create a copy of AttendanceRecordModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? employee = null,Object? date = null,Object? punchIn = freezed,Object? punchOut = freezed,Object? workedMinutes = freezed,Object? workedPercent = freezed,Object? status = null,Object? note = freezed,Object? correctedBy = freezed,Object? correctedAt = freezed,Object? dayKind = null,Object? schedule = freezed,Object? expectedMinutes = freezed,Object? overtimeMinutes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? employee = null,Object? date = null,Object? punchIn = freezed,Object? punchOut = freezed,Object? workedMinutes = freezed,Object? workedPercent = freezed,Object? status = null,Object? note = freezed,Object? lateMinutes = freezed,Object? correctedBy = freezed,Object? correctedAt = freezed,Object? dayKind = null,Object? schedule = freezed,Object? expectedMinutes = freezed,Object? overtimeMinutes = freezed,}) {
   return _then(_AttendanceRecordModel(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,employee: null == employee ? _self.employee : employee // ignore: cast_nullable_to_non_nullable
@@ -336,7 +346,8 @@ as DateTime?,workedMinutes: freezed == workedMinutes ? _self.workedMinutes : wor
 as int?,workedPercent: freezed == workedPercent ? _self.workedPercent : workedPercent // ignore: cast_nullable_to_non_nullable
 as double?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as AttendanceDayStatus,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
-as String?,correctedBy: freezed == correctedBy ? _self.correctedBy : correctedBy // ignore: cast_nullable_to_non_nullable
+as String?,lateMinutes: freezed == lateMinutes ? _self.lateMinutes : lateMinutes // ignore: cast_nullable_to_non_nullable
+as int?,correctedBy: freezed == correctedBy ? _self.correctedBy : correctedBy // ignore: cast_nullable_to_non_nullable
 as String?,correctedAt: freezed == correctedAt ? _self.correctedAt : correctedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,dayKind: null == dayKind ? _self.dayKind : dayKind // ignore: cast_nullable_to_non_nullable
 as AttendanceDayKind,schedule: freezed == schedule ? _self.schedule : schedule // ignore: cast_nullable_to_non_nullable
@@ -963,7 +974,7 @@ $AttendanceDaySummaryModelCopyWith<$Res> get summary {
 /// @nodoc
 mixin _$AttendanceQuery {
 
-@DateOnlyConverter() DateTime get date; AttendanceFilter get filter; String get search; String? get departmentId;
+@DateOnlyConverter() DateTime get date; AttendanceFilter get filter; String get search; JobRole? get department;
 /// Create a copy of AttendanceQuery
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -974,16 +985,16 @@ $AttendanceQueryCopyWith<AttendanceQuery> get copyWith => _$AttendanceQueryCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceQuery&&(identical(other.date, date) || other.date == date)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.search, search) || other.search == search)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceQuery&&(identical(other.date, date) || other.date == date)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.search, search) || other.search == search)&&(identical(other.department, department) || other.department == department));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,date,filter,search,departmentId);
+int get hashCode => Object.hash(runtimeType,date,filter,search,department);
 
 @override
 String toString() {
-  return 'AttendanceQuery(date: $date, filter: $filter, search: $search, departmentId: $departmentId)';
+  return 'AttendanceQuery(date: $date, filter: $filter, search: $search, department: $department)';
 }
 
 
@@ -994,7 +1005,7 @@ abstract mixin class $AttendanceQueryCopyWith<$Res>  {
   factory $AttendanceQueryCopyWith(AttendanceQuery value, $Res Function(AttendanceQuery) _then) = _$AttendanceQueryCopyWithImpl;
 @useResult
 $Res call({
-@DateOnlyConverter() DateTime date, AttendanceFilter filter, String search, String? departmentId
+@DateOnlyConverter() DateTime date, AttendanceFilter filter, String search, JobRole? department
 });
 
 
@@ -1011,13 +1022,13 @@ class _$AttendanceQueryCopyWithImpl<$Res>
 
 /// Create a copy of AttendanceQuery
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? filter = null,Object? search = null,Object? departmentId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? filter = null,Object? search = null,Object? department = freezed,}) {
   return _then(_self.copyWith(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,filter: null == filter ? _self.filter : filter // ignore: cast_nullable_to_non_nullable
 as AttendanceFilter,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
-as String,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
+as JobRole?,
   ));
 }
 
@@ -1102,10 +1113,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  String? departmentId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  JobRole? department)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AttendanceQuery() when $default != null:
-return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
+return $default(_that.date,_that.filter,_that.search,_that.department);case _:
   return orElse();
 
 }
@@ -1123,10 +1134,10 @@ return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  String? departmentId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  JobRole? department)  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceQuery():
-return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
+return $default(_that.date,_that.filter,_that.search,_that.department);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1143,10 +1154,10 @@ return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  String? departmentId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  JobRole? department)?  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceQuery() when $default != null:
-return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
+return $default(_that.date,_that.filter,_that.search,_that.department);case _:
   return null;
 
 }
@@ -1158,13 +1169,13 @@ return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
 
 
 class _AttendanceQuery extends AttendanceQuery {
-  const _AttendanceQuery({@DateOnlyConverter() required this.date, this.filter = AttendanceFilter.all, this.search = '', this.departmentId}): super._();
+  const _AttendanceQuery({@DateOnlyConverter() required this.date, this.filter = AttendanceFilter.all, this.search = '', this.department}): super._();
   
 
 @override@DateOnlyConverter() final  DateTime date;
 @override@JsonKey() final  AttendanceFilter filter;
 @override@JsonKey() final  String search;
-@override final  String? departmentId;
+@override final  JobRole? department;
 
 /// Create a copy of AttendanceQuery
 /// with the given fields replaced by the non-null parameter values.
@@ -1176,16 +1187,16 @@ _$AttendanceQueryCopyWith<_AttendanceQuery> get copyWith => __$AttendanceQueryCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceQuery&&(identical(other.date, date) || other.date == date)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.search, search) || other.search == search)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceQuery&&(identical(other.date, date) || other.date == date)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.search, search) || other.search == search)&&(identical(other.department, department) || other.department == department));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,date,filter,search,departmentId);
+int get hashCode => Object.hash(runtimeType,date,filter,search,department);
 
 @override
 String toString() {
-  return 'AttendanceQuery(date: $date, filter: $filter, search: $search, departmentId: $departmentId)';
+  return 'AttendanceQuery(date: $date, filter: $filter, search: $search, department: $department)';
 }
 
 
@@ -1196,7 +1207,7 @@ abstract mixin class _$AttendanceQueryCopyWith<$Res> implements $AttendanceQuery
   factory _$AttendanceQueryCopyWith(_AttendanceQuery value, $Res Function(_AttendanceQuery) _then) = __$AttendanceQueryCopyWithImpl;
 @override @useResult
 $Res call({
-@DateOnlyConverter() DateTime date, AttendanceFilter filter, String search, String? departmentId
+@DateOnlyConverter() DateTime date, AttendanceFilter filter, String search, JobRole? department
 });
 
 
@@ -1213,13 +1224,13 @@ class __$AttendanceQueryCopyWithImpl<$Res>
 
 /// Create a copy of AttendanceQuery
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? filter = null,Object? search = null,Object? departmentId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? filter = null,Object? search = null,Object? department = freezed,}) {
   return _then(_AttendanceQuery(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,filter: null == filter ? _self.filter : filter // ignore: cast_nullable_to_non_nullable
 as AttendanceFilter,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
-as String,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
+as JobRole?,
   ));
 }
 

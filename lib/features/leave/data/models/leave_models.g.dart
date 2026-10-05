@@ -11,6 +11,7 @@ _LeaveTypeModel _$LeaveTypeModelFromJson(Map<String, dynamic> json) =>
       id: idFromJson(json['id']),
       name: json['name'] as String,
       hasBalance: json['hasBalance'] as bool? ?? true,
+      isPaid: json['isPaid'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$LeaveTypeModelToJson(_LeaveTypeModel instance) =>
@@ -18,6 +19,7 @@ Map<String, dynamic> _$LeaveTypeModelToJson(_LeaveTypeModel instance) =>
       'id': instance.id,
       'name': instance.name,
       'hasBalance': instance.hasBalance,
+      'isPaid': instance.isPaid,
     };
 
 _LeaveModel _$LeaveModelFromJson(Map<String, dynamic> json) => _LeaveModel(
@@ -42,6 +44,9 @@ _LeaveModel _$LeaveModelFromJson(Map<String, dynamic> json) => _LeaveModel(
     unknownValue: LeaveStatus.unknown,
   ),
   addedBy: json['addedBy'] as String?,
+  isPaid: json['isPaid'] as bool? ?? true,
+  balanceAfter: (json['balanceAfter'] as num?)?.toDouble(),
+  unpaidPartId: json['unpaidPartId'] as String?,
 );
 
 Map<String, dynamic> _$LeaveModelToJson(_LeaveModel instance) =>
@@ -57,6 +62,9 @@ Map<String, dynamic> _$LeaveModelToJson(_LeaveModel instance) =>
       'remarks': instance.remarks,
       'status': _$LeaveStatusEnumMap[instance.status]!,
       'addedBy': instance.addedBy,
+      'isPaid': instance.isPaid,
+      'balanceAfter': instance.balanceAfter,
+      'unpaidPartId': instance.unpaidPartId,
     };
 
 const _$LeaveReasonEnumMap = {
@@ -125,6 +133,7 @@ _LeaveFormData _$LeaveFormDataFromJson(Map<String, dynamic> json) =>
       reason: $enumDecode(_$LeaveReasonEnumMap, json['reason']),
       remarks: json['remarks'] as String?,
       status: $enumDecode(_$LeaveStatusEnumMap, json['status']),
+      splitExcessAsUnpaid: json['splitExcessAsUnpaid'] as bool?,
     );
 
 Map<String, dynamic> _$LeaveFormDataToJson(_LeaveFormData instance) =>
@@ -137,6 +146,7 @@ Map<String, dynamic> _$LeaveFormDataToJson(_LeaveFormData instance) =>
       'reason': _$LeaveReasonEnumMap[instance.reason]!,
       'remarks': instance.remarks,
       'status': _$LeaveStatusEnumMap[instance.status]!,
+      'splitExcessAsUnpaid': ?instance.splitExcessAsUnpaid,
     };
 
 _LeavePreviewRequest _$LeavePreviewRequestFromJson(Map<String, dynamic> json) =>
@@ -163,15 +173,17 @@ Map<String, dynamic> _$LeavePreviewRequestToJson(
 _LeavePreviewModel _$LeavePreviewModelFromJson(Map<String, dynamic> json) =>
     _LeavePreviewModel(
       days: (json['days'] as num).toDouble(),
-      balanceBefore: (json['balanceBefore'] as num?)?.toDouble(),
-      balanceAfter: (json['balanceAfter'] as num?)?.toDouble(),
+      paidDays: (json['paidDays'] as num?)?.toDouble() ?? 0,
+      unpaidDays: (json['unpaidDays'] as num?)?.toDouble() ?? 0,
+      availableCasual: (json['availableCasual'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$LeavePreviewModelToJson(_LeavePreviewModel instance) =>
     <String, dynamic>{
       'days': instance.days,
-      'balanceBefore': instance.balanceBefore,
-      'balanceAfter': instance.balanceAfter,
+      'paidDays': instance.paidDays,
+      'unpaidDays': instance.unpaidDays,
+      'availableCasual': instance.availableCasual,
     };
 
 _LeaveCalendarModel _$LeaveCalendarModelFromJson(Map<String, dynamic> json) =>
@@ -203,3 +215,65 @@ Map<String, dynamic> _$LeaveCalendarModelToJson(_LeaveCalendarModel instance) =>
           .map(const DateOnlyConverter().toJson)
           .toList(),
     };
+
+_EmployeeLeaveBalanceModel _$EmployeeLeaveBalanceModelFromJson(
+  Map<String, dynamic> json,
+) => _EmployeeLeaveBalanceModel(
+  employee: EmployeeSummaryModel.fromJson(
+    json['employee'] as Map<String, dynamic>,
+  ),
+  balance: LeaveBalanceModel.fromJson(json['balance'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$EmployeeLeaveBalanceModelToJson(
+  _EmployeeLeaveBalanceModel instance,
+) => <String, dynamic>{
+  'employee': instance.employee.toJson(),
+  'balance': instance.balance.toJson(),
+};
+
+_LeaveBalanceTotalsModel _$LeaveBalanceTotalsModelFromJson(
+  Map<String, dynamic> json,
+) => _LeaveBalanceTotalsModel(
+  employees: (json['employees'] as num).toInt(),
+  accrued: (json['accrued'] as num).toDouble(),
+  used: (json['used'] as num).toDouble(),
+  pending: (json['pending'] as num?)?.toDouble() ?? 0,
+  remaining: (json['remaining'] as num).toDouble(),
+  unpaidTaken: (json['unpaidTaken'] as num?)?.toDouble() ?? 0,
+);
+
+Map<String, dynamic> _$LeaveBalanceTotalsModelToJson(
+  _LeaveBalanceTotalsModel instance,
+) => <String, dynamic>{
+  'employees': instance.employees,
+  'accrued': instance.accrued,
+  'used': instance.used,
+  'pending': instance.pending,
+  'remaining': instance.remaining,
+  'unpaidTaken': instance.unpaidTaken,
+};
+
+_LeaveBalanceListModel _$LeaveBalanceListModelFromJson(
+  Map<String, dynamic> json,
+) => _LeaveBalanceListModel(
+  items: (json['items'] as List<dynamic>)
+      .map((e) => EmployeeLeaveBalanceModel.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  total: (json['total'] as num).toInt(),
+  page: (json['page'] as num).toInt(),
+  pageSize: (json['pageSize'] as num).toInt(),
+  summary: LeaveBalanceTotalsModel.fromJson(
+    json['summary'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$LeaveBalanceListModelToJson(
+  _LeaveBalanceListModel instance,
+) => <String, dynamic>{
+  'items': instance.items.map((e) => e.toJson()).toList(),
+  'total': instance.total,
+  'page': instance.page,
+  'pageSize': instance.pageSize,
+  'summary': instance.summary.toJson(),
+};

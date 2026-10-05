@@ -112,9 +112,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sanjay Makwana'));
       await tester.pumpAndSettle();
-      expect(find.bySemanticsLabel('Casual, 12 days left'), findsOneWidget);
+      // 1 Casual day earned per month since January.
+      expect(find.bySemanticsLabel('Casual, 9 days available'), findsOneWidget);
+      expect(find.bySemanticsLabel('Unpaid, No fixed balance'), findsOneWidget);
 
-      await tester.tap(find.bySemanticsLabel('Casual, 12 days left'));
+      await tester.tap(find.bySemanticsLabel('Casual, 9 days available'));
       await tester.tap(find.byTooltip('Next month'));
       await tester.pumpAndSettle();
       expect(find.text('Holiday · 2 Oct Gandhi Jayanti'), findsOneWidget);
@@ -123,7 +125,9 @@ void main() {
 
       expect(find.text('Mon 5 – Wed 7 Oct'), findsOneWidget);
       expect(find.text('3 days · calculated'), findsOneWidget);
-      expect(find.text('12 → 9 days'), findsOneWidget);
+      // October's day is earned by then.
+      expect(find.text('10 days'), findsOneWidget);
+      expect(find.text('Not enough Casual leave'), findsNothing);
 
       await _tapVisible(tester, find.text('Travel'));
       await tester.tap(find.widgetWithText(FilledButton, 'Save leave'));
@@ -177,9 +181,52 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(AppSideSheet), findsOneWidget);
-      expect(find.text('KC1001 · Senior developer'), findsOneWidget);
-      // Aarav has used 5 casual days of 12.
-      expect(find.bySemanticsLabel('Casual, 7 days left'), findsOneWidget);
+      expect(find.text('KC1001 · Graphic Designer'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp(r'^Casual, \d+ days? available$')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Casual beyond the balance: refused, or split when asked', (
+      tester,
+    ) async {
+      final router = await _open(tester, '/leave/add');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Search by name or EC number'),
+        'Sanjay',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sanjay Makwana'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel(RegExp('^Casual')));
+      await tester.tap(find.byTooltip('Next month'));
+      await tester.pumpAndSettle();
+      // Mon 5 – Sat 17 Oct: 12 working days, 10 earned by October.
+      await _tapVisible(tester, _day('Mon, 5 Oct 2026'));
+      await _tapVisible(tester, _day('Sat, 17 Oct 2026'));
+
+      expect(find.text('12 days · calculated'), findsOneWidget);
+      expect(find.text('10 Casual + 2 Unpaid'), findsOneWidget);
+      expect(find.text('Not enough Casual leave'), findsOneWidget);
+
+      // Without the choice the server refuses it.
+      await _tapVisible(tester, find.text('Travel'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Save leave'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AppSideSheet), findsOneWidget);
+      expect(
+        find.textContaining('Only 10 days of Casual leave are available'),
+        findsOneWidget,
+      );
+
+      await _tapVisible(tester, find.text('Save the extra 2 days as Unpaid'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Save leave'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AppSideSheet), findsNothing);
+      expect(currentLocation(router), '/leave');
+      expect(find.text('Leave added for Sanjay Makwana'), findsOneWidget);
     });
 
     /// Opens Dhruv Parmar's pending leave (5–7 Oct) for editing.
@@ -264,6 +311,65 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Save leave'));
       await tester.pumpAndSettle();
       expect(find.text('This leave can no longer be edited'), findsOneWidget);
+    });
+  });
+
+  group('balances tab', () {
+    testWidgets('switches from Requests and shows totals and rows', (
+      tester,
+    ) async {
+      final router = await _open(tester, '/leave');
+      await tester.tap(find.text('Balances'));
+      await tester.pumpAndSettle();
+      expect(currentLocation(router), '/leave?view=balances');
+
+      expect(find.text('Totals for 19 active employees'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp('^Casual earned: 171 days')),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(RegExp(r'^Casual used: 13\.5 days, \+ 9 days')),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(RegExp(r'^Casual remaining: 148\.5 days')),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(RegExp('^Unpaid taken: 2 days')),
+        findsOneWidget,
+      );
+      // Aarav has used all 9 days earned.
+      expect(find.text('Aarav Shah'), findsOneWidget);
+      expect(find.text('0 days'), findsOneWidget);
+
+      // Back to Requests.
+      await tester.tap(find.text('Requests'));
+      await tester.pumpAndSettle();
+      expect(currentLocation(router), '/leave');
+      expect(find.bySemanticsLabel('Pending, 3'), findsOneWidget);
+    });
+
+    testWidgets('search narrows rows and totals; a row opens the profile', (
+      tester,
+    ) async {
+      final router = await _open(tester, '/leave?view=balances');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Employee name or EC number'),
+        'Priya',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Totals for 1 active employee matching the filters'),
+        findsOneWidget,
+      );
+      expect(find.text('6 days'), findsWidgets); // remaining (row + total)
+      await tester.tap(find.text('Priya Desai'));
+      await tester.pumpAndSettle();
+      expect(currentLocation(router), '/employees/2');
     });
   });
 

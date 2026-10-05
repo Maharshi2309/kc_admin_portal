@@ -36,6 +36,10 @@ class LeaveRepositoryImpl implements LeaveRepository {
       _remote.preview(request);
 
   @override
+  Future<LeaveBalanceListModel> balances(LeaveBalanceQuery query) =>
+      _remote.balances(query);
+
+  @override
   Future<LeaveCalendarModel> calendar(DateTime month, {String? employeeId}) =>
       _remote.calendar(month, employeeId: employeeId);
 

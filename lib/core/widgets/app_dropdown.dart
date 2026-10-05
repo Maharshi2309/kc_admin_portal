@@ -152,7 +152,7 @@ class AppDropdown<T> extends StatelessWidget {
 
 /// A [DropdownMenu] that shows the selected option's label even when the
 /// options arrive after the first build (edit forms load departments and
-/// designations asynchronously). DropdownMenu itself reads its selection
+/// options asynchronously). DropdownMenu itself reads its selection
 /// only once; rebuilding it instead would close a menu the user has open.
 class _LabelSyncedDropdownMenu<T> extends StatefulWidget {
   const _LabelSyncedDropdownMenu({

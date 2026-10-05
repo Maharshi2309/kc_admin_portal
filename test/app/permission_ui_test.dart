@@ -136,6 +136,23 @@ void main() {
     expect(repository.signOutCalls, 1);
   });
 
+  testWidgets("signing out clears the previous user's messages", (
+    tester,
+  ) async {
+    final (router, _) = await _open(tester, _as(const {}), '/employees');
+    ScaffoldMessenger.of(
+      tester.element(find.text('You have no access yet')),
+    ).showSnackBar(const SnackBar(content: Text('Permissions saved')));
+    await tester.pumpAndSettle();
+    expect(find.text('Permissions saved'), findsOneWidget);
+
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    expect(currentLocation(router), startsWith('/login'));
+    // It would otherwise cover the Sign in button on small screens.
+    expect(find.text('Permissions saved'), findsNothing);
+  });
+
   testWidgets('Access control needs Manage users and permissions', (
     tester,
   ) async {

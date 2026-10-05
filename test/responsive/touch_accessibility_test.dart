@@ -20,6 +20,7 @@ const _routes = [
   '/attendance/7-20260928/edit',
   '/attendance/new?employeeId=1',
   '/leave',
+  '/leave?view=balances',
   '/leave/add?employeeId=1',
   '/leave/1/edit',
   '/holidays',

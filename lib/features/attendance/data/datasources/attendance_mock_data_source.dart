@@ -89,8 +89,8 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
     id: e.id,
     name: e.name,
     ecNumber: e.ecNumber,
-    department: e.department.name,
-    designation: e.designation.name,
+    department: e.department,
+    position: e.position,
   );
 
   EmployeeModel _employee(String id) {
@@ -137,6 +137,7 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
       workedPercent: result.workedPercent,
       status: result.status,
       note: note ?? result.note,
+      lateMinutes: result.lateMinutes,
       correctedBy: correctedBy,
       correctedAt: correctedAt,
       dayKind: result.dayKind,
@@ -298,8 +299,8 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
             )
             .where(
               (r) =>
-                  query.departmentId == null ||
-                  _employee(r.employee.id).department.id == query.departmentId,
+                  query.department == null ||
+                  _employee(r.employee.id).department == query.department,
             )
             .toList()
           ..sort((a, b) {

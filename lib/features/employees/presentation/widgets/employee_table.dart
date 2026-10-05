@@ -7,7 +7,7 @@ import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
-import 'package:kc_admin_portal/core/utils/date_utils.dart';
+import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_avatar.dart';
 import 'package:kc_admin_portal/core/widgets/app_icon_button.dart';
@@ -50,6 +50,8 @@ class EmployeeTable extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final muted = AppTextStyles.body.copyWith(color: AppColors.textSecondary);
+    // The server sends overtime only to people who may see it.
+    final showOvertime = ref.can(AppPermission.overtimeView);
 
     return ResponsiveDataView<EmployeeModel>(
       rows: employees,
@@ -60,7 +62,7 @@ class EmployeeTable extends ConsumerWidget {
         AppDataColumn(
           label: 'Employee',
           flex: 3,
-          minWidth: 240,
+          minWidth: 210,
           cellBuilder: (context, e) => _NameCell(employee: e),
         ),
         AppDataColumn(
@@ -68,24 +70,29 @@ class EmployeeTable extends ConsumerWidget {
           minWidth: 110,
           cellBuilder: (context, e) => EcNumberText(e.ecNumber),
         ),
+        // One two-line column keeps room for overtime on laptops.
         AppDataColumn(
-          label: 'Department',
+          label: 'Dept / Position',
+          minWidth: 180,
           priority: 1,
-          cellBuilder: (context, e) => Text(
-            e.department.name,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.body,
-          ),
-        ),
-        AppDataColumn(
-          label: 'Designation',
-          flex: 2,
-          minWidth: 170,
-          priority: 4,
-          cellBuilder: (context, e) => Text(
-            e.designation.name,
-            overflow: TextOverflow.ellipsis,
-            style: muted,
+          cellBuilder: (context, e) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            spacing: AppSpacing.s2,
+            children: [
+              Text(
+                e.department.label,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.body,
+              ),
+              Text(
+                e.position.label,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
           ),
         ),
         AppDataColumn(
@@ -95,17 +102,22 @@ class EmployeeTable extends ConsumerWidget {
           cellBuilder: (context, e) =>
               Text(FormatUtils.mobile(e.mobile), style: muted),
         ),
-        AppDataColumn(
-          label: 'Joined',
-          minWidth: 135,
-          priority: 3,
-          cellBuilder: (context, e) =>
-              Text(AppDateFormat.medium(e.joiningDate), style: muted),
-        ),
+        if (showOvertime)
+          AppDataColumn(
+            label: 'Overtime this year',
+            minWidth: 180,
+            priority: 2,
+            cellBuilder: (context, e) => Text(
+              e.overtimeMinutesThisYear == null
+                  ? '—'
+                  : DurationFormat.full(e.overtimeMinutesThisYear!),
+              style: muted,
+            ),
+          ),
         AppDataColumn(
           label: 'Today',
           minWidth: 130,
-          priority: 2,
+          priority: 3,
           cellBuilder: (context, e) => e.todayStatus == null
               ? Text('—', style: muted)
               : AttendanceStatusBadge(e.todayStatus!),
@@ -138,23 +150,10 @@ class _NameCell extends StatelessWidget {
       children: [
         AppAvatar(name: employee.name),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: AppSpacing.s2,
-            children: [
-              Text(
-                employee.name,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodySemibold,
-              ),
-              Text(
-                employee.email,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textMuted,
-                ),
-              ),
-            ],
+          child: Text(
+            employee.name,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodySemibold,
           ),
         ),
       ],
@@ -184,12 +183,20 @@ class _MobileItem extends StatelessWidget {
                 style: AppTextStyles.bodySemibold,
               ),
               Text(
-                '${employee.ecNumber} · ${employee.department.name}',
+                '${employee.ecNumber} · ${employee.department.label}',
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.textMuted,
                 ),
               ),
+              if (employee.overtimeMinutesThisYear != null)
+                Text(
+                  'Overtime this year: '
+                  '${DurationFormat.full(employee.overtimeMinutesThisYear!)}',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+                ),
             ],
           ),
         ),

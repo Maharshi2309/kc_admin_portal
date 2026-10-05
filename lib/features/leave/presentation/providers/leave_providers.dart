@@ -11,6 +11,7 @@ import 'package:kc_admin_portal/features/employees/presentation/providers/employ
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
 import 'package:kc_admin_portal/features/leave/data/repositories/leave_repository_impl.dart';
 import 'package:kc_admin_portal/features/overtime/presentation/providers/overtime_providers.dart';
+import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Status tab, search, filters and page of the leave list.
@@ -47,8 +48,8 @@ class LeaveQueryNotifier extends Notifier<LeaveQuery> {
   void setLeaveType(String? id) =>
       state = state.copyWith(leaveTypeId: id, page: 1);
 
-  void setDepartment(String? id) =>
-      state = state.copyWith(departmentId: id, page: 1);
+  void setDepartment(JobRole? department) =>
+      state = state.copyWith(department: department, page: 1);
 
   void setPage(int page) => state = state.copyWith(page: page);
 
@@ -68,6 +69,59 @@ final leaveQueryProvider = NotifierProvider<LeaveQueryNotifier, LeaveQuery>(
 final leaveListProvider = FutureProvider<LeaveListModel>(
   (ref) =>
       ref.watch(leaveRepositoryProvider).list(ref.watch(leaveQueryProvider)),
+  retry: (_, _) => null,
+);
+
+/// Search, department and page of the Balances tab.
+class LeaveBalanceQueryNotifier extends Notifier<LeaveBalanceQuery> {
+  Timer? _searchTimer;
+
+  @override
+  LeaveBalanceQuery build() {
+    ref.onDispose(() => _searchTimer?.cancel());
+    return const LeaveBalanceQuery();
+  }
+
+  void setSearch(String text) {
+    _searchTimer?.cancel();
+    _searchTimer = Timer(
+      LeaveQueryNotifier.searchDebounce,
+      () => applySearch(text),
+    );
+  }
+
+  void applySearch(String text) {
+    _searchTimer?.cancel();
+    final search = text.trim();
+    if (search != state.search) {
+      state = state.copyWith(search: search, page: 1);
+    }
+  }
+
+  void setDepartment(JobRole? department) =>
+      state = state.copyWith(department: department, page: 1);
+
+  void setPage(int page) => state = state.copyWith(page: page);
+
+  void setPageSize(int size) => state = state.copyWith(pageSize: size, page: 1);
+
+  /// Keeps the page size.
+  void clearFilters() {
+    _searchTimer?.cancel();
+    state = LeaveBalanceQuery(pageSize: state.pageSize);
+  }
+}
+
+final leaveBalanceQueryProvider =
+    NotifierProvider<LeaveBalanceQueryNotifier, LeaveBalanceQuery>(
+      LeaveBalanceQueryNotifier.new,
+    );
+
+/// Every active employee's Casual balance, with totals (Balances tab).
+final leaveBalanceListProvider = FutureProvider<LeaveBalanceListModel>(
+  (ref) => ref
+      .watch(leaveRepositoryProvider)
+      .balances(ref.watch(leaveBalanceQueryProvider)),
   retry: (_, _) => null,
 );
 
@@ -173,6 +227,7 @@ final leaveActionsProvider = NotifierProvider<LeaveActions, Set<String>>(
 void refreshAfterLeaveChange(Ref ref) {
   ref
     ..invalidate(leaveListProvider)
+    ..invalidate(leaveBalanceListProvider)
     ..invalidate(leaveDetailProvider)
     ..invalidate(leavePreviewProvider)
     ..invalidate(employeeLeaveBalanceProvider)

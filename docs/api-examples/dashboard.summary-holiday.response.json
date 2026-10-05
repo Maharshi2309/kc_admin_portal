@@ -30,8 +30,11 @@
   "onLeave": [],
   "leaveUsage": {
     "year": 2026,
-    "usedPercent": 21,
-    "takenDays": 312,
-    "remainingDays": 1176
+    "casualRemainingDays": 412,
+    "casualTakenDays": 286,
+    "unpaidTakenDays": 26,
+    "approvedThisMonth": 41,
+    "pendingThisMonth": 3,
+    "rejectedThisMonth": 2
   }
 }

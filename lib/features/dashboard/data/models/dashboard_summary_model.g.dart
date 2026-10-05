@@ -119,15 +119,21 @@ Map<String, dynamic> _$LeaveTodayModelToJson(_LeaveTodayModel instance) =>
 _LeaveUsageModel _$LeaveUsageModelFromJson(Map<String, dynamic> json) =>
     _LeaveUsageModel(
       year: (json['year'] as num).toInt(),
-      usedPercent: (json['usedPercent'] as num).toDouble(),
-      takenDays: (json['takenDays'] as num).toDouble(),
-      remainingDays: (json['remainingDays'] as num).toDouble(),
+      casualRemainingDays: (json['casualRemainingDays'] as num).toDouble(),
+      casualTakenDays: (json['casualTakenDays'] as num).toDouble(),
+      unpaidTakenDays: (json['unpaidTakenDays'] as num).toDouble(),
+      approvedThisMonth: (json['approvedThisMonth'] as num?)?.toInt() ?? 0,
+      pendingThisMonth: (json['pendingThisMonth'] as num?)?.toInt() ?? 0,
+      rejectedThisMonth: (json['rejectedThisMonth'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$LeaveUsageModelToJson(_LeaveUsageModel instance) =>
     <String, dynamic>{
       'year': instance.year,
-      'usedPercent': instance.usedPercent,
-      'takenDays': instance.takenDays,
-      'remainingDays': instance.remainingDays,
+      'casualRemainingDays': instance.casualRemainingDays,
+      'casualTakenDays': instance.casualTakenDays,
+      'unpaidTakenDays': instance.unpaidTakenDays,
+      'approvedThisMonth': instance.approvedThisMonth,
+      'pendingThisMonth': instance.pendingThisMonth,
+      'rejectedThisMonth': instance.rejectedThisMonth,
     };
