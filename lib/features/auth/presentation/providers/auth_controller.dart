@@ -45,6 +45,55 @@ class AuthController extends AsyncNotifier<UserModel?> {
     state = AsyncData(user);
   }
 
+  /// Works in another of the user's organizations. Every data provider
+  /// watches the active organization, so all data reloads for it.
+  /// Throws an `AppException` on failure; the current organization stays.
+  Future<void> switchOrganization(String organizationId) async {
+    final user = await ref
+        .read(authRepositoryProvider)
+        .switchOrganization(organizationId);
+    if (!ref.mounted) return;
+    state = AsyncData(user);
+  }
+
+  /// Verifies a new account's email and starts its session.
+  Future<void> verifyEmail({
+    required String email,
+    required String code,
+    bool keepSignedIn = true,
+  }) async {
+    final user = await ref
+        .read(authRepositoryProvider)
+        .verifyEmail(email: email, code: code, keepSignedIn: keepSignedIn);
+    if (!ref.mounted) return;
+    signedOutByUser = false;
+    state = AsyncData(user);
+  }
+
+  /// Creates an organization and works in it (the app opens its home page).
+  Future<void> createOrganization({
+    required String name,
+    required String timezone,
+    bool paidLeave = true,
+  }) async {
+    final user = await ref
+        .read(authRepositoryProvider)
+        .createOrganization(
+          name: name,
+          timezone: timezone,
+          paidLeave: paidLeave,
+        );
+    if (!ref.mounted) return;
+    state = AsyncData(user);
+  }
+
+  /// Joins an organization by invitation and works in it.
+  Future<void> acceptInvitation(String id) async {
+    final user = await ref.read(authRepositoryProvider).acceptInvitation(id);
+    if (!ref.mounted) return;
+    state = AsyncData(user);
+  }
+
   /// True after the user signed out themselves (not an expired session).
   /// Then the next person to sign in starts on their own home page instead
   /// of returning to the page the previous user was on.

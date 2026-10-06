@@ -19,9 +19,11 @@ import 'package:kc_admin_portal/features/attendance/presentation/screens/attenda
 import 'package:kc_admin_portal/features/attendance/presentation/screens/attendance_screen.dart';
 import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/auth_controller.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/features/auth/presentation/screens/login_screen.dart';
 import 'package:kc_admin_portal/features/calendar/presentation/screens/calendar_day_sheet.dart';
 import 'package:kc_admin_portal/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:kc_admin_portal/features/employee_import/presentation/screens/employee_import_screen.dart';
 import 'package:kc_admin_portal/features/employees/presentation/screens/employee_form_screen.dart';
 import 'package:kc_admin_portal/features/employees/presentation/screens/employee_profile_screen.dart';
 import 'package:kc_admin_portal/features/employees/presentation/screens/employees_screen.dart';
@@ -30,6 +32,12 @@ import 'package:kc_admin_portal/features/holidays/presentation/screens/holiday_f
 import 'package:kc_admin_portal/features/holidays/presentation/screens/holidays_screen.dart';
 import 'package:kc_admin_portal/features/leave/presentation/screens/leave_form_sheet.dart';
 import 'package:kc_admin_portal/features/leave/presentation/screens/leave_screen.dart';
+import 'package:kc_admin_portal/features/onboarding/presentation/screens/create_organization_screen.dart';
+import 'package:kc_admin_portal/features/onboarding/presentation/screens/password_reset_screens.dart';
+import 'package:kc_admin_portal/features/onboarding/presentation/screens/register_screen.dart';
+import 'package:kc_admin_portal/features/onboarding/presentation/screens/verify_email_screen.dart';
+import 'package:kc_admin_portal/features/onboarding/presentation/screens/welcome_screen.dart';
+import 'package:kc_admin_portal/features/organization/presentation/screens/settings_screen.dart';
 import 'package:kc_admin_portal/features/users/presentation/screens/user_access_screen.dart';
 import 'package:kc_admin_portal/features/users/presentation/screens/user_form_dialog.dart';
 
@@ -37,9 +45,14 @@ import 'package:kc_admin_portal/features/users/presentation/screens/user_form_di
 /// (branch order = `appNavDestinations` order). Dialog and side-sheet routes
 /// use the root navigator so their backdrop covers the whole shell.
 ///
-/// Access is decided by [authRedirect] from the auth state. The router is
-/// created once; auth changes only re-run the redirect (via
-/// `refreshListenable`), so navigation state is never lost.
+/// Access is decided by [authRedirect] from the auth state. Auth changes
+/// only re-run the redirect (via `refreshListenable`), so navigation state
+/// is kept across sign-in and permission changes.
+///
+/// The one exception is switching organization: the router is created anew,
+/// so every section starts again from the home page and no page, search or
+/// form of the previous organization stays open
+/// (docs/ARCHITECTURE_MULTI_ORG.md §C).
 final routerProvider = Provider<GoRouter>((ref) {
   final env = ref.watch(envProvider);
   final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -49,7 +62,16 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
   ref
     ..listen(authControllerProvider, (_, next) => authState.value = next)
+    ..listen(activeOrganizationIdProvider, (previous, next) {
+      if (previous != null && next != null && previous != next) {
+        ref.invalidateSelf();
+      }
+    })
     ..onDispose(authState.dispose);
+
+  // Signed in already, so this router replaces one after an organization
+  // switch: start at home, not at the page the app was first opened on.
+  final afterSwitch = ref.read(activeOrganizationIdProvider) != null;
 
   String idOf(GoRouterState state) => state.pathParameters[AppRouteParams.id]!;
   DateTime? dateOf(GoRouterState state) =>
@@ -58,6 +80,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutePaths.dashboard,
+    overridePlatformDefaultLocation: afterSwitch,
     debugLogDiagnostics: !env.isProduction,
     errorBuilder: (context, state) => const NotFoundScreen(),
     refreshListenable: authState,
@@ -65,15 +88,26 @@ final routerProvider = Provider<GoRouter>((ref) {
       final auth = authState.value;
       final status = authStatusOf(auth);
       final grants = auth.value?.grants ?? const <AppPermission>{};
+      final needsOrganization = auth.value?.needsOrganization ?? false;
+      final home = needsOrganization
+          ? AppRoutePaths.welcome
+          : homeLocationFor(grants) ?? AppRoutePaths.noAccess;
       final toAuth = authRedirect(
         status: status,
         location: state.uri,
-        homeLocation: homeLocationFor(grants) ?? AppRoutePaths.noAccess,
+        homeLocation: home,
         keepReturnPath: !ref
             .read(authControllerProvider.notifier)
             .signedOutByUser,
       );
       if (toAuth != null || status != AuthStatus.signedIn) return toAuth;
+      // No organization yet: only the welcome and "create" pages.
+      final toOrganization = organizationRedirect(
+        needsOrganization: needsOrganization,
+        path: state.uri.path,
+        homeLocation: home,
+      );
+      if (toOrganization != null || needsOrganization) return toOrganization;
       // Pages the role doesn't allow: the backend would refuse their data.
       return permissionRedirect(
         routeName: state.topRoute?.name,
@@ -100,6 +134,42 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutePaths.noAccess,
         name: AppRouteNames.noAccess,
         builder: (context, state) => const NoAccessScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.register,
+        name: AppRouteNames.register,
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.verifyEmail,
+        name: AppRouteNames.verifyEmail,
+        builder: (context, state) => VerifyEmailScreen(
+          email: state.uri.queryParameters[AppRouteParams.email],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutePaths.forgotPassword,
+        name: AppRouteNames.forgotPassword,
+        builder: (context, state) => ForgotPasswordScreen(
+          email: state.uri.queryParameters[AppRouteParams.email],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutePaths.resetPassword,
+        name: AppRouteNames.resetPassword,
+        builder: (context, state) => ResetPasswordScreen(
+          email: state.uri.queryParameters[AppRouteParams.email],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutePaths.welcome,
+        name: AppRouteNames.welcome,
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.createOrganization,
+        name: AppRouteNames.createOrganization,
+        builder: (context, state) => const CreateOrganizationScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -128,6 +198,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: AppRoutePaths.add,
                     name: AppRouteNames.employeeAdd,
                     builder: (context, state) => const EmployeeFormScreen(),
+                  ),
+                  GoRoute(
+                    path: AppRoutePaths.import,
+                    name: AppRouteNames.employeeImport,
+                    builder: (context, state) => const EmployeeImportScreen(),
                   ),
                   GoRoute(
                     path: AppRoutePaths.byId,
@@ -398,6 +473,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                     ],
                   ),
                 ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutePaths.settings,
+                name: AppRouteNames.settings,
+                builder: (context, state) => const SettingsScreen(),
               ),
             ],
           ),

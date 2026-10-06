@@ -1,0 +1,20 @@
+[
+  {
+    "id": "keshav-dep-accountant",
+    "name": "Accountant",
+    "isActive": true,
+    "employeeCount": 6
+  },
+  {
+    "id": "keshav-dep-graphic-designer",
+    "name": "Graphic Designer",
+    "isActive": true,
+    "employeeCount": 9
+  },
+  {
+    "id": "keshav-dep-pressing",
+    "name": "Pressing",
+    "isActive": false,
+    "employeeCount": 1
+  }
+]

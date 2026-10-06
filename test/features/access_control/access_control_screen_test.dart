@@ -98,8 +98,12 @@ void main() {
 
       // Straight to their permissions, with none yet.
       expect(currentLocation(router), startsWith('/access-control/u'));
+      // Adding invites them (2026-10-06).
       expect(
-        find.text('Meera Rathod added. Now choose what they can do.'),
+        find.text(
+          'Invitation sent to meera.rathod@keshav.in. Now choose what they '
+          'can do.',
+        ),
         findsOneWidget,
       );
       expect(find.text('0 of $_total permissions'), findsOneWidget);

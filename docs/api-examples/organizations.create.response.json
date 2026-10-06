@@ -1,0 +1,46 @@
+{
+  "accessToken": "eyJhbGciOi…",
+  "user": {
+    "id": "7f3c9a10-2b4e-4d8a-9c61-5e0f1a2b3c04",
+    "name": "Asha Iyer",
+    "email": "asha@bright.in",
+    "permissions": [
+      "dashboard.view",
+      "employee.view",
+      "employee.create",
+      "employee.edit",
+      "employee.deactivate",
+      "schedule.edit",
+      "attendance.view",
+      "attendance.punch",
+      "attendance.correct",
+      "overtime.view",
+      "leave.view",
+      "leave.create",
+      "leave.edit",
+      "leave.cancel",
+      "leave.approve",
+      "calendar.view",
+      "holiday.view",
+      "holiday.create",
+      "holiday.edit",
+      "holiday.delete",
+      "permission.manage",
+      "audit.view",
+      "settings.manage"
+    ],
+    "organization": {
+      "id": "c2d8e4f6-1a3b-4c5d-8e9f-0a1b2c3d4e05",
+      "name": "Bright Bakery",
+      "logoUrl": null,
+      "timezone": "Asia/Dubai"
+    },
+    "memberships": [
+      {
+        "organizationId": "c2d8e4f6-1a3b-4c5d-8e9f-0a1b2c3d4e05",
+        "name": "Bright Bakery",
+        "logoUrl": null
+      }
+    ]
+  }
+}

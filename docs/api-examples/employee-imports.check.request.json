@@ -1,0 +1,13 @@
+{
+  "mapping": {
+    "Employee Code": "ecNumber",
+    "Employee Name": "name",
+    "Designation": "position",
+    "Dept": "department",
+    "Phone": "mobile",
+    "DOJ": "joiningDate"
+  },
+  "duplicateStrategy": "skip",
+  "createMissing": false,
+  "assignEcNumbers": true
+}

@@ -36,6 +36,7 @@ DayResult _compute(
   DayLeave leave = DayLeave.none,
   WorkScheduleModel? schedule,
   DateTime? now,
+  int lateGraceMinutes = MockDayCalculator.defaultLateGraceMinutes,
 }) => MockDayCalculator.compute(
   date: day,
   now: now ?? _evening,
@@ -44,6 +45,7 @@ DayResult _compute(
   leave: leave,
   punchIn: punchIn,
   punchOut: punchOut,
+  lateGraceMinutes: lateGraceMinutes,
 );
 
 void main() {
@@ -180,6 +182,23 @@ void main() {
   });
 
   group('§3.4 status and late', () {
+    test("the grace is the organization's setting (2026-10-06)", () {
+      // In at 09:20 against a 09:00 start.
+      final strict = _compute(
+        _thursday,
+        punchIn: _t(_thursday, 9, 20),
+        lateGraceMinutes: 5,
+      );
+      expect(strict.status, AttendanceDayStatus.late);
+      expect(strict.lateMinutes, 20);
+      final relaxed = _compute(
+        _thursday,
+        punchIn: _t(_thursday, 9, 20),
+        lateGraceMinutes: 30,
+      );
+      expect(relaxed.status, AttendanceDayStatus.present);
+    });
+
     test('within the 15-minute grace is on time; after it is late', () {
       expect(
         _compute(_thursday, punchIn: _t(_thursday, 9, 15)).status,

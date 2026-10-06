@@ -81,12 +81,12 @@ class EmployeeTable extends ConsumerWidget {
             spacing: AppSpacing.s2,
             children: [
               Text(
-                e.department.label,
+                e.department.name,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.body,
               ),
               Text(
-                e.position.label,
+                e.position.name,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.textMuted,
@@ -183,7 +183,7 @@ class _MobileItem extends StatelessWidget {
                 style: AppTextStyles.bodySemibold,
               ),
               Text(
-                '${employee.ecNumber} · ${employee.department.label}',
+                '${employee.ecNumber} · ${employee.department.name}',
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.textMuted,

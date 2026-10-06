@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/core/responsive/app_breakpoints.dart';
+import 'package:kc_admin_portal/core/responsive/layout_mode.dart';
 
 /// A value that differs per [ScreenSize]. Unset sizes fall back to the next
 /// smaller size that is set, so `ResponsiveValue(mobile: 1, desktop: 3)`
@@ -46,8 +47,12 @@ const ResponsiveValue<double> pagePaddingValue = ResponsiveValue(
 /// For a widget's own layout, prefer `ResponsiveBuilder`, which uses the
 /// width actually available to it.
 extension ResponsiveContext on BuildContext {
-  ScreenSize get screenSize =>
-      ScreenSize.fromWidth(MediaQuery.sizeOf(this).width);
+  /// The size class of the window, after the person's layout choice
+  /// ([LayoutMode]).
+  ScreenSize get screenSize {
+    final width = MediaQuery.sizeOf(this).width;
+    return LayoutModeScope.of(this).apply(ScreenSize.fromWidth(width), width);
+  }
 
   /// Android and iOS, including mobile browsers: compact controls get
   /// [AppSizes.minTouchTarget] tap areas.

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/auth_controller.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/features/users/data/models/user_account_models.dart';
 import 'package:kc_admin_portal/features/users/data/repositories/user_repository_impl.dart';
 
@@ -17,6 +18,8 @@ class UserQueryNotifier extends Notifier<UserQuery> {
   @override
   UserQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
+    // Another organization starts with fresh filters.
+    ref.watch(activeOrganizationIdProvider);
     return const UserQuery();
   }
 

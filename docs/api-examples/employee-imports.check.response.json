@@ -1,0 +1,59 @@
+{
+  "id": "imp-7c1e",
+  "fileName": "staff.xlsx",
+  "status": "validated",
+  "headers": [
+    "Employee Code",
+    "Employee Name",
+    "Designation",
+    "Dept",
+    "Phone",
+    "DOJ"
+  ],
+  "sampleRows": [
+    [
+      "KC2001",
+      "Asha Iyer",
+      "Tailor",
+      "Tailor",
+      "9876543210",
+      "2026-09-01"
+    ],
+    [
+      "KC2002",
+      "Ben Mathew",
+      "Accountant",
+      "Accountant",
+      "9876500001",
+      "15/08/2026"
+    ]
+  ],
+  "rowCount": 150,
+  "suggestedMapping": {
+    "Employee Code": "ecNumber",
+    "Employee Name": "name",
+    "Designation": "position",
+    "Dept": "department",
+    "Phone": "mobile",
+    "DOJ": "joiningDate"
+  },
+  "mapping": {
+    "Employee Code": "ecNumber",
+    "Employee Name": "name",
+    "Designation": "position",
+    "Dept": "department",
+    "Phone": "mobile",
+    "DOJ": "joiningDate"
+  },
+  "duplicateStrategy": "skip",
+  "createMissing": false,
+  "assignEcNumbers": true,
+  "counts": {
+    "valid": 143,
+    "warnings": 4,
+    "errors": 2,
+    "skipped": 1
+  },
+  "processed": 0,
+  "result": null
+}

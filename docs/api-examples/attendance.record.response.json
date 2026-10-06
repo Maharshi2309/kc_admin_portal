@@ -4,8 +4,14 @@
     "id": "7",
     "name": "Arjun Joshi",
     "ecNumber": "KC1019",
-    "department": "tailor",
-    "position": "tailor"
+    "department": {
+      "id": "keshav-dep-tailor",
+      "name": "Tailor"
+    },
+    "position": {
+      "id": "keshav-pos-tailor",
+      "name": "Tailor"
+    }
   },
   "date": "2026-09-28",
   "punchIn": "2026-09-28T10:08:00+05:30",

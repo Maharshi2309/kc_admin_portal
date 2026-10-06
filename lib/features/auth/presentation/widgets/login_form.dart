@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:kc_admin_portal/app/router/route_names.dart';
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/config/env.dart';
+import 'package:kc_admin_portal/core/constants/api_constants.dart';
+import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/core/utils/validation_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_alert_banner.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
+import 'package:kc_admin_portal/core/widgets/app_link.dart';
 import 'package:kc_admin_portal/core/widgets/app_text_field.dart';
 import 'package:kc_admin_portal/features/auth/data/datasources/auth_mock_data_source.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/auth_controller.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/login_controller.dart';
+import 'package:kc_admin_portal/features/onboarding/presentation/widgets/account_page_parts.dart';
 
-/// Email + password sign-in form from the design.
+/// Email + password sign-in form from the design, with "Forgot password?"
+/// and "Create an account" (anyone may sign up free, 2026-10-06).
 ///
 /// "Keep me signed in on this device" (checked by default, as in the design)
 /// saves the session for the next start; unchecked, it ends when the app
-/// closes.
-///
-/// TODO — REQUIREMENT CONFIRMATION REQUIRED: the design also shows
-/// "Forgot password?", which needs a backend reset flow, so it is omitted.
+/// closes. An account whose email isn't verified yet is offered the code
+/// page.
 class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({super.key});
 
@@ -56,6 +61,10 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         );
   }
 
+  static bool _isUnverified(Object? error) =>
+      error is ForbiddenException &&
+      error.code == ApiConstants.emailNotVerifiedCode;
+
   @override
   Widget build(BuildContext context) {
     final submission = ref.watch(loginControllerProvider);
@@ -75,7 +84,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             ),
             const SizedBox(height: AppSpacing.s6),
             Text(
-              'Use your admin email and password',
+              'Use your email and password',
               style: AppTextStyles.body.copyWith(color: AppColors.textMuted),
             ),
             const SizedBox(height: AppSpacing.s24),
@@ -86,15 +95,30 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 title: 'Development mock API',
                 message:
                     'No server is used. Sign in as a sample user, e.g. '
-                    'admin@keshav.in (full access), nisha.solanki@keshav.in '
-                    'or arjun.joshi@keshav.in (limited access), with the '
-                    'password "${AuthMockDataSource.password}".',
+                    'admin@keshav.in (full access, two organizations), '
+                    'nisha.solanki@keshav.in or arjun.joshi@keshav.in '
+                    '(limited access), or ravi.mehta@sunrise.in (another '
+                    'organization), with the password '
+                    '"${AuthMockDataSource.password}".',
               ),
               const SizedBox(height: AppSpacing.s20),
             ],
             if (submission.hasError && !isSubmitting) ...[
               AppAlertBanner(
                 message: ErrorHandler.messageFor(submission.error!),
+                action: _isUnverified(submission.error)
+                    ? AppButton(
+                        label: 'Enter the code',
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.small,
+                        onPressed: () => context.goNamed(
+                          AppRouteNames.verifyEmail,
+                          queryParameters: {
+                            AppRouteParams.email: _email.text.trim(),
+                          },
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(height: AppSpacing.s20),
             ] else if (sessionNotice != null) ...[
@@ -119,6 +143,19 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             const SizedBox(height: AppSpacing.s20),
             AppTextField(
               label: 'Password',
+              labelTrailing: AppLink(
+                label: 'Forgot password?',
+                showChevron: false,
+                onPressed: isSubmitting
+                    ? null
+                    : () => context.goNamed(
+                        AppRouteNames.forgotPassword,
+                        queryParameters: {
+                          if (_email.text.trim().isNotEmpty)
+                            AppRouteParams.email: _email.text.trim(),
+                        },
+                      ),
+              ),
               controller: _password,
               focusNode: _passwordFocus,
               large: true,
@@ -145,6 +182,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               expand: true,
               isLoading: isSubmitting,
               onPressed: _submit,
+            ),
+            const SizedBox(height: AppSpacing.s20),
+            AccountLinkLine(
+              text: 'New here?',
+              linkLabel: 'Create an account',
+              onPressed: isSubmitting
+                  ? null
+                  : () => context.goNamed(AppRouteNames.register),
             ),
           ],
         ),

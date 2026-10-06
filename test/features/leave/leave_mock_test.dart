@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/employee_mock_data_source.dart';
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_mock_data_source.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
+import '../../helpers/catalogs.dart';
 import '../../helpers/fake_dashboard.dart';
 
 void main() {
@@ -321,10 +322,11 @@ void main() {
       expect(priya.summary.employees, 1);
 
       final tailors = await source.balances(
-        const LeaveBalanceQuery(department: JobRole.tailor),
+        LeaveBalanceQuery(departmentId: dept('Tailor').id),
       );
+      expect(tailors.items, isNotEmpty);
       expect(
-        tailors.items.every((r) => r.employee.department == JobRole.tailor),
+        tailors.items.every((r) => r.employee.department == dept('Tailor')),
         isTrue,
       );
       expect(tailors.summary.employees, tailors.total);

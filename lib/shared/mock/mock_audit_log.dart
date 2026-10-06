@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:kc_admin_portal/core/utils/clock.dart';
+import 'package:kc_admin_portal/shared/mock/mock_tenant.dart';
 import 'package:kc_admin_portal/shared/models/audit_entry_model.dart';
 import 'package:kc_admin_portal/shared/models/named_ref.dart';
 
@@ -77,7 +77,8 @@ class _Entry {
   final AuditEntryModel model;
 }
 
-/// DEV ONLY: the change history shared by all mocks.
+/// DEV ONLY: the active organization's change history, shared by its
+/// mocks.
 final mockAuditLogProvider = Provider<MockAuditLog>(
-  (ref) => MockAuditLog(now: ref.watch(clockProvider)),
+  (ref) => ref.watch(mockActiveTenantProvider).audit,
 );

@@ -11,6 +11,7 @@ const _routes = [
   '/dashboard',
   '/employees',
   '/employees/add',
+  '/employees/import',
   '/employees/1',
   '/employees/1/edit',
   '/employees/1/schedule',
@@ -18,7 +19,7 @@ const _routes = [
   '/employees/1/calendar/2026-09-20/attendance',
   '/attendance',
   '/attendance/7-20260928/edit',
-  '/attendance/new?employeeId=1',
+  '/attendance/new?employeeId=1&date=2026-09-28',
   '/leave',
   '/leave?view=balances',
   '/leave/add?employeeId=1',
@@ -31,6 +32,18 @@ const _routes = [
   '/access-control/u3',
   '/access-control/u1',
   '/access-control/u3/edit',
+  '/settings',
+];
+
+/// Signed in, in no organization yet.
+const _onboardingRoutes = ['/welcome', '/create-organization'];
+
+const _signedOutRoutes = [
+  '/login',
+  '/register',
+  '/verify-email?email=asha@bright.in',
+  '/forgot-password',
+  '/reset-password?email=asha@bright.in',
 ];
 
 const _sizes = {'phone': Size(390, 844), 'tablet': Size(820, 1180)};
@@ -38,7 +51,11 @@ const _sizes = {'phone': Size(390, 844), 'tablet': Size(820, 1180)};
 void main() {
   for (final size in _sizes.entries) {
     group(size.key, () {
-      for (final location in _routes) {
+      for (final location in [
+        ..._signedOutRoutes,
+        ..._onboardingRoutes,
+        ..._routes.where((r) => r != '/login'),
+      ]) {
         testWidgets(location, variant: TargetPlatformVariant.mobile(), (
           tester,
         ) async {
@@ -46,7 +63,14 @@ void main() {
           final router = await pumpFullApp(
             tester,
             repository: FakeAuthRepository(
-              sessionUser: location == '/login' ? null : testUser,
+              sessionUser: _signedOutRoutes.contains(location)
+                  ? null
+                  : _onboardingRoutes.contains(location)
+                  ? testUser.copyWith(
+                      permissions: const [],
+                      memberships: const [],
+                    )
+                  : testUser,
             ),
             mockDashboard: true,
             size: size.value,

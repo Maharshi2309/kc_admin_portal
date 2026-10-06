@@ -111,7 +111,10 @@ void main() {
       expect(response.user.id, 'u3');
       expect(response.user.can(AppPermission.leaveApprove), isTrue);
       expect(response.user.can(AppPermission.permissionManage), isFalse);
-      expect(response.accessToken, 'mock-dev-token.u3');
+      // The token names the user and the organization they work in.
+      expect(response.accessToken, 'mock-dev-token.u3.org-keshav');
+      expect(response.user.organization?.name, 'Keshav Clothing');
+      expect(response.user.memberships!.single.name, 'Keshav Clothing');
       expect(store.currentUserId, 'u3');
       expect(store.user('u3').lastSignInAt, testNow);
     });

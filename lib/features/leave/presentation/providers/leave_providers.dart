@@ -5,13 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/errors/error_handler.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/features/calendar/presentation/providers/calendar_providers.dart';
 import 'package:kc_admin_portal/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:kc_admin_portal/features/employees/presentation/providers/employee_providers.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
 import 'package:kc_admin_portal/features/leave/data/repositories/leave_repository_impl.dart';
 import 'package:kc_admin_portal/features/overtime/presentation/providers/overtime_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Status tab, search, filters and page of the leave list.
@@ -23,6 +23,8 @@ class LeaveQueryNotifier extends Notifier<LeaveQuery> {
   @override
   LeaveQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
+    // Another organization starts with fresh filters.
+    ref.watch(activeOrganizationIdProvider);
     return const LeaveQuery();
   }
 
@@ -48,8 +50,8 @@ class LeaveQueryNotifier extends Notifier<LeaveQuery> {
   void setLeaveType(String? id) =>
       state = state.copyWith(leaveTypeId: id, page: 1);
 
-  void setDepartment(JobRole? department) =>
-      state = state.copyWith(department: department, page: 1);
+  void setDepartment(String? departmentId) =>
+      state = state.copyWith(departmentId: departmentId, page: 1);
 
   void setPage(int page) => state = state.copyWith(page: page);
 
@@ -79,6 +81,8 @@ class LeaveBalanceQueryNotifier extends Notifier<LeaveBalanceQuery> {
   @override
   LeaveBalanceQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
+    // Another organization starts with fresh filters.
+    ref.watch(activeOrganizationIdProvider);
     return const LeaveBalanceQuery();
   }
 
@@ -98,8 +102,8 @@ class LeaveBalanceQueryNotifier extends Notifier<LeaveBalanceQuery> {
     }
   }
 
-  void setDepartment(JobRole? department) =>
-      state = state.copyWith(department: department, page: 1);
+  void setDepartment(String? departmentId) =>
+      state = state.copyWith(departmentId: departmentId, page: 1);
 
   void setPage(int page) => state = state.copyWith(page: page);
 
@@ -129,6 +133,38 @@ final leaveBalanceListProvider = FutureProvider<LeaveBalanceListModel>(
 final leaveTypesProvider = FutureProvider<List<LeaveTypeModel>>(
   (ref) => ref.watch(leaveRepositoryProvider).types(),
   retry: (_, _) => null,
+);
+
+/// The name of the organization's paid leave (e.g. "Casual"), for labels
+/// like "Casual available"; "Paid leave" until the types load.
+final paidLeaveNameProvider = Provider<String>(
+  (ref) =>
+      ref
+          .watch(leaveTypesProvider)
+          .value
+          ?.where((t) => t.hasBalance)
+          .firstOrNull
+          ?.name ??
+      'Paid leave',
+);
+
+/// Whether the organization has paid leave with a balance (Settings); true
+/// until the types load.
+final paidLeaveEnabledProvider = Provider<bool>(
+  (ref) =>
+      ref.watch(leaveTypesProvider).value?.any((t) => t.hasBalance) ?? true,
+);
+
+/// The organization's unpaid leave name, e.g. "Unpaid".
+final unpaidLeaveNameProvider = Provider<String>(
+  (ref) =>
+      ref
+          .watch(leaveTypesProvider)
+          .value
+          ?.where((t) => !t.isPaid)
+          .firstOrNull
+          ?.name ??
+      'Unpaid',
 );
 
 final leaveDetailProvider = FutureProvider.autoDispose

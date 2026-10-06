@@ -15,6 +15,14 @@ _UserModel _$UserModelFromJson(Map<String, dynamic> json) => _UserModel(
           ?.map((e) => e as String)
           .toList() ??
       const <String>[],
+  organization: json['organization'] == null
+      ? null
+      : OrganizationModel.fromJson(
+          json['organization'] as Map<String, dynamic>,
+        ),
+  memberships: (json['memberships'] as List<dynamic>?)
+      ?.map((e) => MembershipModel.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
@@ -23,4 +31,6 @@ Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
       'name': instance.name,
       'email': instance.email,
       'permissions': instance.permissions,
+      'organization': instance.organization?.toJson(),
+      'memberships': instance.memberships?.map((e) => e.toJson()).toList(),
     };

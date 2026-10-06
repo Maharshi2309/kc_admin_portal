@@ -23,6 +23,15 @@ const Set<String> _publicPaths = {
   AppRoutePaths.login,
   AppRoutePaths.splash,
   AppRoutePaths.devComponents,
+  ..._accountPaths,
+};
+
+/// Signing up and recovering a password: signed-in users don't need them.
+const Set<String> _accountPaths = {
+  AppRoutePaths.register,
+  AppRoutePaths.verifyEmail,
+  AppRoutePaths.forgotPassword,
+  AppRoutePaths.resetPassword,
 };
 
 /// Where to send the user for [location], or `null` to stay.
@@ -59,6 +68,7 @@ String? authRedirect({
       if (path == AppRoutePaths.login || path == AppRoutePaths.splash) {
         return from ?? homeLocation;
       }
+      if (_accountPaths.contains(path)) return homeLocation;
       return null;
   }
 }
@@ -92,3 +102,20 @@ String? _returnPathFor(Uri location) {
 String _withFrom(String path, String? from) => from == null
     ? path
     : Uri(path: path, queryParameters: {AppRouteParams.from: from}).toString();
+
+/// For signed-in users: someone in no organization yet sees only the
+/// welcome page and the "create organization" page; the welcome page is
+/// only for them. Returns where to go, or null to stay.
+String? organizationRedirect({
+  required bool needsOrganization,
+  required String path,
+  required String homeLocation,
+}) {
+  if (needsOrganization) {
+    return path == AppRoutePaths.welcome ||
+            path == AppRoutePaths.createOrganization
+        ? null
+        : AppRoutePaths.welcome;
+  }
+  return path == AppRoutePaths.welcome ? homeLocation : null;
+}

@@ -4,8 +4,14 @@
     "id": "8",
     "name": "Dhruv Parmar",
     "ecNumber": "KC1022",
-    "department": "graphic_designer",
-    "position": "tailor"
+    "department": {
+      "id": "keshav-dep-graphic-designer",
+      "name": "Graphic Designer"
+    },
+    "position": {
+      "id": "keshav-pos-tailor",
+      "name": "Tailor"
+    }
   },
   "leaveType": {
     "id": "casual",

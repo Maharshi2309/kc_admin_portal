@@ -54,12 +54,20 @@ class AppLabeledField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          children: [
-            Expanded(child: AppFieldLabel(label!, isRequired: isRequired)),
-            ?trailing,
-          ],
-        ),
+        if (trailing case final trailing?)
+          // The trailing link moves under the label when both don't fit
+          // (e.g. "Forgot password?" with large text).
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: AppSpacing.s8,
+            children: [
+              AppFieldLabel(label!, isRequired: isRequired),
+              trailing,
+            ],
+          )
+        else
+          AppFieldLabel(label!, isRequired: isRequired),
         const SizedBox(height: AppSpacing.s6),
         child,
       ],

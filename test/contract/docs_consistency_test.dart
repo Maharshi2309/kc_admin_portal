@@ -78,14 +78,12 @@ void main() {
       }
     });
 
-    test('no designation or department ids', () {
+    test('no designations', () {
+      // Departments and positions are the organization's own items
+      // (`{ id, name }`, 2026-10-06); "designation" is gone for good.
       for (final name in files) {
         final json = jsonDecode(File('$_examples/$name').readAsStringSync());
-        expect(
-          _keys(json),
-          isNot(anyOf(contains('designation'), contains('departmentId'))),
-          reason: name,
-        );
+        expect(_keys(json), isNot(contains('designation')), reason: name);
       }
     });
 

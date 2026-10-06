@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
@@ -7,11 +8,14 @@ import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
 import 'package:kc_admin_portal/core/widgets/app_link.dart';
 import 'package:kc_admin_portal/features/dashboard/data/models/dashboard_summary_model.dart';
+import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
+import 'package:kc_admin_portal/features/leave/presentation/providers/leave_providers.dart';
 
-/// Organisation-wide leave (all figures from the backend): Casual left,
-/// Casual and Unpaid taken this year, and this month's requests by status.
-/// Unpaid leave is never counted as remaining paid leave.
-class LeaveUsageCard extends StatelessWidget {
+/// Organisation-wide leave (all figures from the backend): paid leave left,
+/// paid and unpaid leave taken this year, and this month's requests by
+/// status. Unpaid leave is never counted as remaining paid leave. The type
+/// names are the organization's (e.g. "Casual").
+class LeaveUsageCard extends ConsumerWidget {
   const LeaveUsageCard({
     required this.usage,
     required this.onViewBalances,
@@ -24,7 +28,10 @@ class LeaveUsageCard extends StatelessWidget {
   final VoidCallback? onViewBalances;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paid = ref.watch(paidLeaveNameProvider);
+    final unpaid = ref.watch(unpaidLeaveNameProvider);
+    final hasPaidLeave = ref.watch(paidLeaveEnabledProvider);
     final remaining = FormatUtils.days(usage.casualRemainingDays);
     final muted = AppTextStyles.small.copyWith(color: AppColors.textMuted);
 
@@ -42,29 +49,34 @@ class LeaveUsageCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: AppSpacing.s14,
         children: [
-          Semantics(
-            label: '$remaining of Casual leave left, all employees',
-            excludeSemantics: true,
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: AppSpacing.s8,
-              children: [
-                Text(remaining, style: AppTextStyles.statLarge),
-                Text('of Casual leave left · all employees', style: muted),
-              ],
+          if (hasPaidLeave)
+            Semantics(
+              label:
+                  '$remaining of ${leaveTypePhrase(paid)} left, all employees',
+              excludeSemantics: true,
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: AppSpacing.s8,
+                children: [
+                  Text(remaining, style: AppTextStyles.statLarge),
+                  Text(
+                    'of ${leaveTypePhrase(paid)} left · all employees',
+                    style: muted,
+                  ),
+                ],
+              ),
             ),
-          ),
           Row(
             children: [
               Expanded(
                 child: _Figure(
-                  label: 'Casual taken',
+                  label: '$paid taken',
                   value: FormatUtils.days(usage.casualTakenDays),
                 ),
               ),
               Expanded(
                 child: _Figure(
-                  label: 'Unpaid taken',
+                  label: '$unpaid taken',
                   value: FormatUtils.days(usage.unpaidTakenDays),
                 ),
               ),

@@ -13,16 +13,8 @@ _EmployeeModel _$EmployeeModelFromJson(
   ecNumber: json['ecNumber'] as String,
   name: json['name'] as String,
   mobile: json['mobile'] as String,
-  department: $enumDecode(
-    _$JobRoleEnumMap,
-    json['department'],
-    unknownValue: JobRole.unknown,
-  ),
-  position: $enumDecode(
-    _$JobRoleEnumMap,
-    json['position'],
-    unknownValue: JobRole.unknown,
-  ),
+  department: NamedRef.fromJson(json['department'] as Map<String, dynamic>),
+  position: NamedRef.fromJson(json['position'] as Map<String, dynamic>),
   joiningDate: const DateOnlyConverter().fromJson(
     json['joiningDate'] as String,
   ),
@@ -53,8 +45,8 @@ Map<String, dynamic> _$EmployeeModelToJson(_EmployeeModel instance) =>
       'ecNumber': instance.ecNumber,
       'name': instance.name,
       'mobile': instance.mobile,
-      'department': _$JobRoleEnumMap[instance.department]!,
-      'position': _$JobRoleEnumMap[instance.position]!,
+      'department': instance.department.toJson(),
+      'position': instance.position.toJson(),
       'joiningDate': const DateOnlyConverter().toJson(instance.joiningDate),
       'status': _$EmployeeStatusEnumMap[instance.status]!,
       'todayStatus': _$AttendanceDayStatusEnumMap[instance.todayStatus],
@@ -66,13 +58,6 @@ Map<String, dynamic> _$EmployeeModelToJson(_EmployeeModel instance) =>
       'schedule': instance.schedule?.toJson(),
       'overtimeMinutesThisYear': instance.overtimeMinutesThisYear,
     };
-
-const _$JobRoleEnumMap = {
-  JobRole.accountant: 'accountant',
-  JobRole.graphicDesigner: 'graphic_designer',
-  JobRole.tailor: 'tailor',
-  JobRole.unknown: 'unknown',
-};
 
 const _$EmployeeStatusEnumMap = {
   EmployeeStatus.active: 'active',
@@ -106,8 +91,8 @@ _EmployeeFormData _$EmployeeFormDataFromJson(Map<String, dynamic> json) =>
       ecNumber: json['ecNumber'] as String,
       name: json['name'] as String,
       mobile: json['mobile'] as String,
-      department: $enumDecode(_$JobRoleEnumMap, json['department']),
-      position: $enumDecode(_$JobRoleEnumMap, json['position']),
+      departmentId: json['departmentId'] as String,
+      positionId: json['positionId'] as String,
       joiningDate: DateTime.parse(json['joiningDate'] as String),
       status: $enumDecode(_$EmployeeStatusEnumMap, json['status']),
       schedule: json['schedule'] == null
@@ -122,8 +107,8 @@ Map<String, dynamic> _$EmployeeFormDataToJson(_EmployeeFormData instance) =>
       'ecNumber': instance.ecNumber,
       'name': instance.name,
       'mobile': instance.mobile,
-      'department': _$JobRoleEnumMap[instance.department]!,
-      'position': _$JobRoleEnumMap[instance.position]!,
+      'departmentId': instance.departmentId,
+      'positionId': instance.positionId,
       'joiningDate': dateToJson(instance.joiningDate),
       'status': _$EmployeeStatusEnumMap[instance.status]!,
       'schedule': ?instance.schedule?.toJson(),

@@ -20,12 +20,17 @@ class TokenStorage {
   String? _cachedToken;
   bool _loaded = false;
 
+  /// Whether the current token is also saved for the next start ("Keep me
+  /// signed in"), so a replacement token is kept the same way.
+  bool _persisted = false;
+
   /// A storage failure is treated as "no saved session" so it can never
   /// block signing in.
   Future<String?> readToken() async {
     if (!_loaded) {
       try {
         _cachedToken = await _storage.read(key: _accessTokenKey);
+        _persisted = _cachedToken != null;
       } on Object catch (error) {
         debugPrint('TokenStorage: read failed ($error)');
         _cachedToken = null;
@@ -41,6 +46,7 @@ class TokenStorage {
   Future<void> writeToken(String token, {bool persist = true}) async {
     _cachedToken = token;
     _loaded = true;
+    _persisted = persist;
     try {
       if (persist) {
         await _storage.write(key: _accessTokenKey, value: token);
@@ -53,6 +59,11 @@ class TokenStorage {
       );
     }
   }
+
+  /// A new token for the same session (e.g. after switching organization),
+  /// saved for the next start only if the current one was.
+  Future<void> replaceToken(String token) =>
+      writeToken(token, persist: _persisted);
 
   Future<void> clear() async {
     _cachedToken = null;

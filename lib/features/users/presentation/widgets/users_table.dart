@@ -196,7 +196,9 @@ class _StatusBadge extends StatelessWidget {
   final UserAccountModel user;
 
   @override
-  Widget build(BuildContext context) => user.isActive
+  Widget build(BuildContext context) => user.invitationPending
+      ? const AppStatusBadge(label: 'Invited', tone: StatusTone.info)
+      : user.isActive
       ? const AppStatusBadge(label: 'Active', tone: StatusTone.success)
       : const AppStatusBadge(label: 'Inactive', tone: StatusTone.neutral);
 }
@@ -298,8 +300,11 @@ class _Actions extends ConsumerWidget {
             icon: Icons.more_vert_rounded,
             tooltip: isYou
                 ? 'You cannot deactivate yourself'
+                : user.invitationPending
+                ? '${user.name} has not joined yet'
                 : 'More actions for ${user.name}',
-            onPressed: busy || isYou
+            // An invitation has nothing to deactivate until it's accepted.
+            onPressed: busy || isYou || user.invitationPending
                 ? null
                 : () => controller.isOpen
                       ? controller.close()

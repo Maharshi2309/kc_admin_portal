@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
+import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
 
@@ -15,14 +15,16 @@ abstract class EmployeeModel with _$EmployeeModel {
   const factory EmployeeModel({
     @JsonKey(fromJson: idFromJson) required String id,
 
-    /// "KC" followed by digits, e.g. "KC1001".
+    /// The organization's prefix followed by digits, e.g. "KC1001".
     required String ecNumber,
     required String name,
 
     /// 10 digits without the country code, e.g. "9825011234".
     required String mobile,
-    @JsonKey(unknownEnumValue: JobRole.unknown) required JobRole department,
-    @JsonKey(unknownEnumValue: JobRole.unknown) required JobRole position,
+
+    /// The organization's own department and position (2026-10-06).
+    required NamedRef department,
+    required NamedRef position,
     @DateOnlyConverter() required DateTime joiningDate,
     @JsonKey(unknownEnumValue: EmployeeStatus.unknown)
     required EmployeeStatus status,
@@ -53,8 +55,11 @@ abstract class EmployeeFormData with _$EmployeeFormData {
     required String ecNumber,
     required String name,
     required String mobile,
-    required JobRole department,
-    required JobRole position,
+
+    /// Ids from the organization's lists (`GET /departments`,
+    /// `GET /positions`).
+    required String departmentId,
+    required String positionId,
     @JsonKey(toJson: dateToJson) required DateTime joiningDate,
     required EmployeeStatus status,
 
@@ -101,8 +106,8 @@ abstract class EmployeeStatusCounts with _$EmployeeStatusCounts {
 abstract class EmployeeQuery with _$EmployeeQuery {
   const factory EmployeeQuery({
     @Default('') String search,
-    JobRole? department,
-    JobRole? position,
+    String? departmentId,
+    String? positionId,
 
     /// "Joined" filter (design board 03): joining date within this range.
     @DateOnlyConverter() DateTime? joinedFrom,
@@ -120,15 +125,15 @@ abstract class EmployeeQuery with _$EmployeeQuery {
 
   bool get hasFilters =>
       search.isNotEmpty ||
-      department != null ||
-      position != null ||
+      departmentId != null ||
+      positionId != null ||
       joinedFrom != null ||
       status != EmployeeStatus.active;
 
   Map<String, Object?> toQueryParameters() => {
     if (search.isNotEmpty) 'search': search,
-    'department': ?department?.code,
-    'position': ?position?.code,
+    'departmentId': ?departmentId,
+    'positionId': ?positionId,
     if (joinedFrom != null) 'joinedFrom': dateToJson(joinedFrom!),
     if (joinedTo != null) 'joinedTo': dateToJson(joinedTo!),
     'status': ?status?.name,

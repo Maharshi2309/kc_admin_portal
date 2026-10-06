@@ -1,18 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:kc_admin_portal/core/config/env.dart';
-import 'package:kc_admin_portal/core/config/mock_latency.dart';
 import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/network/api_client.dart';
-import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
-import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
-import 'package:kc_admin_portal/features/employees/data/datasources/employee_mock_data_source.dart';
-import 'package:kc_admin_portal/features/employees/data/datasources/mock_schedule_book.dart';
-import 'package:kc_admin_portal/features/holidays/data/datasources/mock_holiday_store.dart';
-import 'package:kc_admin_portal/features/leave/data/datasources/leave_mock_data_source.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
-import 'package:kc_admin_portal/shared/mock/mock_audit_log.dart';
+import 'package:kc_admin_portal/shared/mock/mock_tenant.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 abstract interface class LeaveRemoteDataSource {
@@ -109,15 +102,9 @@ class LeaveApiDataSource implements LeaveRemoteDataSource {
 
 final leaveRemoteDataSourceProvider = Provider<LeaveRemoteDataSource>((ref) {
   if (ref.watch(envProvider).useMockApi) {
-    return LeaveMockDataSource(
-      guard: ref.watch(mockGuardProvider),
-      now: ref.watch(clockProvider),
-      employees: ref.watch(mockEmployeeStoreProvider),
-      latency: ref.watch(mockLatencyProvider),
-      holidays: ref.watch(mockHolidayStoreProvider),
-      schedules: ref.watch(mockScheduleBookProvider),
-      audit: ref.watch(mockAuditLogProvider),
-    );
+    return ref.watch(mockActiveTenantProvider).leaves;
   }
+  // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
+  ref.watch(activeOrganizationIdProvider);
   return LeaveApiDataSource(ref.watch(apiClientProvider));
 });

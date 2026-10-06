@@ -10,11 +10,14 @@ import 'package:kc_admin_portal/core/config/env.dart';
 import 'package:kc_admin_portal/core/config/mock_latency.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
+import 'package:kc_admin_portal/core/responsive/layout_mode.dart';
+import 'package:kc_admin_portal/core/storage/local_storage.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
 import 'package:kc_admin_portal/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:kc_admin_portal/features/auth/domain/repositories/auth_repository.dart';
 import 'package:kc_admin_portal/features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import 'package:kc_admin_portal/shared/models/organization_model.dart';
 
 import 'fake_dashboard.dart';
 
@@ -72,6 +75,22 @@ class FakeAuthRepository implements AuthRepository {
     return sessionUser = testUser.copyWith(email: email);
   }
 
+  /// Only changes the user: the dev mock's own session stays as it is, so
+  /// tests of switching use the mock auth (see `pumpFullApp`'s `mockAuth`).
+  @override
+  Future<UserModel> switchOrganization(String organizationId) async {
+    final user = sessionUser!;
+    final membership = user.memberships!.firstWhere(
+      (m) => m.organizationId == organizationId,
+    );
+    return sessionUser = user.copyWith(
+      organization: OrganizationModel(
+        id: membership.organizationId,
+        name: membership.name,
+      ),
+    );
+  }
+
   @override
   Future<void> signOut() async {
     signOutCalls++;
@@ -80,13 +99,77 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> clearSession() async => sessionUser = null;
+
+  // Sign-up and organizations: simple stand-ins. Tests of these flows use
+  // the dev mock's auth (`pumpFullApp(repository: null)`).
+
+  @override
+  Future<void> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {}
+
+  @override
+  Future<UserModel> verifyEmail({
+    required String email,
+    required String code,
+    bool keepSignedIn = true,
+  }) async => sessionUser = testUser.copyWith(email: email);
+
+  @override
+  Future<void> resendVerification(String email) async {}
+
+  @override
+  Future<void> forgotPassword(String email) async {}
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String password,
+  }) async {}
+
+  @override
+  Future<UserModel> createOrganization({
+    required String name,
+    required String timezone,
+    bool paidLeave = true,
+  }) async {
+    final organization = OrganizationModel(
+      id: 'new',
+      name: name,
+      timezone: timezone,
+    );
+    return sessionUser = sessionUser!.copyWith(
+      organization: organization,
+      memberships: [
+        ...?sessionUser!.memberships,
+        MembershipModel(organizationId: 'new', name: name),
+      ],
+    );
+  }
+
+  @override
+  Future<List<InvitationModel>> invitations() async => const [];
+
+  @override
+  Future<UserModel> acceptInvitation(String id) =>
+      throw const NotFoundException('This invitation was not found.');
+
+  @override
+  Future<void> declineInvitation(String id) async {}
 }
 
 /// Pumps the whole app with fake auth and dashboard data (and a fixed clock)
 /// and returns its router.
 Future<GoRouter> pumpFullApp(
   WidgetTester tester, {
-  required FakeAuthRepository repository,
+
+  /// The fake auth; null uses the dev mock's own sign-in (signed out at
+  /// start), for tests that need the mock server's session, e.g. switching
+  /// organization.
+  required FakeAuthRepository? repository,
   FakeDashboardRepository? dashboard,
 
   /// Use the dashboard dev mock (linked to the attendance mock) instead of
@@ -103,7 +186,10 @@ Future<GoRouter> pumpFullApp(
   final container = ProviderContainer(
     overrides: [
       envProvider.overrideWithValue(env),
-      authRepositoryProvider.overrideWithValue(repository),
+      if (repository != null)
+        authRepositoryProvider.overrideWithValue(repository)
+      else
+        tokenStorageProvider.overrideWithValue(MemoryTokenStorage()),
       if (!mockDashboard)
         dashboardRepositoryProvider.overrideWithValue(
           dashboard ?? FakeDashboardRepository(),
@@ -141,4 +227,35 @@ ProviderContainer createTestContainer({List<Override> overrides = const []}) {
   );
   addTearDown(container.dispose);
   return container;
+}
+
+/// Token storage without the platform plugin, for widget tests.
+class MemoryTokenStorage implements TokenStorage {
+  String? _token;
+
+  @override
+  Future<String?> readToken() async => _token;
+
+  @override
+  Future<void> writeToken(String token, {bool persist = true}) async =>
+      _token = token;
+
+  @override
+  Future<void> replaceToken(String token) async => _token = token;
+
+  @override
+  Future<void> clear() async => _token = null;
+}
+
+/// A layout choice kept in memory, starting at [saved].
+class MemoryLayoutModeStore implements LayoutModeStore {
+  MemoryLayoutModeStore([this.saved]);
+
+  LayoutMode? saved;
+
+  @override
+  Future<LayoutMode?> read() async => saved;
+
+  @override
+  Future<void> write(LayoutMode mode) async => saved = mode;
 }

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/shared/mock/mock_audit_log.dart';
+import 'package:kc_admin_portal/shared/mock/mock_tenant.dart';
 import 'package:kc_admin_portal/shared/models/audit_entry_model.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
 
@@ -11,12 +11,19 @@ import 'package:kc_admin_portal/shared/models/holiday_model.dart';
 /// deletes, and a change notice so other mocks recalculate the affected
 /// days (§3.5), like the server does.
 class MockHolidayStore {
-  MockHolidayStore({required DateTime Function() now, this.audit}) {
+  MockHolidayStore({
+    required DateTime Function() now,
+    this.audit,
+    List<(int month, int day, String name)> extra = const [],
+  }) {
     final year = now().year;
     for (final y in [year - 1, year, year + 1]) {
       _add(y, 1, 26, 'Republic Day');
       _add(y, 8, 15, 'Independence Day');
       _add(y, 10, 2, 'Gandhi Jayanti');
+      for (final (month, day, name) in extra) {
+        _add(y, month, day, name);
+      }
     }
   }
 
@@ -166,10 +173,8 @@ class MockHolidayStore {
   }
 }
 
-/// DEV ONLY: the holidays shared by the holiday, leave and attendance mocks.
+/// DEV ONLY: the active organization's holidays, shared by the holiday,
+/// leave and attendance mocks.
 final mockHolidayStoreProvider = Provider<MockHolidayStore>(
-  (ref) => MockHolidayStore(
-    now: ref.watch(clockProvider),
-    audit: ref.watch(mockAuditLogProvider),
-  ),
+  (ref) => ref.watch(mockActiveTenantProvider).holidays,
 );

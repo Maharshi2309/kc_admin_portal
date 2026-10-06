@@ -14,6 +14,17 @@ import 'package:kc_admin_portal/shared/widgets/brand_mark.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
+  @override
+  Widget build(BuildContext context) => const AuthLayout(child: LoginForm());
+}
+
+/// The layout of the sign-in page, shared by every account page (sign-up,
+/// email verification, password reset, welcome, new organization).
+class AuthLayout extends StatelessWidget {
+  const AuthLayout({required this.child, super.key});
+
+  final Widget child;
+
   static const double _formMaxWidth = 400;
   static const double _brandPanelWidth = 600;
 
@@ -34,7 +45,7 @@ class LoginScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.s32),
               ],
-              const LoginForm(),
+              child,
             ],
           ),
         ),

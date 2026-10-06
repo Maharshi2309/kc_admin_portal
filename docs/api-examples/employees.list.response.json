@@ -5,8 +5,14 @@
       "ecNumber": "KC1001",
       "name": "Aarav Shah",
       "mobile": "9825011234",
-      "department": "graphic_designer",
-      "position": "graphic_designer",
+      "department": {
+        "id": "keshav-dep-graphic-designer",
+        "name": "Graphic Designer"
+      },
+      "position": {
+        "id": "keshav-pos-graphic-designer",
+        "name": "Graphic Designer"
+      },
       "joiningDate": "2021-01-12",
       "status": "active",
       "todayStatus": "present",

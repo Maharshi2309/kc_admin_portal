@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:kc_admin_portal/app/shell/nav_destinations.dart';
+import 'package:kc_admin_portal/app/shell/organization_brand_mark.dart';
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
-import 'package:kc_admin_portal/shared/widgets/brand_mark.dart';
 
 /// Desktop sidebar from the design: brand, section links, and a slot at the
 /// bottom for the signed-in admin (added with authentication in Phase 5).
@@ -39,37 +39,49 @@ class AppSidebar extends StatelessWidget {
       ),
       child: SafeArea(
         right: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.s8,
-                vertical: AppSpacing.s4,
-              ),
-              child: BrandMark(),
-            ),
-            const SizedBox(height: AppSpacing.s28),
-            Semantics(
-              container: true,
-              explicitChildNodes: true,
-              label: 'Main navigation',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: AppSpacing.s4,
-                children: [
-                  for (var i = 0; i < destinations.length; i++)
-                    _SidebarItem(
-                      destination: destinations[i],
-                      isSelected: i == selectedIndex,
-                      onTap: () => onSelected(i),
+        // Fills the height with the account card at the bottom, but scrolls
+        // when the window is too short (a phone held sideways in desktop
+        // mode, or large text).
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s8,
+                        vertical: AppSpacing.s4,
+                      ),
+                      child: OrganizationBrandMark(),
                     ),
-                ],
+                    const SizedBox(height: AppSpacing.s28),
+                    Semantics(
+                      container: true,
+                      explicitChildNodes: true,
+                      label: 'Main navigation',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: AppSpacing.s4,
+                        children: [
+                          for (var i = 0; i < destinations.length; i++)
+                            _SidebarItem(
+                              destination: destinations[i],
+                              isSelected: i == selectedIndex,
+                              onTap: () => onSelected(i),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    ?footer,
+                  ],
+                ),
               ),
             ),
-            const Spacer(),
-            ?footer,
-          ],
+          ),
         ),
       ),
     );

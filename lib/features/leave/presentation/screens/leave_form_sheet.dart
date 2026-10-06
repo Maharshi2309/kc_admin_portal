@@ -504,6 +504,8 @@ class _Summary extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preview = ref.watch(leavePreviewProvider(request));
+    final paid = ref.watch(paidLeaveNameProvider);
+    final unpaid = ref.watch(unpaidLeaveNameProvider);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s14),
       decoration: const BoxDecoration(
@@ -531,18 +533,20 @@ class _Summary extends ConsumerWidget {
                 ),
                 if (value.availableCasual case final available?)
                   _Line(
-                    label: 'Casual available',
+                    label: '$paid available',
                     value: FormatUtils.days(available),
                   ),
                 if (value.needsSplit) ...[
                   _Line(
                     label: 'Paid / unpaid',
                     value:
-                        '${FormatUtils.count(value.paidDays)} Casual + '
-                        '${FormatUtils.count(value.unpaidDays)} Unpaid',
+                        '${FormatUtils.count(value.paidDays)} $paid + '
+                        '${FormatUtils.count(value.unpaidDays)} $unpaid',
                     isWarning: true,
                   ),
                   _SplitChoice(
+                    paidName: paid,
+                    unpaidName: unpaid,
                     preview: value,
                     value: splitExcess,
                     onChanged: onSplitChanged,
@@ -571,29 +575,37 @@ class _SplitChoice extends StatelessWidget {
     required this.preview,
     required this.value,
     required this.onChanged,
+    required this.paidName,
+    required this.unpaidName,
   });
 
   final LeavePreviewModel preview;
   final bool value;
   final ValueChanged<bool>? onChanged;
 
+  /// The organization's leave type names (e.g. "Casual", "Unpaid").
+  final String paidName;
+  final String unpaidName;
+
   @override
   Widget build(BuildContext context) {
     final enabled = onChanged != null;
     final extra = FormatUtils.days(preview.unpaidDays);
+    final paid = leaveTypePhrase(paidName);
+    final unpaid = leaveTypePhrase(unpaidName);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: AppSpacing.s8,
       children: [
         AppAlertBanner(
           tone: AlertTone.info,
-          title: 'Not enough Casual leave',
+          title: 'Not enough $paid',
           message: preview.paidDays > 0
-              ? 'Only ${FormatUtils.days(preview.paidDays)} of Casual leave '
+              ? 'Only ${FormatUtils.days(preview.paidDays)} of $paid '
                     'can be used for these dates. Choose fewer days, or save '
-                    'the last $extra as Unpaid leave.'
-              : 'No Casual leave is available for these dates. Choose other '
-                    'dates, or save the leave as Unpaid.',
+                    'the last $extra as $unpaid.'
+              : 'No $paid is available for these dates. Choose other '
+                    'dates, or save the leave as $unpaid.',
         ),
         MergeSemantics(
           child: InkWell(
@@ -613,8 +625,8 @@ class _SplitChoice extends StatelessWidget {
                   Flexible(
                     child: Text(
                       preview.paidDays > 0
-                          ? 'Save the extra $extra as Unpaid'
-                          : 'Save all $extra as Unpaid',
+                          ? 'Save the extra $extra as $unpaidName'
+                          : 'Save all $extra as $unpaidName',
                       style: AppTextStyles.body.copyWith(
                         color: enabled
                             ? AppColors.textSecondary

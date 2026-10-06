@@ -2,7 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
@@ -150,7 +149,7 @@ abstract class AttendanceQuery with _$AttendanceQuery {
     @DateOnlyConverter() required DateTime date,
     @Default(AttendanceFilter.all) AttendanceFilter filter,
     @Default('') String search,
-    JobRole? department,
+    String? departmentId,
   }) = _AttendanceQuery;
 
   const AttendanceQuery._();
@@ -161,7 +160,7 @@ abstract class AttendanceQuery with _$AttendanceQuery {
     'date': dateToJson(date),
     'status': ?filter.apiValue,
     if (search.isNotEmpty) 'search': search,
-    'department': ?department?.code,
+    'departmentId': ?departmentId,
     'page': page,
     'pageSize': pageSize,
   };

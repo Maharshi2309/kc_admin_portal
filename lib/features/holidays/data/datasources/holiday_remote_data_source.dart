@@ -1,12 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:kc_admin_portal/core/config/env.dart';
-import 'package:kc_admin_portal/core/config/mock_latency.dart';
 import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/network/api_client.dart';
-import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
-import 'package:kc_admin_portal/features/holidays/data/datasources/holiday_mock_data_source.dart';
-import 'package:kc_admin_portal/features/holidays/data/datasources/mock_holiday_store.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
+import 'package:kc_admin_portal/shared/mock/mock_tenant.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
 
 /// Company holidays over the API. All methods throw an `AppException` on
@@ -69,11 +66,9 @@ final holidayRemoteDataSourceProvider = Provider<HolidayRemoteDataSource>((
   ref,
 ) {
   if (ref.watch(envProvider).useMockApi) {
-    return HolidayMockDataSource(
-      guard: ref.watch(mockGuardProvider),
-      store: ref.watch(mockHolidayStoreProvider),
-      latency: ref.watch(mockLatencyProvider),
-    );
+    return ref.watch(mockActiveTenantProvider).holidaySource;
   }
+  // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
+  ref.watch(activeOrganizationIdProvider);
   return HolidayApiDataSource(ref.watch(apiClientProvider));
 });

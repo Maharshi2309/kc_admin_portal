@@ -5,8 +5,14 @@
         "id": "8",
         "name": "Dhruv Parmar",
         "ecNumber": "KC1022",
-        "department": "graphic_designer",
-        "position": "tailor"
+        "department": {
+          "id": "keshav-dep-graphic-designer",
+          "name": "Graphic Designer"
+        },
+        "position": {
+          "id": "keshav-pos-tailor",
+          "name": "Tailor"
+        }
       },
       "balance": {
         "asOf": "2026-09-28",
@@ -22,8 +28,14 @@
         "id": "2",
         "name": "Priya Desai",
         "ecNumber": "KC1004",
-        "department": "tailor",
-        "position": "tailor"
+        "department": {
+          "id": "keshav-dep-tailor",
+          "name": "Tailor"
+        },
+        "position": {
+          "id": "keshav-pos-tailor",
+          "name": "Tailor"
+        }
       },
       "balance": {
         "asOf": "2026-09-28",

@@ -6,9 +6,6 @@ abstract final class Validators {
     r"^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$",
   );
 
-  /// Client rule (confirmed 2026-09-29): "KC" directly followed by digits.
-  static final RegExp _ecNumber = RegExp(r'^KC\d+$');
-
   /// Design: 10-digit mobile number entered after a fixed "+91" prefix.
   static final RegExp _mobile = RegExp(r'^\d{10}$');
 
@@ -23,12 +20,16 @@ abstract final class Validators {
         : 'Enter a valid email address';
   }
 
-  static String? ecNumber(String? value) {
+  /// The organization's [prefix] (Settings, e.g. "KC") directly followed
+  /// by digits. Without the prefix (settings not loaded) any letters do.
+  static String? ecNumber(String? value, {String? prefix}) {
     final missing = required(value, field: 'EC number');
     if (missing != null) return missing;
-    return _ecNumber.hasMatch(value!.trim())
-        ? null
-        : 'Use KC followed by numbers, e.g. KC1001';
+    final letters = prefix == null ? '[A-Z]*' : RegExp.escape(prefix);
+    if (RegExp('^$letters\\d+\$').hasMatch(value!.trim())) return null;
+    return prefix == null || prefix.isEmpty
+        ? 'Use numbers, e.g. 1001'
+        : 'Use $prefix followed by numbers, e.g. ${prefix}1001';
   }
 
   static String? mobile(String? value) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kc_admin_portal/app/router/route_names.dart';
@@ -11,9 +12,16 @@ import 'package:kc_admin_portal/core/constants/app_constants.dart';
 const Map<String, String> routeTitles = {
   AppRouteNames.login: 'Sign in',
   AppRouteNames.noAccess: 'No access',
+  AppRouteNames.register: 'Create an account',
+  AppRouteNames.verifyEmail: 'Verify your email',
+  AppRouteNames.forgotPassword: 'Forgot password',
+  AppRouteNames.resetPassword: 'New password',
+  AppRouteNames.welcome: 'Welcome',
+  AppRouteNames.createOrganization: 'Create organization',
   AppRouteNames.dashboard: 'Dashboard',
   AppRouteNames.employees: 'Employees',
   AppRouteNames.employeeAdd: 'Add employee',
+  AppRouteNames.employeeImport: 'Import employees',
   AppRouteNames.employeeProfile: 'Employee profile',
   AppRouteNames.employeeEdit: 'Edit employee',
   AppRouteNames.employeeSchedule: 'Change schedule',
@@ -33,6 +41,7 @@ const Map<String, String> routeTitles = {
   AppRouteNames.holidayAdd: 'Add holiday',
   AppRouteNames.holidayEdit: 'Edit holiday',
   AppRouteNames.accessControl: 'Access control',
+  AppRouteNames.settings: 'Settings',
   AppRouteNames.userAccess: 'User permissions',
   AppRouteNames.userAdd: 'Add user',
   AppRouteNames.userEdit: 'Edit user',
@@ -71,6 +80,13 @@ class _RouteTitleState extends State<RouteTitle> {
       titleFor(widget.router.routerDelegate.currentConfiguration);
 
   void _update() {
+    // A router that replaces another (after switching organization) sets
+    // its first page while the app is building: wait for the frame.
+    final scheduler = SchedulerBinding.instance;
+    if (scheduler.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      scheduler.addPostFrameCallback((_) => _update());
+      return;
+    }
     final title = _current();
     if (title != _title && mounted) setState(() => _title = title);
   }

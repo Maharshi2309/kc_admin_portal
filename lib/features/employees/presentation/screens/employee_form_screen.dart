@@ -33,7 +33,9 @@ import 'package:kc_admin_portal/features/employees/presentation/providers/employ
 import 'package:kc_admin_portal/features/employees/presentation/widgets/employee_preview_card.dart';
 import 'package:kc_admin_portal/features/employees/presentation/widgets/work_schedule_card.dart';
 import 'package:kc_admin_portal/features/employees/presentation/widgets/work_schedule_fields.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
+import 'package:kc_admin_portal/features/organization/presentation/providers/organization_providers.dart';
+import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Add employee (`employeeId == null`) or edit one (design board 04).
@@ -78,12 +80,8 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   late final _ecNumber = TextEditingController(text: widget.initial?.ecNumber);
   late final _name = TextEditingController(text: widget.initial?.name);
   late final _mobile = TextEditingController(text: widget.initial?.mobile);
-  late JobRole? _department = _known(widget.initial?.department);
-  late JobRole? _position = _known(widget.initial?.position);
-
-  /// A value this app version doesn't know must be chosen again.
-  static JobRole? _known(JobRole? value) =>
-      JobRole.choices.contains(value) ? value : null;
+  late NamedRef? _department = widget.initial?.department;
+  late NamedRef? _position = widget.initial?.position;
   late DateTime? _joiningDate = widget.initial?.joiningDate;
   late EmployeeStatus _status =
       widget.initial?.status == EmployeeStatus.inactive
@@ -94,7 +92,11 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   Map<String, String> _serverErrors = const {};
 
   /// Adding only: the first working schedule, applied from the joining date.
+  /// Starts as the organization's default schedule.
   ScheduleDraft _schedule = ScheduleDraft.standard;
+
+  /// The admin changed the schedule, so the default must not replace it.
+  bool _scheduleEdited = false;
 
   /// Schedule problems found before saving or sent by the server
   /// (`schedule.startTime` → `startTime`).
@@ -129,6 +131,14 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
     // unless the admin has typed one. Set outside build so listeners of the
     // text controller are never notified mid-build.
     if (!_isEditing) {
+      ref.listenManual(organizationSettingsProvider, fireImmediately: true, (
+        _,
+        next,
+      ) {
+        final defaults = next.value?.defaultSchedule;
+        if (defaults == null || _scheduleEdited) return;
+        setState(() => _schedule = ScheduleDraft.fromDefault(defaults));
+      });
       ref.listenManual(nextEcNumberProvider, fireImmediately: true, (_, next) {
         final suggestion = next.value;
         if (suggestion != null && !_ecEdited) _ecNumber.text = suggestion;
@@ -183,8 +193,8 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
             ecNumber: _ecNumber.text,
             name: _name.text,
             mobile: _mobile.text,
-            department: _department!,
-            position: _position!,
+            departmentId: _department!.id,
+            positionId: _position!.id,
             joiningDate: _joiningDate!,
             status: _status,
             schedule: schedule,
@@ -219,7 +229,11 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
       _position = null;
       _joiningDate = null;
       _status = EmployeeStatus.active;
-      _schedule = ScheduleDraft.standard;
+      _scheduleEdited = false;
+      _schedule = switch (ref.read(organizationSettingsProvider).value) {
+        final settings? => ScheduleDraft.fromDefault(settings.defaultSchedule),
+        null => ScheduleDraft.standard,
+      };
       _scheduleErrors = const {};
     });
   }
@@ -358,8 +372,8 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
       name: _name.text,
       ecNumber: _ecNumber.text,
       mobile: _mobile.text,
-      departmentName: _department?.label,
-      positionName: _position?.label,
+      departmentName: _department?.name,
+      positionName: _position?.name,
       joiningDate: _joiningDate,
     );
   }
@@ -408,6 +422,7 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
               errors: _scheduleErrors,
               enabled: !isSaving,
               onChanged: (draft) => setState(() {
+                _scheduleEdited = true;
                 _schedule = draft;
                 _scheduleErrors = const {};
               }),
@@ -437,7 +452,10 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
           (_, next) => next.copyWith(text: next.text.toUpperCase()),
         ),
       ],
-      validator: Validators.ecNumber,
+      validator: (value) => Validators.ecNumber(
+        value,
+        prefix: ref.read(organizationSettingsProvider).value?.ecNumberPrefix,
+      ),
       onChanged: (_) {
         _ecEdited = true;
         _clearServerError('ecNumber');
@@ -473,46 +491,57 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
     ),
   ];
 
+  /// A department or position: the active ones, plus the employee's
+  /// current one even if it has been deactivated since.
+  Widget _catalogField(
+    CatalogKind kind,
+    NamedRef? value,
+    bool isSaving,
+    ValueChanged<NamedRef> onChanged,
+  ) {
+    final field = kind == CatalogKind.departments
+        ? 'departmentId'
+        : 'positionId';
+    final label = kind.singular;
+    final choices = [...ref.watch(catalogChoicesProvider(kind))];
+    if (value != null && !choices.any((c) => c.id == value.id)) {
+      choices.add(value);
+    }
+    final loaded = ref.watch(catalogProvider(kind)).hasValue;
+    return AppDropdown<String>(
+      label: label,
+      isRequired: true,
+      enabled: !isSaving,
+      hintText: 'Select ${label.toLowerCase()}',
+      value: value?.id,
+      helperText: loaded && choices.isEmpty
+          ? 'No ${kind.plural.toLowerCase()} yet: add them in Settings'
+          : null,
+      errorText: _serverErrors[field],
+      validator: Validators.requiredValue(label),
+      items: [
+        for (final choice in choices)
+          AppDropdownItem(value: choice.id, label: choice.name),
+      ],
+      onChanged: (id) {
+        _clearServerError(field);
+        final chosen = choices.where((c) => c.id == id).firstOrNull;
+        if (chosen != null) onChanged(chosen);
+      },
+    );
+  }
+
   List<Widget> _jobFields(bool isSaving) {
     final today = ref.watch(clockProvider)().dateOnly;
 
     return [
-      // Department and position use the same list and don't depend on
-      // each other.
-      AppDropdown<JobRole>(
-        label: 'Department',
-        isRequired: true,
-        enabled: !isSaving,
-        hintText: 'Select department',
-        value: _department,
-        errorText: _serverErrors['department'],
-        validator: Validators.requiredValue('Department'),
-        items: [
-          for (final d in JobRole.choices)
-            AppDropdownItem(value: d, label: d.label),
-        ],
-        onChanged: (value) {
-          _clearServerError('department');
-          setState(() => _department = value);
-        },
-      ),
-      AppDropdown<JobRole>(
-        label: 'Position',
-        isRequired: true,
-        enabled: !isSaving,
-        hintText: 'Select position',
-        value: _position,
-        errorText: _serverErrors['position'],
-        validator: Validators.requiredValue('Position'),
-        items: [
-          for (final p in JobRole.choices)
-            AppDropdownItem(value: p, label: p.label),
-        ],
-        onChanged: (value) {
-          _clearServerError('position');
-          setState(() => _position = value);
-        },
-      ),
+      // The organization's own lists (Settings); independent of each other.
+      _catalogField(CatalogKind.departments, _department, isSaving, (value) {
+        setState(() => _department = value);
+      }),
+      _catalogField(CatalogKind.positions, _position, isSaving, (value) {
+        setState(() => _position = value);
+      }),
       AppDatePicker(
         label: 'Joining date',
         isRequired: true,

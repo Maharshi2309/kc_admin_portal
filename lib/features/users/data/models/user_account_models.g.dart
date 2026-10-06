@@ -26,6 +26,7 @@ _UserAccountModel _$UserAccountModelFromJson(Map<String, dynamic> json) =>
         json['lastSignInAt'],
         const CompanyDateTimeConverter().fromJson,
       ),
+      invitationPending: json['invitationPending'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$UserAccountModelToJson(_UserAccountModel instance) =>
@@ -40,6 +41,7 @@ Map<String, dynamic> _$UserAccountModelToJson(_UserAccountModel instance) =>
         instance.lastSignInAt,
         const CompanyDateTimeConverter().toJson,
       ),
+      'invitationPending': instance.invitationPending,
     };
 
 Value? _$JsonConverterFromJson<Json, Value>(

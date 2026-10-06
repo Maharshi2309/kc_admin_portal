@@ -33,8 +33,14 @@
       "id": "3",
       "name": "Rohan Patel",
       "ecNumber": "KC1007",
-      "department": "graphic_designer",
-      "position": "graphic_designer"
+      "department": {
+        "id": "keshav-dep-graphic-designer",
+        "name": "Graphic Designer"
+      },
+      "position": {
+        "id": "keshav-pos-graphic-designer",
+        "name": "Graphic Designer"
+      }
     }
   ],
   "notPunchedInTotal": 11,

@@ -1,13 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:kc_admin_portal/core/config/env.dart';
-import 'package:kc_admin_portal/core/config/mock_latency.dart';
 import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/network/api_client.dart';
-import 'package:kc_admin_portal/features/access_control/data/datasources/mock_access_store.dart';
-import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
-import 'package:kc_admin_portal/features/users/data/datasources/user_mock_data_source.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/features/users/data/models/user_account_models.dart';
+import 'package:kc_admin_portal/shared/mock/mock_tenant.dart';
 
 /// Staff login accounts over the API. Throws an `AppException` on failure.
 abstract interface class UserRemoteDataSource {
@@ -62,11 +59,9 @@ class UserApiDataSource implements UserRemoteDataSource {
 
 final userRemoteDataSourceProvider = Provider<UserRemoteDataSource>((ref) {
   if (ref.watch(envProvider).useMockApi) {
-    return UserMockDataSource(
-      guard: ref.watch(mockGuardProvider),
-      store: ref.watch(mockAccessStoreProvider),
-      latency: ref.watch(mockLatencyProvider),
-    );
+    return ref.watch(mockActiveTenantProvider).users;
   }
+  // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
+  ref.watch(activeOrganizationIdProvider);
   return UserApiDataSource(ref.watch(apiClientProvider));
 });

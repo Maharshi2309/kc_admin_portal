@@ -13,8 +13,13 @@ import 'package:kc_admin_portal/features/employees/data/models/employee_models.d
 import 'package:kc_admin_portal/features/employees/domain/utils/schedule_rules.dart';
 import 'package:kc_admin_portal/features/holidays/data/datasources/mock_holiday_store.dart';
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_mock_data_source.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/organization/data/datasources/organization_mock_data_source.dart';
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
+import 'package:kc_admin_portal/shared/mock/mock_catalogs.dart';
+import 'package:kc_admin_portal/shared/mock/mock_session.dart';
+import 'package:kc_admin_portal/shared/mock/mock_tenant.dart';
 import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
+import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
 
@@ -35,6 +40,7 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
     MockScheduleBook? schedules,
     this.holidays,
     this.attendance,
+    this.organization,
   }) : _employees = store ?? seed(now()),
        _schedules = schedules ?? _seededBook(now, store ?? seed(now()));
 
@@ -50,6 +56,10 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
 
   /// Schedule versions (shared with the attendance mock in the app).
   final MockScheduleBook _schedules;
+
+  /// The organization's departments, positions and settings, when shared
+  /// (the app); tests without it get Keshav Clothing's.
+  final OrganizationMockDataSource? organization;
 
   /// Company holidays, when shared with the holiday mock.
   final MockHolidayStore? holidays;
@@ -84,188 +94,188 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
         .fold<int>(0, (sum, r) => sum + (r.overtimeMinutes ?? 0));
   }
 
-  static const String _ecPrefix = 'KC';
+  static const String _defaultEcPrefix = 'KC';
 
   // (name, department, position, mobile, joined, active)
-  static final List<(String, JobRole, JobRole, String, DateTime, bool)>
-  _people = [
-    (
-      'Aarav Shah',
-      JobRole.graphicDesigner,
-      JobRole.graphicDesigner,
-      '9825011234',
-      DateTime(2021, 1, 12),
-      true,
-    ),
-    (
-      'Priya Desai',
-      JobRole.tailor,
-      JobRole.tailor,
-      '9879520417',
-      DateTime(2021, 6, 3),
-      true,
-    ),
-    (
-      'Rohan Patel',
-      JobRole.graphicDesigner,
-      JobRole.graphicDesigner,
-      '9909044120',
-      DateTime(2022, 11, 18),
-      true,
-    ),
-    (
-      'Kavya Mehta',
-      JobRole.accountant,
-      JobRole.accountant,
-      '9727730981',
-      DateTime(2023, 3, 9),
-      true,
-    ),
-    (
-      'Harsh Vaghela',
-      JobRole.graphicDesigner,
-      JobRole.graphicDesigner,
-      '9099081264',
-      DateTime(2023, 5, 22),
-      true,
-    ),
-    (
-      'Meera Rathod',
-      JobRole.accountant,
-      JobRole.accountant,
-      '9898056310',
-      DateTime(2023, 8, 1),
-      true,
-    ),
-    (
-      'Arjun Joshi',
-      JobRole.tailor,
-      JobRole.tailor,
-      '9327011845',
-      DateTime(2023, 12, 14),
-      true,
-    ),
-    (
-      'Dhruv Parmar',
-      JobRole.graphicDesigner,
-      JobRole.tailor,
-      '9714062209',
-      DateTime(2024, 2, 5),
-      true,
-    ),
-    (
-      'Nisha Solanki',
-      JobRole.accountant,
-      JobRole.accountant,
-      '9824177053',
-      DateTime(2024, 6, 17),
-      true,
-    ),
-    (
-      'Sanjay Makwana',
-      JobRole.accountant,
-      JobRole.accountant,
-      '9662048117',
-      DateTime(2024, 9, 2),
-      true,
-    ),
-    (
-      'Ishaan Trivedi',
-      JobRole.graphicDesigner,
-      JobRole.graphicDesigner,
-      '9825502211',
-      DateTime(2022, 4, 11),
-      true,
-    ),
-    (
-      'Ananya Bhatt',
-      JobRole.graphicDesigner,
-      JobRole.tailor,
-      '9978812345',
-      DateTime(2022, 7, 25),
-      true,
-    ),
-    (
-      'Vivek Chauhan',
-      JobRole.tailor,
-      JobRole.tailor,
-      '9426055123',
-      DateTime(2020, 10, 5),
-      true,
-    ),
-    (
-      'Riya Pandya',
-      JobRole.accountant,
-      JobRole.accountant,
-      '9737011122',
-      DateTime(2021, 12, 1),
-      true,
-    ),
-    (
-      'Karan Thakkar',
-      JobRole.graphicDesigner,
-      JobRole.graphicDesigner,
-      '9898765432',
-      DateTime(2024, 1, 15),
-      true,
-    ),
-    (
-      'Pooja Jadeja',
-      JobRole.accountant,
-      JobRole.accountant,
-      '9510022334',
-      DateTime(2025, 3, 3),
-      true,
-    ),
-    (
-      'Manav Dave',
-      JobRole.tailor,
-      JobRole.tailor,
-      '9624412233',
-      DateTime(2025, 6, 9),
-      true,
-    ),
-    (
-      'Sneha Raval',
-      JobRole.graphicDesigner,
-      JobRole.graphicDesigner,
-      '9909911223',
-      DateTime(2019, 8, 19),
-      true,
-    ),
-    (
-      'Yash Gohil',
-      JobRole.tailor,
-      JobRole.tailor,
-      '9825133221',
-      DateTime(2025, 9, 1),
-      true,
-    ),
-    (
-      'Tanvi Oza',
-      JobRole.accountant,
-      JobRole.accountant,
-      '9879001122',
-      DateTime(2022, 2, 14),
-      false,
-    ),
-    (
-      'Nirav Shukla',
-      JobRole.graphicDesigner,
-      JobRole.graphicDesigner,
-      '9428011233',
-      DateTime(2020, 5, 4),
-      false,
-    ),
-    (
-      'Hetal Vyas',
-      JobRole.graphicDesigner,
-      JobRole.tailor,
-      '9537744556',
-      DateTime(2021, 9, 20),
-      false,
-    ),
-  ];
+  static final List<(String, String, String, String, DateTime, bool)> _people =
+      [
+        (
+          'Aarav Shah',
+          'Graphic Designer',
+          'Graphic Designer',
+          '9825011234',
+          DateTime(2021, 1, 12),
+          true,
+        ),
+        (
+          'Priya Desai',
+          'Tailor',
+          'Tailor',
+          '9879520417',
+          DateTime(2021, 6, 3),
+          true,
+        ),
+        (
+          'Rohan Patel',
+          'Graphic Designer',
+          'Graphic Designer',
+          '9909044120',
+          DateTime(2022, 11, 18),
+          true,
+        ),
+        (
+          'Kavya Mehta',
+          'Accountant',
+          'Accountant',
+          '9727730981',
+          DateTime(2023, 3, 9),
+          true,
+        ),
+        (
+          'Harsh Vaghela',
+          'Graphic Designer',
+          'Graphic Designer',
+          '9099081264',
+          DateTime(2023, 5, 22),
+          true,
+        ),
+        (
+          'Meera Rathod',
+          'Accountant',
+          'Accountant',
+          '9898056310',
+          DateTime(2023, 8, 1),
+          true,
+        ),
+        (
+          'Arjun Joshi',
+          'Tailor',
+          'Tailor',
+          '9327011845',
+          DateTime(2023, 12, 14),
+          true,
+        ),
+        (
+          'Dhruv Parmar',
+          'Graphic Designer',
+          'Tailor',
+          '9714062209',
+          DateTime(2024, 2, 5),
+          true,
+        ),
+        (
+          'Nisha Solanki',
+          'Accountant',
+          'Accountant',
+          '9824177053',
+          DateTime(2024, 6, 17),
+          true,
+        ),
+        (
+          'Sanjay Makwana',
+          'Accountant',
+          'Accountant',
+          '9662048117',
+          DateTime(2024, 9, 2),
+          true,
+        ),
+        (
+          'Ishaan Trivedi',
+          'Graphic Designer',
+          'Graphic Designer',
+          '9825502211',
+          DateTime(2022, 4, 11),
+          true,
+        ),
+        (
+          'Ananya Bhatt',
+          'Graphic Designer',
+          'Tailor',
+          '9978812345',
+          DateTime(2022, 7, 25),
+          true,
+        ),
+        (
+          'Vivek Chauhan',
+          'Tailor',
+          'Tailor',
+          '9426055123',
+          DateTime(2020, 10, 5),
+          true,
+        ),
+        (
+          'Riya Pandya',
+          'Accountant',
+          'Accountant',
+          '9737011122',
+          DateTime(2021, 12, 1),
+          true,
+        ),
+        (
+          'Karan Thakkar',
+          'Graphic Designer',
+          'Graphic Designer',
+          '9898765432',
+          DateTime(2024, 1, 15),
+          true,
+        ),
+        (
+          'Pooja Jadeja',
+          'Accountant',
+          'Accountant',
+          '9510022334',
+          DateTime(2025, 3, 3),
+          true,
+        ),
+        (
+          'Manav Dave',
+          'Tailor',
+          'Tailor',
+          '9624412233',
+          DateTime(2025, 6, 9),
+          true,
+        ),
+        (
+          'Sneha Raval',
+          'Graphic Designer',
+          'Graphic Designer',
+          '9909911223',
+          DateTime(2019, 8, 19),
+          true,
+        ),
+        (
+          'Yash Gohil',
+          'Tailor',
+          'Tailor',
+          '9825133221',
+          DateTime(2025, 9, 1),
+          true,
+        ),
+        (
+          'Tanvi Oza',
+          'Accountant',
+          'Accountant',
+          '9879001122',
+          DateTime(2022, 2, 14),
+          false,
+        ),
+        (
+          'Nirav Shukla',
+          'Graphic Designer',
+          'Graphic Designer',
+          '9428011233',
+          DateTime(2020, 5, 4),
+          false,
+        ),
+        (
+          'Hetal Vyas',
+          'Graphic Designer',
+          'Tailor',
+          '9537744556',
+          DateTime(2021, 9, 20),
+          false,
+        ),
+      ];
 
   static const List<AttendanceDayStatus> _todayCycle = [
     AttendanceDayStatus.present,
@@ -283,18 +293,81 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
   static List<EmployeeModel> seed(DateTime today) => [
     for (var i = 0; i < _people.length; i++)
       _build(
+        organizationId: MockSession.keshavId,
         id: '${i + 1}',
-        ecNumber: '$_ecPrefix${1001 + i * 3}',
+        ecNumber: '$_defaultEcPrefix${1001 + i * 3}',
         person: _people[i],
         today: _people[i].$6 ? _todayCycle[i % _todayCycle.length] : null,
         updatedAt: today.subtract(Duration(days: 10 + i)),
       ),
   ];
 
+  /// The second sample organization's employees (Sunrise Garments), with
+  /// their own ids, so one organization's ids never match the other's.
+  ///
+  static List<EmployeeModel> seedSunrise(DateTime today) => [
+    for (var i = 0; i < _sunrisePeople.length; i++)
+      _build(
+        organizationId: MockSession.sunriseId,
+        id: 's${i + 1}',
+        ecNumber: 'SG${101 + i}',
+        person: _sunrisePeople[i],
+        today: _sunrisePeople[i].$6
+            ? _todayCycle[i % _todayCycle.length]
+            : null,
+        updatedAt: today.subtract(Duration(days: 4 + i)),
+      ),
+  ];
+
+  static final List<(String, String, String, String, DateTime, bool)>
+  _sunrisePeople = [
+    (
+      'Ravi Mehta',
+      'Accounts',
+      'Accountant',
+      '9824012345',
+      DateTime(2022, 6, 1),
+      true,
+    ),
+    (
+      'Farah Khan',
+      'Stitching',
+      'Tailor',
+      '9879023456',
+      DateTime(2023, 2, 13),
+      true,
+    ),
+    (
+      'Dev Malhotra',
+      'Stitching',
+      'Tailor',
+      '9909034567',
+      DateTime(2024, 1, 8),
+      true,
+    ),
+    (
+      'Isha Kapoor',
+      'Design',
+      'Designer',
+      '9725045678',
+      DateTime(2025, 3, 3),
+      true,
+    ),
+    (
+      'Mohit Sharma',
+      'Stitching',
+      'Tailor',
+      '9638056789',
+      DateTime(2021, 11, 22),
+      false,
+    ),
+  ];
+
   static EmployeeModel _build({
+    required String organizationId,
     required String id,
     required String ecNumber,
-    required (String, JobRole, JobRole, String, DateTime, bool) person,
+    required (String, String, String, String, DateTime, bool) person,
     AttendanceDayStatus? today,
     DateTime? updatedAt,
   }) {
@@ -304,8 +377,16 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
       ecNumber: ecNumber,
       name: name,
       mobile: mobile,
-      department: department,
-      position: position,
+      department: MockCatalogs.ref(
+        organizationId,
+        CatalogKind.departments,
+        department,
+      ),
+      position: MockCatalogs.ref(
+        organizationId,
+        CatalogKind.positions,
+        position,
+      ),
       joiningDate: joined,
       status: active ? EmployeeStatus.active : EmployeeStatus.inactive,
       todayStatus: today,
@@ -314,16 +395,35 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
     );
   }
 
-  /// The API accepts only the fixed list (unknown → field error).
-  static JobRole _known(JobRole value, String field, String label) {
-    if (!JobRole.choices.contains(value)) {
+  /// The organization's department or position [id]: it must be one of
+  /// its own, and active unless the employee already has it.
+  NamedRef _choice(CatalogKind kind, String id, {NamedRef? current}) {
+    final field = kind == CatalogKind.departments
+        ? 'departmentId'
+        : 'positionId';
+    final label = kind.singular.toLowerCase();
+    final organization = this.organization;
+    final ref = organization != null
+        ? organization.refOf(kind, id)
+        : MockCatalogs.of(MockSession.keshavId, kind)
+              .where((i) => i.id == id)
+              .map((i) => NamedRef(id: i.id, name: i.name))
+              .firstOrNull;
+    final usable =
+        ref != null &&
+        (current?.id == id || (organization?.isActive(kind, id) ?? true));
+    if (!usable) {
       throw ValidationException(
         'Choose a $label',
         fieldErrors: {field: 'Choose a $label'},
       );
     }
-    return value;
+    return ref;
   }
+
+  /// Letters every EC number starts with (the organization's setting).
+  String get _ecPrefix =>
+      organization?.currentSettings.ecNumberPrefix ?? _defaultEcPrefix;
 
   Future<void> _wait() => Future<void>.delayed(latency);
 
@@ -338,8 +438,11 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
   /// Rejects duplicate EC numbers, like a real server would.
   void _checkUnique(EmployeeFormData data, {String? exceptId}) {
     final others = _employees.where((e) => e.id != exceptId);
+    final format = RegExp('^${RegExp.escape(_ecPrefix)}\\d+\$');
     final errors = <String, String>{
-      if (others.any((e) => e.ecNumber == data.ecNumber))
+      if (!format.hasMatch(data.ecNumber))
+        'ecNumber': 'Use $_ecPrefix followed by numbers, e.g. ${_ecPrefix}1001'
+      else if (others.any((e) => e.ecNumber == data.ecNumber))
         'ecNumber': 'This EC number is already in use',
     };
     if (errors.isNotEmpty) {
@@ -362,9 +465,13 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
               e.ecNumber.toLowerCase().contains(search),
         )
         .where(
-          (e) => query.department == null || e.department == query.department,
+          (e) =>
+              query.departmentId == null ||
+              e.department.id == query.departmentId,
         )
-        .where((e) => query.position == null || e.position == query.position)
+        .where(
+          (e) => query.positionId == null || e.position.id == query.positionId,
+        )
         .where(
           (e) =>
               (joinedFrom == null || !e.joiningDate.isBefore(joinedFrom)) &&
@@ -437,8 +544,8 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
       ecNumber: data.ecNumber,
       name: data.name,
       mobile: data.mobile,
-      department: _known(data.department, 'department', 'department'),
-      position: _known(data.position, 'position', 'position'),
+      department: _choice(CatalogKind.departments, data.departmentId),
+      position: _choice(CatalogKind.positions, data.positionId),
       joiningDate: data.joiningDate,
       status: data.status,
       updatedAt: now(),
@@ -459,8 +566,16 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
       ecNumber: data.ecNumber,
       name: data.name,
       mobile: data.mobile,
-      department: _known(data.department, 'department', 'department'),
-      position: _known(data.position, 'position', 'position'),
+      department: _choice(
+        CatalogKind.departments,
+        data.departmentId,
+        current: current.department,
+      ),
+      position: _choice(
+        CatalogKind.positions,
+        data.positionId,
+        current: current.position,
+      ),
       joiningDate: data.joiningDate,
       status: data.status,
       updatedAt: now(),
@@ -602,8 +717,9 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
   }
 }
 
-/// DEV ONLY: the one list of sample employees shared by the employee,
-/// attendance and leave mocks, so changes in one show up in the others.
+/// DEV ONLY: the active organization's sample employees, shared by the
+/// employee, attendance and leave mocks, so changes in one show up in the
+/// others.
 final mockEmployeeStoreProvider = Provider<List<EmployeeModel>>(
-  (ref) => EmployeeMockDataSource.seed(ref.watch(clockProvider)()),
+  (ref) => ref.watch(mockActiveTenantProvider).employees,
 );

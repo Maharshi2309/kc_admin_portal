@@ -3,7 +3,7 @@ import 'package:kc_admin_portal/features/dashboard/data/models/dashboard_summary
 import 'package:kc_admin_portal/features/dashboard/data/models/monthly_attendance_model.dart';
 import 'package:kc_admin_portal/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'catalogs.dart';
 
 /// Fixed "today" for dashboard tests: Monday 28 Sep 2026, 14:30.
 final testNow = DateTime(2026, 9, 28, 14, 30);
@@ -26,12 +26,12 @@ final testSummary = DashboardSummaryModel(
     AttentionItemModel(kind: AttentionKind.unknown, count: 5),
   ],
   notPunchedInTotal: 11,
-  notPunchedIn: const [
+  notPunchedIn: [
     EmployeeSummaryModel(
       id: '1042',
       name: 'Rohan Patel',
       ecNumber: 'KC1042',
-      department: JobRole.graphicDesigner,
+      department: dept('Graphic Designer'),
     ),
   ],
   onLeave: [

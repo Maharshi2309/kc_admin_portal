@@ -1,0 +1,8 @@
+{
+  "paidLeaveEnabled": true,
+  "paidLeaveName": "Paid leave",
+  "unpaidLeaveName": "Unpaid leave",
+  "daysPerMonth": 1.5,
+  "carryForwardCap": 12.0,
+  "accrualStartMonth": "2026-01-01"
+}

@@ -10,29 +10,38 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
+import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/core/network/api_client.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/access_remote_data_source.dart';
 import 'package:kc_admin_portal/features/attendance/data/datasources/attendance_remote_data_source.dart';
 import 'package:kc_admin_portal/features/attendance/data/models/attendance_models.dart';
 import 'package:kc_admin_portal/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
 import 'package:kc_admin_portal/features/calendar/data/datasources/calendar_remote_data_source.dart';
 import 'package:kc_admin_portal/features/dashboard/data/datasources/dashboard_remote_data_source.dart';
 import 'package:kc_admin_portal/features/dashboard/data/models/dashboard_summary_model.dart';
+import 'package:kc_admin_portal/features/employee_import/data/datasources/employee_import_remote_data_source.dart';
+import 'package:kc_admin_portal/features/employee_import/data/models/employee_import_models.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/employee_remote_data_source.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/features/holidays/data/datasources/holiday_remote_data_source.dart';
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_remote_data_source.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
+import 'package:kc_admin_portal/features/organization/data/datasources/organization_remote_data_source.dart';
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
 import 'package:kc_admin_portal/features/overtime/data/datasources/overtime_remote_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/datasources/user_remote_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/models/user_account_models.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
+
+import '../helpers/catalogs.dart';
 
 const String _examples = 'docs/api-examples';
 
@@ -91,6 +100,91 @@ void main() {
     );
   });
 
+  group('employee import', () {
+    late EmployeeImportApiDataSource source;
+    setUp(() => source = EmployeeImportApiDataSource(client));
+
+    test('upload, check, rows, confirm, poll, cancel', () async {
+      server
+        ..on(
+          'POST',
+          '/employee-imports',
+          'employee-imports.upload.response.json',
+        )
+        ..on(
+          'PUT',
+          '/employee-imports/imp-7c1e',
+          'employee-imports.check.response.json',
+        )
+        ..on(
+          'GET',
+          '/employee-imports/imp-7c1e/rows',
+          'employee-imports.rows.response.json',
+        )
+        ..on(
+          'POST',
+          '/employee-imports/imp-7c1e/confirm',
+          'employee-imports.completed.response.json',
+        )
+        ..on(
+          'GET',
+          '/employee-imports/imp-7c1e',
+          'employee-imports.completed.response.json',
+        )
+        ..on('DELETE', '/employee-imports/imp-7c1e', '', status: 204);
+
+      final upload = await source.upload(
+        Uint8List.fromList([0x50, 0x4B, 0x03, 0x04]),
+        'staff.xlsx',
+      );
+      expect(server.last!.data, isA<FormData>());
+      expect(upload.status, ImportStatus.uploaded);
+      expect(upload.suggestedMapping['Designation'], 'position');
+
+      final checked = await source.check(
+        upload.id,
+        ImportOptionsModel(
+          mapping: upload.suggestedMapping.map(MapEntry.new),
+          duplicateStrategy: DuplicateStrategy.skip,
+          assignEcNumbers: true,
+        ),
+      );
+      expect(server.lastBody, _example('employee-imports.check.request.json'));
+      expect(checked.importable, 147);
+      expect(checked.counts!.skipped, 1);
+
+      final rows = await source.rows(upload.id);
+      expect(server.last!.queryParameters, {
+        'status': 'problems',
+        'page': 1,
+        'pageSize': 20,
+      });
+      expect(rows.items.last.changes.single.after, 'Production');
+
+      final done = await source.confirm(upload.id);
+      expect(done.result!.imported, 143);
+      expect((await source.get(upload.id)).status, ImportStatus.completed);
+      await source.cancel(upload.id);
+      expect(server.last!.method, 'DELETE');
+    });
+
+    test('template and report arrive as bytes', () async {
+      server
+        ..on(
+          'GET',
+          '/employee-imports/template',
+          'employee-imports.upload.response.json',
+        )
+        ..on(
+          'GET',
+          '/employee-imports/imp-7c1e/report',
+          'employee-imports.upload.response.json',
+        );
+      expect(await source.template(), isNotEmpty);
+      expect(await source.report('imp-7c1e'), isNotEmpty);
+    });
+  });
+
   group('auth', () {
     test('login sends credentials and reads token and user', () async {
       server.on('POST', '/auth/login', 'auth.login.response.json');
@@ -103,31 +197,230 @@ void main() {
       expect(result.user.can(AppPermission.permissionManage), isTrue);
     });
 
-    test('me', () async {
+    test('me, with the active organization and memberships', () async {
       server.on('GET', '/auth/me', 'auth.me.response.json');
-      expect((await AuthApiDataSource(client).me()).email, 'admin@keshav.in');
+      final user = await AuthApiDataSource(client).me();
+      expect(user.email, 'admin@keshav.in');
+      expect(user.organization?.name, 'Keshav Clothing');
+      expect(user.organization?.timezone, 'Asia/Kolkata');
+      expect(user.memberships!.map((m) => m.name), [
+        'Keshav Clothing',
+        'Sunrise Garments',
+      ]);
+      expect(user.canSwitchOrganization, isTrue);
+    });
+
+    test(
+      'switch organization: a new token and the permissions there',
+      () async {
+        server.on(
+          'POST',
+          '/auth/switch-organization',
+          'auth.switch-organization.response.json',
+        );
+        final result = await AuthApiDataSource(
+          client,
+        ).switchOrganization('4e7a2b90-8c3d-4f1e-b6a5-0d9c8e7f6a02');
+        expect(
+          server.lastBody,
+          _example('auth.switch-organization.request.json'),
+        );
+        expect(result.accessToken, isNotEmpty);
+        expect(result.user.organization?.name, 'Sunrise Garments');
+        expect(result.user.can(AppPermission.permissionManage), isFalse);
+      },
+    );
+
+    test('sign-up: register, verify (signed in, no organization)', () async {
+      final source = AuthApiDataSource(client);
+      server
+        ..on('POST', '/auth/register', '', status: 204)
+        ..on('POST', '/auth/verify-email', 'auth.verify-email.response.json');
+      await source.register(
+        name: 'Asha Iyer',
+        email: 'asha@bright.in',
+        password: '••••••••',
+      );
+      expect(server.lastBody, _example('auth.register.request.json'));
+
+      final verified = await source.verifyEmail(
+        email: 'asha@bright.in',
+        code: '482913',
+      );
+      expect(server.lastBody, _example('auth.verify-email.request.json'));
+      expect(verified.user.organization, isNull);
+      expect(verified.user.needsOrganization, isTrue);
+    });
+
+    test('password reset: request a code, then a new password', () async {
+      final source = AuthApiDataSource(client);
+      server
+        ..on('POST', '/auth/forgot-password', '', status: 204)
+        ..on('POST', '/auth/reset-password', '', status: 204);
+      await source.forgotPassword('asha@bright.in');
+      expect(server.lastBody, _example('auth.forgot-password.request.json'));
+      await source.resetPassword(
+        email: 'asha@bright.in',
+        code: '482913',
+        password: '••••••••',
+      );
+      expect(server.lastBody, _example('auth.reset-password.request.json'));
+    });
+
+    test('create an organization: the creator owns it', () async {
+      server.on('POST', '/organizations', 'organizations.create.response.json');
+      final created = await AuthApiDataSource(
+        client,
+      ).createOrganization(name: 'Bright Bakery', timezone: 'Asia/Dubai');
+      expect(server.lastBody, _example('organizations.create.request.json'));
+      expect(created.user.organization?.timezone, 'Asia/Dubai');
+      expect(created.user.hasFullAccess, isTrue);
+    });
+
+    test('invitations: list, accept, decline', () async {
+      final source = AuthApiDataSource(client);
+      server
+        ..on('GET', '/invitations', 'invitations.response.json')
+        ..on(
+          'POST',
+          '/invitations/inv-5b2d/accept',
+          'auth.switch-organization.response.json',
+        )
+        ..on('POST', '/invitations/inv-5b2d/decline', '', status: 204);
+      final invitation = (await source.invitations()).single;
+      expect(invitation.organization.name, 'Sunrise Garments');
+      expect(invitation.invitedBy, 'Ravi Mehta');
+      final joined = await source.acceptInvitation(invitation.id);
+      expect(joined.user.organization?.name, 'Sunrise Garments');
+      await source.declineInvitation(invitation.id);
+      expect(server.last!.path, '/invitations/inv-5b2d/decline');
+    });
+
+    test('an unverified email is a 403 with a code', () {
+      final error = ErrorHandler.fromResponse(
+        403,
+        _example('error.email-not-verified.response.json'),
+      );
+      expect(error, isA<ForbiddenException>());
+      expect(
+        (error as ForbiddenException).code,
+        ApiConstants.emailNotVerifiedCode,
+      );
+    });
+
+    test('a server without organizations still works', () {
+      final json = (_example('auth.me.response.json')! as Map<String, dynamic>)
+        ..remove('organization')
+        ..remove('memberships');
+      final user = UserModel.fromJson(json);
+      expect(user.organization, isNull);
+      expect(user.canSwitchOrganization, isFalse);
     });
   });
 
   group('department and position', () {
-    test('codes in and out, one shared list', () {
-      expect(JobRole.choices.map((r) => r.code), [
-        'accountant',
-        'graphic_designer',
-        'tailor',
-      ]);
+    test("employees carry the organization's own items", () {
       final employee = EmployeeModel.fromJson(
         _example('employees.get.response.json')! as Map<String, dynamic>,
       );
-      expect(JobRole.choices, contains(employee.department));
-      expect(JobRole.choices, contains(employee.position));
+      expect(employee.department, dept('Graphic Designer'));
+      expect(employee.position.name, isNotEmpty);
     });
 
-    test('an unknown code from a newer backend is not fatal', () {
-      final json = Map<String, dynamic>.of(
-        _example('employees.get.response.json')! as Map<String, dynamic>,
-      )..['position'] = 'pattern_maker';
-      expect(EmployeeModel.fromJson(json).position, JobRole.unknown);
+    test('lists: read, add, rename and deactivate', () async {
+      final source = OrganizationApiDataSource(client);
+      server.on('GET', '/departments', 'departments.response.json');
+
+      final list = await source.catalog(CatalogKind.departments);
+      expect(list.map((d) => d.name), [
+        'Accountant',
+        'Graphic Designer',
+        'Pressing',
+      ]);
+      expect(list.last.isActive, isFalse);
+      expect(list.first.employeeCount, 6);
+
+      server
+        ..on('POST', '/departments', 'departments.item.response.json')
+        ..on(
+          'PATCH',
+          '/departments/keshav-dep-production',
+          'departments.item.response.json',
+        );
+      final added = await source.addCatalogItem(
+        CatalogKind.departments,
+        'Production',
+      );
+      expect(server.lastBody, _example('departments.create.request.json'));
+      expect(added.name, 'Production');
+
+      await source.updateCatalogItem(
+        CatalogKind.departments,
+        added.id,
+        isActive: false,
+      );
+      expect(server.lastBody, _example('departments.update.request.json'));
+    });
+
+    test('organization: profile and settings', () async {
+      final source = OrganizationApiDataSource(client);
+      server
+        ..on('GET', '/organization', 'organization.get.response.json')
+        ..on('PATCH', '/organization', 'organization.get.response.json')
+        ..on(
+          'GET',
+          '/organization/settings',
+          'organization.settings.response.json',
+        );
+      expect((await source.profile()).timezone, 'Asia/Kolkata');
+      await source.updateProfile(
+        name: 'Keshav Clothing',
+        timezone: 'Asia/Kolkata',
+      );
+      expect(server.lastBody, _example('organization.update.request.json'));
+
+      final settings = await source.settings();
+      expect(settings.ecNumberPrefix, 'KC');
+      expect(settings.lateGraceMinutes, 15);
+      expect(settings.defaultSchedule.weeklyOffDays, [DateTime.sunday]);
+      expect(
+        settings.toJson(),
+        _example('organization.settings.response.json'),
+      );
+    });
+
+    test('leave policy: read and save', () async {
+      final source = OrganizationApiDataSource(client);
+      server
+        ..on(
+          'GET',
+          '/organization/leave-policy',
+          'organization.leave-policy.response.json',
+        )
+        ..on(
+          'PATCH',
+          '/organization/leave-policy',
+          'organization.leave-policy.response.json',
+        );
+      final policy = await source.leavePolicy();
+      expect(policy.paidLeaveName, 'Casual');
+      expect(policy.carryForwardCap, isNull);
+      expect(policy.accrualStartMonth, DateTime(2026));
+
+      await source.updateLeavePolicy(
+        LeavePolicyModel(
+          paidLeaveEnabled: true,
+          paidLeaveName: 'Paid leave',
+          unpaidLeaveName: 'Unpaid leave',
+          daysPerMonth: 1.5,
+          carryForwardCap: 12,
+          accrualStartMonth: DateTime(2026),
+        ),
+      );
+      expect(
+        server.lastBody,
+        _example('organization.leave-policy.request.json'),
+      );
     });
   });
 
@@ -167,7 +460,7 @@ void main() {
       final page = await source.list(
         EmployeeQuery(
           search: 'aarav',
-          department: JobRole.tailor,
+          departmentId: dept('Tailor').id,
           joinedFrom: DateTime(2021),
           joinedTo: DateTime(2021, 12, 31),
         ),
@@ -175,7 +468,7 @@ void main() {
 
       expect(server.last!.queryParameters, {
         'search': 'aarav',
-        'department': 'tailor',
+        'departmentId': 'keshav-dep-tailor',
         'joinedFrom': '2021-01-01',
         'joinedTo': '2021-12-31',
         'status': 'active',
@@ -201,8 +494,8 @@ void main() {
           ecNumber: 'KC1129',
           name: 'Rahul Sharma',
           mobile: '9876543210',
-          department: JobRole.graphicDesigner,
-          position: JobRole.graphicDesigner,
+          departmentId: dept('Graphic Designer').id,
+          positionId: post('Graphic Designer').id,
           joiningDate: DateTime(2026, 9, 28),
           status: EmployeeStatus.active,
           schedule: WorkScheduleInput(
@@ -429,15 +722,15 @@ void main() {
     test('balances list (GET /leave-balances)', () async {
       server.on('GET', '/leave-balances', 'leave-balances.response.json');
       final list = await source.balances(
-        const LeaveBalanceQuery(search: 'D', department: JobRole.tailor),
+        LeaveBalanceQuery(search: 'D', departmentId: dept('Tailor').id),
       );
       expect(server.last!.queryParameters, {
         'search': 'D',
-        'department': 'tailor',
+        'departmentId': 'keshav-dep-tailor',
         'page': 1,
         'pageSize': 10,
       });
-      expect(list.items.first.employee.department, JobRole.graphicDesigner);
+      expect(list.items.first.employee.department, dept('Graphic Designer'));
       expect(list.items.first.balance.pending, 3);
       expect(list.items.last.balance.unpaidTaken, 2);
       expect(list.summary.employees, 19);
@@ -498,8 +791,8 @@ void main() {
           ecNumber: 'KC1001',
           name: 'X',
           mobile: '9876543210',
-          department: JobRole.graphicDesigner,
-          position: JobRole.graphicDesigner,
+          departmentId: dept('Graphic Designer').id,
+          positionId: post('Graphic Designer').id,
           joiningDate: DateTime(2026, 9, 28),
           status: EmployeeStatus.active,
         ),

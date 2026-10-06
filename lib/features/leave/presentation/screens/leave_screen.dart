@@ -24,7 +24,8 @@ import 'package:kc_admin_portal/features/leave/presentation/providers/leave_prov
 import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_balances_view.dart';
 import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_status_tabs.dart';
 import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_table.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
+import 'package:kc_admin_portal/features/organization/presentation/widgets/catalog_filter_dropdown.dart';
 
 /// The Leave page's two tabs (requirement 2026-10-05).
 enum LeaveView {
@@ -187,14 +188,10 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
                       AppDropdownItem(value: t.id, label: t.name),
                   ],
                 ),
-                AppFilterDropdown<JobRole>(
-                  label: 'Department',
-                  value: query.department,
+                CatalogFilterDropdown(
+                  kind: CatalogKind.departments,
+                  value: query.departmentId,
                   onChanged: notifier.setDepartment,
-                  items: [
-                    for (final d in JobRole.choices)
-                      AppDropdownItem(value: d, label: d.label),
-                  ],
                 ),
                 if (query.hasFilters)
                   AppButton(

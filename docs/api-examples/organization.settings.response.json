@@ -1,0 +1,13 @@
+{
+  "ecNumberPrefix": "KC",
+  "lateGraceMinutes": 15,
+  "defaultSchedule": {
+    "startTime": "09:30",
+    "endTime": "18:30",
+    "breakMinutes": 60,
+    "breakStart": "13:30",
+    "weeklyOffDays": [
+      7
+    ]
+  }
+}

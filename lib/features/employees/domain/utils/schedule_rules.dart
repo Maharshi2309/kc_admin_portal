@@ -1,3 +1,4 @@
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
 
@@ -12,17 +13,24 @@ class ScheduleDraft {
     this.breakStart,
   });
 
-  /// Starting values for a new employee: the design's shift (09:30–18:30),
-  /// an hour's break, Sunday off.
-  ///
-  /// TODO — REQUIREMENT CONFIRMATION REQUIRED: the company's standard
-  /// schedule, if any. The admin can change every value.
+  /// Used until the organization's default schedule (Settings) has loaded:
+  /// the design's shift (09:30–18:30), an hour's break, Sunday off.
   static const ScheduleDraft standard = ScheduleDraft(
     startTime: ClockTime.hm(9, 30),
     endTime: ClockTime.hm(18, 30),
     breakMinutes: 60,
     weeklyOffDays: {DateTime.sunday},
   );
+
+  /// The organization's default schedule (Settings), for a new employee.
+  factory ScheduleDraft.fromDefault(DefaultScheduleModel schedule) =>
+      ScheduleDraft(
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        breakMinutes: schedule.breakMinutes,
+        breakStart: schedule.breakStart,
+        weeklyOffDays: schedule.weeklyOffDays.toSet(),
+      );
 
   factory ScheduleDraft.fromSchedule(WorkScheduleModel schedule) =>
       ScheduleDraft(

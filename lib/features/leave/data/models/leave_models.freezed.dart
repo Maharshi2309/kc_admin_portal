@@ -1215,7 +1215,7 @@ $LeaveStatusCountsCopyWith<$Res> get counts {
 mixin _$LeaveQuery {
 
 /// `null` = "All" tab.
- LeaveStatus? get status; String get search; DateTime? get from; DateTime? get to; String? get leaveTypeId; JobRole? get department; int get page; int get pageSize;
+ LeaveStatus? get status; String get search; DateTime? get from; DateTime? get to; String? get leaveTypeId; String? get departmentId; int get page; int get pageSize;
 /// Create a copy of LeaveQuery
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1226,16 +1226,16 @@ $LeaveQueryCopyWith<LeaveQuery> get copyWith => _$LeaveQueryCopyWithImpl<LeaveQu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaveQuery&&(identical(other.status, status) || other.status == status)&&(identical(other.search, search) || other.search == search)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.leaveTypeId, leaveTypeId) || other.leaveTypeId == leaveTypeId)&&(identical(other.department, department) || other.department == department)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaveQuery&&(identical(other.status, status) || other.status == status)&&(identical(other.search, search) || other.search == search)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.leaveTypeId, leaveTypeId) || other.leaveTypeId == leaveTypeId)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,search,from,to,leaveTypeId,department,page,pageSize);
+int get hashCode => Object.hash(runtimeType,status,search,from,to,leaveTypeId,departmentId,page,pageSize);
 
 @override
 String toString() {
-  return 'LeaveQuery(status: $status, search: $search, from: $from, to: $to, leaveTypeId: $leaveTypeId, department: $department, page: $page, pageSize: $pageSize)';
+  return 'LeaveQuery(status: $status, search: $search, from: $from, to: $to, leaveTypeId: $leaveTypeId, departmentId: $departmentId, page: $page, pageSize: $pageSize)';
 }
 
 
@@ -1246,7 +1246,7 @@ abstract mixin class $LeaveQueryCopyWith<$Res>  {
   factory $LeaveQueryCopyWith(LeaveQuery value, $Res Function(LeaveQuery) _then) = _$LeaveQueryCopyWithImpl;
 @useResult
 $Res call({
- LeaveStatus? status, String search, DateTime? from, DateTime? to, String? leaveTypeId, JobRole? department, int page, int pageSize
+ LeaveStatus? status, String search, DateTime? from, DateTime? to, String? leaveTypeId, String? departmentId, int page, int pageSize
 });
 
 
@@ -1263,15 +1263,15 @@ class _$LeaveQueryCopyWithImpl<$Res>
 
 /// Create a copy of LeaveQuery
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = freezed,Object? search = null,Object? from = freezed,Object? to = freezed,Object? leaveTypeId = freezed,Object? department = freezed,Object? page = null,Object? pageSize = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = freezed,Object? search = null,Object? from = freezed,Object? to = freezed,Object? leaveTypeId = freezed,Object? departmentId = freezed,Object? page = null,Object? pageSize = null,}) {
   return _then(_self.copyWith(
 status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as LeaveStatus?,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,from: freezed == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as DateTime?,to: freezed == to ? _self.to : to // ignore: cast_nullable_to_non_nullable
 as DateTime?,leaveTypeId: freezed == leaveTypeId ? _self.leaveTypeId : leaveTypeId // ignore: cast_nullable_to_non_nullable
-as String?,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as String?,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -1358,10 +1358,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LeaveStatus? status,  String search,  DateTime? from,  DateTime? to,  String? leaveTypeId,  JobRole? department,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LeaveStatus? status,  String search,  DateTime? from,  DateTime? to,  String? leaveTypeId,  String? departmentId,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LeaveQuery() when $default != null:
-return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,_that.department,_that.page,_that.pageSize);case _:
+return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,_that.departmentId,_that.page,_that.pageSize);case _:
   return orElse();
 
 }
@@ -1379,10 +1379,10 @@ return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LeaveStatus? status,  String search,  DateTime? from,  DateTime? to,  String? leaveTypeId,  JobRole? department,  int page,  int pageSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LeaveStatus? status,  String search,  DateTime? from,  DateTime? to,  String? leaveTypeId,  String? departmentId,  int page,  int pageSize)  $default,) {final _that = this;
 switch (_that) {
 case _LeaveQuery():
-return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,_that.department,_that.page,_that.pageSize);case _:
+return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,_that.departmentId,_that.page,_that.pageSize);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1399,10 +1399,10 @@ return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LeaveStatus? status,  String search,  DateTime? from,  DateTime? to,  String? leaveTypeId,  JobRole? department,  int page,  int pageSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LeaveStatus? status,  String search,  DateTime? from,  DateTime? to,  String? leaveTypeId,  String? departmentId,  int page,  int pageSize)?  $default,) {final _that = this;
 switch (_that) {
 case _LeaveQuery() when $default != null:
-return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,_that.department,_that.page,_that.pageSize);case _:
+return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,_that.departmentId,_that.page,_that.pageSize);case _:
   return null;
 
 }
@@ -1414,7 +1414,7 @@ return $default(_that.status,_that.search,_that.from,_that.to,_that.leaveTypeId,
 
 
 class _LeaveQuery extends LeaveQuery {
-  const _LeaveQuery({this.status, this.search = '', this.from, this.to, this.leaveTypeId, this.department, this.page = 1, this.pageSize = LeaveQuery.defaultPageSize}): super._();
+  const _LeaveQuery({this.status, this.search = '', this.from, this.to, this.leaveTypeId, this.departmentId, this.page = 1, this.pageSize = LeaveQuery.defaultPageSize}): super._();
   
 
 /// `null` = "All" tab.
@@ -1423,7 +1423,7 @@ class _LeaveQuery extends LeaveQuery {
 @override final  DateTime? from;
 @override final  DateTime? to;
 @override final  String? leaveTypeId;
-@override final  JobRole? department;
+@override final  String? departmentId;
 @override@JsonKey() final  int page;
 @override@JsonKey() final  int pageSize;
 
@@ -1437,16 +1437,16 @@ _$LeaveQueryCopyWith<_LeaveQuery> get copyWith => __$LeaveQueryCopyWithImpl<_Lea
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaveQuery&&(identical(other.status, status) || other.status == status)&&(identical(other.search, search) || other.search == search)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.leaveTypeId, leaveTypeId) || other.leaveTypeId == leaveTypeId)&&(identical(other.department, department) || other.department == department)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaveQuery&&(identical(other.status, status) || other.status == status)&&(identical(other.search, search) || other.search == search)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.leaveTypeId, leaveTypeId) || other.leaveTypeId == leaveTypeId)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,search,from,to,leaveTypeId,department,page,pageSize);
+int get hashCode => Object.hash(runtimeType,status,search,from,to,leaveTypeId,departmentId,page,pageSize);
 
 @override
 String toString() {
-  return 'LeaveQuery(status: $status, search: $search, from: $from, to: $to, leaveTypeId: $leaveTypeId, department: $department, page: $page, pageSize: $pageSize)';
+  return 'LeaveQuery(status: $status, search: $search, from: $from, to: $to, leaveTypeId: $leaveTypeId, departmentId: $departmentId, page: $page, pageSize: $pageSize)';
 }
 
 
@@ -1457,7 +1457,7 @@ abstract mixin class _$LeaveQueryCopyWith<$Res> implements $LeaveQueryCopyWith<$
   factory _$LeaveQueryCopyWith(_LeaveQuery value, $Res Function(_LeaveQuery) _then) = __$LeaveQueryCopyWithImpl;
 @override @useResult
 $Res call({
- LeaveStatus? status, String search, DateTime? from, DateTime? to, String? leaveTypeId, JobRole? department, int page, int pageSize
+ LeaveStatus? status, String search, DateTime? from, DateTime? to, String? leaveTypeId, String? departmentId, int page, int pageSize
 });
 
 
@@ -1474,15 +1474,15 @@ class __$LeaveQueryCopyWithImpl<$Res>
 
 /// Create a copy of LeaveQuery
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = freezed,Object? search = null,Object? from = freezed,Object? to = freezed,Object? leaveTypeId = freezed,Object? department = freezed,Object? page = null,Object? pageSize = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = freezed,Object? search = null,Object? from = freezed,Object? to = freezed,Object? leaveTypeId = freezed,Object? departmentId = freezed,Object? page = null,Object? pageSize = null,}) {
   return _then(_LeaveQuery(
 status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as LeaveStatus?,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,from: freezed == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as DateTime?,to: freezed == to ? _self.to : to // ignore: cast_nullable_to_non_nullable
 as DateTime?,leaveTypeId: freezed == leaveTypeId ? _self.leaveTypeId : leaveTypeId // ignore: cast_nullable_to_non_nullable
-as String?,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as String?,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -3524,7 +3524,7 @@ $LeaveBalanceTotalsModelCopyWith<$Res> get summary {
 /// @nodoc
 mixin _$LeaveBalanceQuery {
 
- String get search; JobRole? get department; int get page; int get pageSize;
+ String get search; String? get departmentId; int get page; int get pageSize;
 /// Create a copy of LeaveBalanceQuery
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3535,16 +3535,16 @@ $LeaveBalanceQueryCopyWith<LeaveBalanceQuery> get copyWith => _$LeaveBalanceQuer
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaveBalanceQuery&&(identical(other.search, search) || other.search == search)&&(identical(other.department, department) || other.department == department)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaveBalanceQuery&&(identical(other.search, search) || other.search == search)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,search,department,page,pageSize);
+int get hashCode => Object.hash(runtimeType,search,departmentId,page,pageSize);
 
 @override
 String toString() {
-  return 'LeaveBalanceQuery(search: $search, department: $department, page: $page, pageSize: $pageSize)';
+  return 'LeaveBalanceQuery(search: $search, departmentId: $departmentId, page: $page, pageSize: $pageSize)';
 }
 
 
@@ -3555,7 +3555,7 @@ abstract mixin class $LeaveBalanceQueryCopyWith<$Res>  {
   factory $LeaveBalanceQueryCopyWith(LeaveBalanceQuery value, $Res Function(LeaveBalanceQuery) _then) = _$LeaveBalanceQueryCopyWithImpl;
 @useResult
 $Res call({
- String search, JobRole? department, int page, int pageSize
+ String search, String? departmentId, int page, int pageSize
 });
 
 
@@ -3572,11 +3572,11 @@ class _$LeaveBalanceQueryCopyWithImpl<$Res>
 
 /// Create a copy of LeaveBalanceQuery
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? search = null,Object? department = freezed,Object? page = null,Object? pageSize = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? search = null,Object? departmentId = freezed,Object? page = null,Object? pageSize = null,}) {
   return _then(_self.copyWith(
 search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
-as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as String,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -3663,10 +3663,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String search,  JobRole? department,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String search,  String? departmentId,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LeaveBalanceQuery() when $default != null:
-return $default(_that.search,_that.department,_that.page,_that.pageSize);case _:
+return $default(_that.search,_that.departmentId,_that.page,_that.pageSize);case _:
   return orElse();
 
 }
@@ -3684,10 +3684,10 @@ return $default(_that.search,_that.department,_that.page,_that.pageSize);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String search,  JobRole? department,  int page,  int pageSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String search,  String? departmentId,  int page,  int pageSize)  $default,) {final _that = this;
 switch (_that) {
 case _LeaveBalanceQuery():
-return $default(_that.search,_that.department,_that.page,_that.pageSize);case _:
+return $default(_that.search,_that.departmentId,_that.page,_that.pageSize);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -3704,10 +3704,10 @@ return $default(_that.search,_that.department,_that.page,_that.pageSize);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String search,  JobRole? department,  int page,  int pageSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String search,  String? departmentId,  int page,  int pageSize)?  $default,) {final _that = this;
 switch (_that) {
 case _LeaveBalanceQuery() when $default != null:
-return $default(_that.search,_that.department,_that.page,_that.pageSize);case _:
+return $default(_that.search,_that.departmentId,_that.page,_that.pageSize);case _:
   return null;
 
 }
@@ -3719,11 +3719,11 @@ return $default(_that.search,_that.department,_that.page,_that.pageSize);case _:
 
 
 class _LeaveBalanceQuery extends LeaveBalanceQuery {
-  const _LeaveBalanceQuery({this.search = '', this.department, this.page = 1, this.pageSize = LeaveQuery.defaultPageSize}): super._();
+  const _LeaveBalanceQuery({this.search = '', this.departmentId, this.page = 1, this.pageSize = LeaveQuery.defaultPageSize}): super._();
   
 
 @override@JsonKey() final  String search;
-@override final  JobRole? department;
+@override final  String? departmentId;
 @override@JsonKey() final  int page;
 @override@JsonKey() final  int pageSize;
 
@@ -3737,16 +3737,16 @@ _$LeaveBalanceQueryCopyWith<_LeaveBalanceQuery> get copyWith => __$LeaveBalanceQ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaveBalanceQuery&&(identical(other.search, search) || other.search == search)&&(identical(other.department, department) || other.department == department)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaveBalanceQuery&&(identical(other.search, search) || other.search == search)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,search,department,page,pageSize);
+int get hashCode => Object.hash(runtimeType,search,departmentId,page,pageSize);
 
 @override
 String toString() {
-  return 'LeaveBalanceQuery(search: $search, department: $department, page: $page, pageSize: $pageSize)';
+  return 'LeaveBalanceQuery(search: $search, departmentId: $departmentId, page: $page, pageSize: $pageSize)';
 }
 
 
@@ -3757,7 +3757,7 @@ abstract mixin class _$LeaveBalanceQueryCopyWith<$Res> implements $LeaveBalanceQ
   factory _$LeaveBalanceQueryCopyWith(_LeaveBalanceQuery value, $Res Function(_LeaveBalanceQuery) _then) = __$LeaveBalanceQueryCopyWithImpl;
 @override @useResult
 $Res call({
- String search, JobRole? department, int page, int pageSize
+ String search, String? departmentId, int page, int pageSize
 });
 
 
@@ -3774,11 +3774,11 @@ class __$LeaveBalanceQueryCopyWithImpl<$Res>
 
 /// Create a copy of LeaveBalanceQuery
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? search = null,Object? department = freezed,Object? page = null,Object? pageSize = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? search = null,Object? departmentId = freezed,Object? page = null,Object? pageSize = null,}) {
   return _then(_LeaveBalanceQuery(
 search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
-as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as String,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as int,
   ));

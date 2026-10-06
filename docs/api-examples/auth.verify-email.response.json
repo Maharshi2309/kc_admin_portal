@@ -1,0 +1,11 @@
+{
+  "accessToken": "eyJhbGciOi…",
+  "user": {
+    "id": "7f3c9a10-2b4e-4d8a-9c61-5e0f1a2b3c04",
+    "name": "Asha Iyer",
+    "email": "asha@bright.in",
+    "permissions": [],
+    "organization": null,
+    "memberships": []
+  }
+}

@@ -162,6 +162,20 @@ const List<PermissionModuleModel> mockPermissionCatalogue = [
     ],
   ),
   PermissionModuleModel(
+    module: 'settings',
+    label: 'Organization settings',
+    permissions: [
+      PermissionModel(
+        key: 'settings.manage',
+        action: 'manage',
+        label: 'Manage organization settings',
+        description:
+            'Name, logo and time zone, departments and positions, and '
+            'working defaults',
+      ),
+    ],
+  ),
+  PermissionModuleModel(
     module: 'audit',
     label: 'Change history',
     permissions: [

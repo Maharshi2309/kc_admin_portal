@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/features/attendance/presentation/providers/attendance_providers.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:kc_admin_portal/features/holidays/data/repositories/holiday_repository_impl.dart';
 import 'package:kc_admin_portal/features/leave/presentation/providers/leave_providers.dart';
@@ -21,6 +22,8 @@ class HolidayQueryNotifier extends Notifier<HolidayQuery> {
   @override
   HolidayQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
+    // Another organization starts with fresh filters.
+    ref.watch(activeOrganizationIdProvider);
     return (year: ref.read(clockProvider)().year, search: '');
   }
 

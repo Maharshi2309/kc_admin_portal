@@ -25,9 +25,10 @@ import 'package:kc_admin_portal/features/users/data/models/user_account_models.d
 import 'package:kc_admin_portal/shared/models/audit_entry_model.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
+
+import '../helpers/catalogs.dart';
 
 Object? _example(String name) =>
     jsonDecode(File('docs/api-examples/$name').readAsStringSync());
@@ -100,8 +101,8 @@ void main() {
         ecNumber: 'KC1129',
         name: 'Rahul Sharma',
         mobile: '9876543210',
-        department: JobRole.graphicDesigner,
-        position: JobRole.graphicDesigner,
+        departmentId: dept('Graphic Designer').id,
+        positionId: post('Graphic Designer').id,
         joiningDate: _sep28,
         status: EmployeeStatus.active,
         schedule: schedule,
@@ -114,8 +115,8 @@ void main() {
         ecNumber: 'KC1129',
         name: 'Rahul Sharma',
         mobile: '9876543210',
-        department: JobRole.graphicDesigner,
-        position: JobRole.graphicDesigner,
+        departmentId: dept('Graphic Designer').id,
+        positionId: post('Graphic Designer').id,
         joiningDate: _sep28,
         status: EmployeeStatus.active,
       ).toJson();
@@ -288,6 +289,9 @@ void main() {
       expect(list.items.last.permissions, contains('leave.approve'));
       expect(list.items.last.employee?.ecNumber, 'KC1025');
       expect(list.items.last.lastSignInAt, isNull);
+      // Invited, not joined yet (2026-10-06).
+      expect(list.items.last.invitationPending, isTrue);
+      expect(list.items.first.invitationPending, isFalse);
     });
 
     test('create request', () {

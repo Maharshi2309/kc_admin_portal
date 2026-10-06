@@ -15,8 +15,14 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UserModel {
 
-@JsonKey(fromJson: idFromJson) String get id; String get name; String get email;/// Permission keys from the API, e.g. `employee.edit`.
- List<String> get permissions;
+@JsonKey(fromJson: idFromJson) String get id; String get name; String get email;/// Permission keys from the API, e.g. `employee.edit`: the user's
+/// permissions in [organization] (they differ per organization).
+ List<String> get permissions;/// The active organization; null only from a server older than the
+/// multi-organization change.
+ OrganizationModel? get organization;/// Every organization the user belongs to, the active one included.
+/// Empty for a new account that hasn't created or joined one yet; null
+/// only from a server older than the multi-organization change.
+ List<MembershipModel>? get memberships;
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +35,16 @@ $UserModelCopyWith<UserModel> get copyWith => _$UserModelCopyWithImpl<UserModel>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&const DeepCollectionEquality().equals(other.permissions, permissions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&const DeepCollectionEquality().equals(other.permissions, permissions)&&(identical(other.organization, organization) || other.organization == organization)&&const DeepCollectionEquality().equals(other.memberships, memberships));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,email,const DeepCollectionEquality().hash(permissions));
+int get hashCode => Object.hash(runtimeType,id,name,email,const DeepCollectionEquality().hash(permissions),organization,const DeepCollectionEquality().hash(memberships));
 
 @override
 String toString() {
-  return 'UserModel(id: $id, name: $name, email: $email, permissions: $permissions)';
+  return 'UserModel(id: $id, name: $name, email: $email, permissions: $permissions, organization: $organization, memberships: $memberships)';
 }
 
 
@@ -49,11 +55,11 @@ abstract mixin class $UserModelCopyWith<$Res>  {
   factory $UserModelCopyWith(UserModel value, $Res Function(UserModel) _then) = _$UserModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(fromJson: idFromJson) String id, String name, String email, List<String> permissions
+@JsonKey(fromJson: idFromJson) String id, String name, String email, List<String> permissions, OrganizationModel? organization, List<MembershipModel>? memberships
 });
 
 
-
+$OrganizationModelCopyWith<$Res>? get organization;
 
 }
 /// @nodoc
@@ -66,16 +72,30 @@ class _$UserModelCopyWithImpl<$Res>
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? email = null,Object? permissions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? email = null,Object? permissions = null,Object? organization = freezed,Object? memberships = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,permissions: null == permissions ? _self.permissions : permissions // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,organization: freezed == organization ? _self.organization : organization // ignore: cast_nullable_to_non_nullable
+as OrganizationModel?,memberships: freezed == memberships ? _self.memberships : memberships // ignore: cast_nullable_to_non_nullable
+as List<MembershipModel>?,
   ));
 }
+/// Create a copy of UserModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$OrganizationModelCopyWith<$Res>? get organization {
+    if (_self.organization == null) {
+    return null;
+  }
 
+  return $OrganizationModelCopyWith<$Res>(_self.organization!, (value) {
+    return _then(_self.copyWith(organization: value));
+  });
+}
 }
 
 
@@ -157,10 +177,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  OrganizationModel? organization,  List<MembershipModel>? memberships)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
-return $default(_that.id,_that.name,_that.email,_that.permissions);case _:
+return $default(_that.id,_that.name,_that.email,_that.permissions,_that.organization,_that.memberships);case _:
   return orElse();
 
 }
@@ -178,10 +198,10 @@ return $default(_that.id,_that.name,_that.email,_that.permissions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  OrganizationModel? organization,  List<MembershipModel>? memberships)  $default,) {final _that = this;
 switch (_that) {
 case _UserModel():
-return $default(_that.id,_that.name,_that.email,_that.permissions);case _:
+return $default(_that.id,_that.name,_that.email,_that.permissions,_that.organization,_that.memberships);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +218,10 @@ return $default(_that.id,_that.name,_that.email,_that.permissions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  OrganizationModel? organization,  List<MembershipModel>? memberships)?  $default,) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
-return $default(_that.id,_that.name,_that.email,_that.permissions);case _:
+return $default(_that.id,_that.name,_that.email,_that.permissions,_that.organization,_that.memberships);case _:
   return null;
 
 }
@@ -213,19 +233,39 @@ return $default(_that.id,_that.name,_that.email,_that.permissions);case _:
 @JsonSerializable()
 
 class _UserModel extends UserModel {
-  const _UserModel({@JsonKey(fromJson: idFromJson) required this.id, required this.name, required this.email, final  List<String> permissions = const <String>[]}): _permissions = permissions,super._();
+  const _UserModel({@JsonKey(fromJson: idFromJson) required this.id, required this.name, required this.email, final  List<String> permissions = const <String>[], this.organization, final  List<MembershipModel>? memberships}): _permissions = permissions,_memberships = memberships,super._();
   factory _UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);
 
 @override@JsonKey(fromJson: idFromJson) final  String id;
 @override final  String name;
 @override final  String email;
-/// Permission keys from the API, e.g. `employee.edit`.
+/// Permission keys from the API, e.g. `employee.edit`: the user's
+/// permissions in [organization] (they differ per organization).
  final  List<String> _permissions;
-/// Permission keys from the API, e.g. `employee.edit`.
+/// Permission keys from the API, e.g. `employee.edit`: the user's
+/// permissions in [organization] (they differ per organization).
 @override@JsonKey() List<String> get permissions {
   if (_permissions is EqualUnmodifiableListView) return _permissions;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_permissions);
+}
+
+/// The active organization; null only from a server older than the
+/// multi-organization change.
+@override final  OrganizationModel? organization;
+/// Every organization the user belongs to, the active one included.
+/// Empty for a new account that hasn't created or joined one yet; null
+/// only from a server older than the multi-organization change.
+ final  List<MembershipModel>? _memberships;
+/// Every organization the user belongs to, the active one included.
+/// Empty for a new account that hasn't created or joined one yet; null
+/// only from a server older than the multi-organization change.
+@override List<MembershipModel>? get memberships {
+  final value = _memberships;
+  if (value == null) return null;
+  if (_memberships is EqualUnmodifiableListView) return _memberships;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
 }
 
 
@@ -242,16 +282,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&const DeepCollectionEquality().equals(other._permissions, _permissions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&const DeepCollectionEquality().equals(other._permissions, _permissions)&&(identical(other.organization, organization) || other.organization == organization)&&const DeepCollectionEquality().equals(other._memberships, _memberships));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,email,const DeepCollectionEquality().hash(_permissions));
+int get hashCode => Object.hash(runtimeType,id,name,email,const DeepCollectionEquality().hash(_permissions),organization,const DeepCollectionEquality().hash(_memberships));
 
 @override
 String toString() {
-  return 'UserModel(id: $id, name: $name, email: $email, permissions: $permissions)';
+  return 'UserModel(id: $id, name: $name, email: $email, permissions: $permissions, organization: $organization, memberships: $memberships)';
 }
 
 
@@ -262,11 +302,11 @@ abstract mixin class _$UserModelCopyWith<$Res> implements $UserModelCopyWith<$Re
   factory _$UserModelCopyWith(_UserModel value, $Res Function(_UserModel) _then) = __$UserModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(fromJson: idFromJson) String id, String name, String email, List<String> permissions
+@JsonKey(fromJson: idFromJson) String id, String name, String email, List<String> permissions, OrganizationModel? organization, List<MembershipModel>? memberships
 });
 
 
-
+@override $OrganizationModelCopyWith<$Res>? get organization;
 
 }
 /// @nodoc
@@ -279,17 +319,31 @@ class __$UserModelCopyWithImpl<$Res>
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? email = null,Object? permissions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? email = null,Object? permissions = null,Object? organization = freezed,Object? memberships = freezed,}) {
   return _then(_UserModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,permissions: null == permissions ? _self._permissions : permissions // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,organization: freezed == organization ? _self.organization : organization // ignore: cast_nullable_to_non_nullable
+as OrganizationModel?,memberships: freezed == memberships ? _self._memberships : memberships // ignore: cast_nullable_to_non_nullable
+as List<MembershipModel>?,
   ));
 }
 
+/// Create a copy of UserModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$OrganizationModelCopyWith<$Res>? get organization {
+    if (_self.organization == null) {
+    return null;
+  }
 
+  return $OrganizationModelCopyWith<$Res>(_self.organization!, (value) {
+    return _then(_self.copyWith(organization: value));
+  });
+}
 }
 
 // dart format on

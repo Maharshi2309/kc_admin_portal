@@ -13,6 +13,7 @@ import 'package:kc_admin_portal/features/holidays/data/datasources/mock_holiday_
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_remote_data_source.dart';
 import 'package:kc_admin_portal/features/leave/data/datasources/mock_leave_accrual.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
 import 'package:kc_admin_portal/shared/mock/mock_audit_log.dart';
 import 'package:kc_admin_portal/shared/models/audit_entry_model.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
@@ -36,7 +37,9 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
     MockHolidayStore? holidays,
     MockScheduleBook? schedules,
     this.audit,
-  }) : holidays = holidays ?? MockHolidayStore(now: now),
+    LeavePolicyModel Function()? policy,
+  }) : _policy = policy ?? (() => defaultPolicy),
+       holidays = holidays ?? MockHolidayStore(now: now),
        schedules =
            schedules ??
            (MockScheduleBook(now: now)..seed([
@@ -127,23 +130,62 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
   final List<LeaveModel> _leaves = [];
   int _nextId = 1;
 
-  /// The only two types (requirement 2026-10-05).
-  static const List<LeaveTypeModel> leaveTypes = [
-    LeaveTypeModel(id: casualId, name: 'Casual'),
-    LeaveTypeModel(
-      id: unpaidId,
-      name: 'Unpaid',
-      hasBalance: false,
-      isPaid: false,
-    ),
-  ];
+  /// The organization's leave policy (Settings, 2026-10-06), read on every
+  /// request: one paid type with a monthly balance, and one unpaid type.
+  final LeavePolicyModel Function() _policy;
 
+  /// Keshav Clothing's policy, for tests without an organization: Casual,
+  /// 1 day a month from January 2026, no cap.
+  static final LeavePolicyModel defaultPolicy = LeavePolicyModel(
+    paidLeaveEnabled: true,
+    paidLeaveName: 'Casual',
+    unpaidLeaveName: 'Unpaid',
+    daysPerMonth: 1,
+    accrualStartMonth: DateTime(2026),
+  );
+
+  /// The two types' ids. The names are the organization's.
   static const String casualId = 'casual';
   static const String unpaidId = 'unpaid';
 
-  /// The company's accrual start (`leave_accrual_start_month`): January
-  /// 2026 in the mock.
+  /// Keshav Clothing's accrual, for mocks without the leave mock.
   static final LeaveAccrual accrual = LeaveAccrual(policyStart: DateTime(2026));
+
+  LeaveAccrual get _accrual {
+    final policy = _policy();
+    return LeaveAccrual(
+      policyStart: policy.accrualStartMonth,
+      perMonth: policy.paidLeaveEnabled ? policy.daysPerMonth : 0,
+      carryForwardCap: policy.carryForwardCap,
+    );
+  }
+
+  /// Both types, with the current names; [paidLeaveEnabled] off makes the
+  /// paid one inactive (its past leave stays).
+  List<(LeaveTypeModel, bool active)> get _allTypes {
+    final policy = _policy();
+    return [
+      (
+        LeaveTypeModel(id: casualId, name: policy.paidLeaveName),
+        policy.paidLeaveEnabled,
+      ),
+      (
+        LeaveTypeModel(
+          id: unpaidId,
+          name: policy.unpaidLeaveName,
+          hasBalance: false,
+          isPaid: false,
+        ),
+        true,
+      ),
+    ];
+  }
+
+  /// The types leave can be added with now.
+  List<LeaveTypeModel> get leaveTypes => [
+    for (final (type, active) in _allTypes)
+      if (active) type,
+  ];
 
   static const String _admin = 'Admin';
   static const String _employeeRequest = 'Employee request';
@@ -194,8 +236,13 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
     position: e.position,
   );
 
-  static LeaveTypeModel _type(String id) {
-    final type = leaveTypes.where((t) => t.id == id).firstOrNull;
+  /// A type leave can be added with; [any] also allows a paid type that's
+  /// switched off (for past records).
+  LeaveTypeModel _type(String id, {bool any = false}) {
+    final type = [
+      for (final (type, active) in _allTypes)
+        if (active || any) type,
+    ].where((t) => t.id == id).firstOrNull;
     if (type == null) {
       throw const ValidationException(
         'Choose a leave type',
@@ -217,7 +264,7 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
     String? remarks,
     String? id,
   }) {
-    final type = _type(typeId);
+    final type = _type(typeId, any: true);
     final last = halfDay ? start : (end ?? start);
     return LeaveModel(
       id: id ?? '${_nextId++}',
@@ -434,8 +481,8 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
         (to == null || !leave.startDate.isAfter(to.dateOnly)) &&
         (query.leaveTypeId == null ||
             leave.leaveType.id == query.leaveTypeId) &&
-        (query.department == null ||
-            _employee(leave.employee.id).department == query.department);
+        (query.departmentId == null ||
+            _employee(leave.employee.id).department.id == query.departmentId);
   }
 
   @override
@@ -533,7 +580,11 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
     final today = now().dateOnly;
     final mine = _leaves.where((l) => l.employee.id == employeeId);
     bool casual(LeaveModel l) => l.leaveType.id == casualId;
-    final accrued = accrual.accruedThrough(employee.joiningDate, today);
+    final accrued = _accrual.earnedThrough(
+      _casualDays(employeeId),
+      employee.joiningDate,
+      today,
+    );
     final used = _sum(
       mine.where((l) => casual(l) && l.status == LeaveStatus.approved),
     );
@@ -557,15 +608,23 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
   /// Casual days left after [l], counting Casual leave in date order.
   double? _balanceAfter(LeaveModel l) {
     if (l.leaveType.id != casualId || !_counts(l)) return null;
-    return accrual.balanceAfter(
+    return _accrual.balanceAfter(
       _casualDays(l.employee.id),
       _employee(l.employee.id).joiningDate,
       l.endDate,
     );
   }
 
-  LeaveModel _withBalance(LeaveModel l) =>
-      l.copyWith(balanceAfter: _balanceAfter(l));
+  /// The type's current name (a renamed type shows everywhere) and the
+  /// balance after the leave.
+  LeaveModel _withBalance(LeaveModel l) => l.copyWith(
+    leaveType: NamedRef(id: l.leaveType.id, name: _typeName(l.leaveType)),
+    balanceAfter: _balanceAfter(l),
+  );
+
+  String _typeName(NamedRef type) =>
+      _allTypes.where((t) => t.$1.id == type.id).firstOrNull?.$1.name ??
+      type.name;
 
   /// Active employees matching [query], by name (inactive employees earn
   /// nothing and are left out; TODO — REQUIREMENT CONFIRMATION REQUIRED).
@@ -578,7 +637,8 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
               (search.isEmpty ||
                   e.name.toLowerCase().contains(search) ||
                   e.ecNumber.toLowerCase().contains(search)) &&
-              (query.department == null || e.department == query.department),
+              (query.departmentId == null ||
+                  e.department.id == query.departmentId),
         )
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
@@ -674,7 +734,7 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
         id: l.id,
         startDate: l.startDate,
         endDate: l.endDate,
-        leaveType: l.leaveType.name,
+        leaveType: _typeName(l.leaveType),
         days: l.days,
         reason: [l.reason.label, ?l.remarks].join(' · '),
         status: l.status,
@@ -691,7 +751,7 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
     DateTime end, {
     required bool isHalfDay,
     String? exceptId,
-  }) => accrual.paidPart(
+  }) => _accrual.paidPart(
     _daysOf(employeeId, start, end, isHalfDay: isHalfDay),
     _casualDays(employeeId, exceptId: exceptId),
     _employee(employeeId).joiningDate,
@@ -751,14 +811,16 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
         exceptId: exceptId,
       );
       if (paid < days) {
+        final paidName = leaveTypePhrase(_policy().paidLeaveName);
+        final unpaidName = leaveTypePhrase(_policy().unpaidLeaveName);
         throw ValidationException(
           paid == 0
-              ? 'No Casual leave is available for these dates. Save them '
-                    'as Unpaid leave instead?'
-              : 'Only ${FormatUtils.days(paid)} of Casual leave '
+              ? 'No $paidName is available for these dates. Save them '
+                    'as $unpaidName instead?'
+              : 'Only ${FormatUtils.days(paid)} of $paidName '
                     '${paid == 1 ? 'is' : 'are'} available for these dates. '
                     'Save the other ${FormatUtils.days(days - paid)} as '
-                    'Unpaid leave?',
+                    '$unpaidName?',
           code: ApiConstants.insufficientLeaveBalanceCode,
         );
       }
@@ -950,7 +1012,7 @@ class LeaveMockDataSource implements LeaveRemoteDataSource {
     final existing = _casualDays(request.employeeId, exceptId: request.leaveId);
     final available = paid < days
         ? paid
-        : accrual.balanceAfter(existing, employee.joiningDate, end);
+        : _accrual.balanceAfter(existing, employee.joiningDate, end);
     return LeavePreviewModel(
       days: days,
       paidDays: paid,

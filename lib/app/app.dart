@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kc_admin_portal/app/layout_mode_frame.dart';
 import 'package:kc_admin_portal/app/router/app_router.dart';
 import 'package:kc_admin_portal/app/router/route_title.dart';
 import 'package:kc_admin_portal/app/theme/app_theme.dart';
@@ -56,9 +57,11 @@ class _KeshavAdminAppState extends ConsumerState<KeshavAdminApp> {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: router,
-      builder: (context, child) => RouteTitle(
-        router: router,
-        child: KeyboardFocusReveal(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => LayoutModeFrame(
+        child: RouteTitle(
+          router: router,
+          child: KeyboardFocusReveal(child: child ?? const SizedBox.shrink()),
+        ),
       ),
     );
   }

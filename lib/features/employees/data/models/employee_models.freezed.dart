@@ -15,9 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EmployeeModel {
 
-@JsonKey(fromJson: idFromJson) String get id;/// "KC" followed by digits, e.g. "KC1001".
+@JsonKey(fromJson: idFromJson) String get id;/// The organization's prefix followed by digits, e.g. "KC1001".
  String get ecNumber; String get name;/// 10 digits without the country code, e.g. "9825011234".
- String get mobile;@JsonKey(unknownEnumValue: JobRole.unknown) JobRole get department;@JsonKey(unknownEnumValue: JobRole.unknown) JobRole get position;@DateOnlyConverter() DateTime get joiningDate;@JsonKey(unknownEnumValue: EmployeeStatus.unknown) EmployeeStatus get status;/// Today's attendance, when the list endpoint includes it.
+ String get mobile;/// The organization's own department and position (2026-10-06).
+ NamedRef get department; NamedRef get position;@DateOnlyConverter() DateTime get joiningDate;@JsonKey(unknownEnumValue: EmployeeStatus.unknown) EmployeeStatus get status;/// Today's attendance, when the list endpoint includes it.
 @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus? get todayStatus;@CompanyDateTimeConverter() DateTime? get updatedAt; String? get updatedBy;/// The schedule in effect today (history: `GET /employees/{id}/schedules`).
  WorkScheduleModel? get schedule;/// Overtime from 1 January of the current year (company time) to today,
 /// in minutes, calculated by the backend from the attendance records.
@@ -55,11 +56,11 @@ abstract mixin class $EmployeeModelCopyWith<$Res>  {
   factory $EmployeeModelCopyWith(EmployeeModel value, $Res Function(EmployeeModel) _then) = _$EmployeeModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(fromJson: idFromJson) String id, String ecNumber, String name, String mobile,@JsonKey(unknownEnumValue: JobRole.unknown) JobRole department,@JsonKey(unknownEnumValue: JobRole.unknown) JobRole position,@DateOnlyConverter() DateTime joiningDate,@JsonKey(unknownEnumValue: EmployeeStatus.unknown) EmployeeStatus status,@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus? todayStatus,@CompanyDateTimeConverter() DateTime? updatedAt, String? updatedBy, WorkScheduleModel? schedule, int? overtimeMinutesThisYear
+@JsonKey(fromJson: idFromJson) String id, String ecNumber, String name, String mobile, NamedRef department, NamedRef position,@DateOnlyConverter() DateTime joiningDate,@JsonKey(unknownEnumValue: EmployeeStatus.unknown) EmployeeStatus status,@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus? todayStatus,@CompanyDateTimeConverter() DateTime? updatedAt, String? updatedBy, WorkScheduleModel? schedule, int? overtimeMinutesThisYear
 });
 
 
-$WorkScheduleModelCopyWith<$Res>? get schedule;
+$NamedRefCopyWith<$Res> get department;$NamedRefCopyWith<$Res> get position;$WorkScheduleModelCopyWith<$Res>? get schedule;
 
 }
 /// @nodoc
@@ -79,8 +80,8 @@ as String,ecNumber: null == ecNumber ? _self.ecNumber : ecNumber // ignore: cast
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,mobile: null == mobile ? _self.mobile : mobile // ignore: cast_nullable_to_non_nullable
 as String,department: null == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
-as JobRole,joiningDate: null == joiningDate ? _self.joiningDate : joiningDate // ignore: cast_nullable_to_non_nullable
+as NamedRef,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
+as NamedRef,joiningDate: null == joiningDate ? _self.joiningDate : joiningDate // ignore: cast_nullable_to_non_nullable
 as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as EmployeeStatus,todayStatus: freezed == todayStatus ? _self.todayStatus : todayStatus // ignore: cast_nullable_to_non_nullable
 as AttendanceDayStatus?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -91,6 +92,24 @@ as int?,
   ));
 }
 /// Create a copy of EmployeeModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NamedRefCopyWith<$Res> get department {
+  
+  return $NamedRefCopyWith<$Res>(_self.department, (value) {
+    return _then(_self.copyWith(department: value));
+  });
+}/// Create a copy of EmployeeModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NamedRefCopyWith<$Res> get position {
+  
+  return $NamedRefCopyWith<$Res>(_self.position, (value) {
+    return _then(_self.copyWith(position: value));
+  });
+}/// Create a copy of EmployeeModel
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -184,7 +203,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String ecNumber,  String name,  String mobile, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole department, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole position, @DateOnlyConverter()  DateTime joiningDate, @JsonKey(unknownEnumValue: EmployeeStatus.unknown)  EmployeeStatus status, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus? todayStatus, @CompanyDateTimeConverter()  DateTime? updatedAt,  String? updatedBy,  WorkScheduleModel? schedule,  int? overtimeMinutesThisYear)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String ecNumber,  String name,  String mobile,  NamedRef department,  NamedRef position, @DateOnlyConverter()  DateTime joiningDate, @JsonKey(unknownEnumValue: EmployeeStatus.unknown)  EmployeeStatus status, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus? todayStatus, @CompanyDateTimeConverter()  DateTime? updatedAt,  String? updatedBy,  WorkScheduleModel? schedule,  int? overtimeMinutesThisYear)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EmployeeModel() when $default != null:
 return $default(_that.id,_that.ecNumber,_that.name,_that.mobile,_that.department,_that.position,_that.joiningDate,_that.status,_that.todayStatus,_that.updatedAt,_that.updatedBy,_that.schedule,_that.overtimeMinutesThisYear);case _:
@@ -205,7 +224,7 @@ return $default(_that.id,_that.ecNumber,_that.name,_that.mobile,_that.department
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String ecNumber,  String name,  String mobile, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole department, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole position, @DateOnlyConverter()  DateTime joiningDate, @JsonKey(unknownEnumValue: EmployeeStatus.unknown)  EmployeeStatus status, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus? todayStatus, @CompanyDateTimeConverter()  DateTime? updatedAt,  String? updatedBy,  WorkScheduleModel? schedule,  int? overtimeMinutesThisYear)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String ecNumber,  String name,  String mobile,  NamedRef department,  NamedRef position, @DateOnlyConverter()  DateTime joiningDate, @JsonKey(unknownEnumValue: EmployeeStatus.unknown)  EmployeeStatus status, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus? todayStatus, @CompanyDateTimeConverter()  DateTime? updatedAt,  String? updatedBy,  WorkScheduleModel? schedule,  int? overtimeMinutesThisYear)  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeModel():
 return $default(_that.id,_that.ecNumber,_that.name,_that.mobile,_that.department,_that.position,_that.joiningDate,_that.status,_that.todayStatus,_that.updatedAt,_that.updatedBy,_that.schedule,_that.overtimeMinutesThisYear);case _:
@@ -225,7 +244,7 @@ return $default(_that.id,_that.ecNumber,_that.name,_that.mobile,_that.department
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: idFromJson)  String id,  String ecNumber,  String name,  String mobile, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole department, @JsonKey(unknownEnumValue: JobRole.unknown)  JobRole position, @DateOnlyConverter()  DateTime joiningDate, @JsonKey(unknownEnumValue: EmployeeStatus.unknown)  EmployeeStatus status, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus? todayStatus, @CompanyDateTimeConverter()  DateTime? updatedAt,  String? updatedBy,  WorkScheduleModel? schedule,  int? overtimeMinutesThisYear)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: idFromJson)  String id,  String ecNumber,  String name,  String mobile,  NamedRef department,  NamedRef position, @DateOnlyConverter()  DateTime joiningDate, @JsonKey(unknownEnumValue: EmployeeStatus.unknown)  EmployeeStatus status, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown)  AttendanceDayStatus? todayStatus, @CompanyDateTimeConverter()  DateTime? updatedAt,  String? updatedBy,  WorkScheduleModel? schedule,  int? overtimeMinutesThisYear)?  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeModel() when $default != null:
 return $default(_that.id,_that.ecNumber,_that.name,_that.mobile,_that.department,_that.position,_that.joiningDate,_that.status,_that.todayStatus,_that.updatedAt,_that.updatedBy,_that.schedule,_that.overtimeMinutesThisYear);case _:
@@ -240,17 +259,18 @@ return $default(_that.id,_that.ecNumber,_that.name,_that.mobile,_that.department
 @JsonSerializable()
 
 class _EmployeeModel implements EmployeeModel {
-  const _EmployeeModel({@JsonKey(fromJson: idFromJson) required this.id, required this.ecNumber, required this.name, required this.mobile, @JsonKey(unknownEnumValue: JobRole.unknown) required this.department, @JsonKey(unknownEnumValue: JobRole.unknown) required this.position, @DateOnlyConverter() required this.joiningDate, @JsonKey(unknownEnumValue: EmployeeStatus.unknown) required this.status, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) this.todayStatus, @CompanyDateTimeConverter() this.updatedAt, this.updatedBy, this.schedule, this.overtimeMinutesThisYear});
+  const _EmployeeModel({@JsonKey(fromJson: idFromJson) required this.id, required this.ecNumber, required this.name, required this.mobile, required this.department, required this.position, @DateOnlyConverter() required this.joiningDate, @JsonKey(unknownEnumValue: EmployeeStatus.unknown) required this.status, @JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) this.todayStatus, @CompanyDateTimeConverter() this.updatedAt, this.updatedBy, this.schedule, this.overtimeMinutesThisYear});
   factory _EmployeeModel.fromJson(Map<String, dynamic> json) => _$EmployeeModelFromJson(json);
 
 @override@JsonKey(fromJson: idFromJson) final  String id;
-/// "KC" followed by digits, e.g. "KC1001".
+/// The organization's prefix followed by digits, e.g. "KC1001".
 @override final  String ecNumber;
 @override final  String name;
 /// 10 digits without the country code, e.g. "9825011234".
 @override final  String mobile;
-@override@JsonKey(unknownEnumValue: JobRole.unknown) final  JobRole department;
-@override@JsonKey(unknownEnumValue: JobRole.unknown) final  JobRole position;
+/// The organization's own department and position (2026-10-06).
+@override final  NamedRef department;
+@override final  NamedRef position;
 @override@DateOnlyConverter() final  DateTime joiningDate;
 @override@JsonKey(unknownEnumValue: EmployeeStatus.unknown) final  EmployeeStatus status;
 /// Today's attendance, when the list endpoint includes it.
@@ -297,11 +317,11 @@ abstract mixin class _$EmployeeModelCopyWith<$Res> implements $EmployeeModelCopy
   factory _$EmployeeModelCopyWith(_EmployeeModel value, $Res Function(_EmployeeModel) _then) = __$EmployeeModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(fromJson: idFromJson) String id, String ecNumber, String name, String mobile,@JsonKey(unknownEnumValue: JobRole.unknown) JobRole department,@JsonKey(unknownEnumValue: JobRole.unknown) JobRole position,@DateOnlyConverter() DateTime joiningDate,@JsonKey(unknownEnumValue: EmployeeStatus.unknown) EmployeeStatus status,@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus? todayStatus,@CompanyDateTimeConverter() DateTime? updatedAt, String? updatedBy, WorkScheduleModel? schedule, int? overtimeMinutesThisYear
+@JsonKey(fromJson: idFromJson) String id, String ecNumber, String name, String mobile, NamedRef department, NamedRef position,@DateOnlyConverter() DateTime joiningDate,@JsonKey(unknownEnumValue: EmployeeStatus.unknown) EmployeeStatus status,@JsonKey(unknownEnumValue: AttendanceDayStatus.unknown) AttendanceDayStatus? todayStatus,@CompanyDateTimeConverter() DateTime? updatedAt, String? updatedBy, WorkScheduleModel? schedule, int? overtimeMinutesThisYear
 });
 
 
-@override $WorkScheduleModelCopyWith<$Res>? get schedule;
+@override $NamedRefCopyWith<$Res> get department;@override $NamedRefCopyWith<$Res> get position;@override $WorkScheduleModelCopyWith<$Res>? get schedule;
 
 }
 /// @nodoc
@@ -321,8 +341,8 @@ as String,ecNumber: null == ecNumber ? _self.ecNumber : ecNumber // ignore: cast
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,mobile: null == mobile ? _self.mobile : mobile // ignore: cast_nullable_to_non_nullable
 as String,department: null == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
-as JobRole,joiningDate: null == joiningDate ? _self.joiningDate : joiningDate // ignore: cast_nullable_to_non_nullable
+as NamedRef,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
+as NamedRef,joiningDate: null == joiningDate ? _self.joiningDate : joiningDate // ignore: cast_nullable_to_non_nullable
 as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as EmployeeStatus,todayStatus: freezed == todayStatus ? _self.todayStatus : todayStatus // ignore: cast_nullable_to_non_nullable
 as AttendanceDayStatus?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -334,6 +354,24 @@ as int?,
 }
 
 /// Create a copy of EmployeeModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NamedRefCopyWith<$Res> get department {
+  
+  return $NamedRefCopyWith<$Res>(_self.department, (value) {
+    return _then(_self.copyWith(department: value));
+  });
+}/// Create a copy of EmployeeModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NamedRefCopyWith<$Res> get position {
+  
+  return $NamedRefCopyWith<$Res>(_self.position, (value) {
+    return _then(_self.copyWith(position: value));
+  });
+}/// Create a copy of EmployeeModel
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -352,7 +390,9 @@ $WorkScheduleModelCopyWith<$Res>? get schedule {
 /// @nodoc
 mixin _$EmployeeFormData {
 
- String get ecNumber; String get name; String get mobile; JobRole get department; JobRole get position;@JsonKey(toJson: dateToJson) DateTime get joiningDate; EmployeeStatus get status;/// Only when creating; later changes add a schedule version instead.
+ String get ecNumber; String get name; String get mobile;/// Ids from the organization's lists (`GET /departments`,
+/// `GET /positions`).
+ String get departmentId; String get positionId;@JsonKey(toJson: dateToJson) DateTime get joiningDate; EmployeeStatus get status;/// Only when creating; later changes add a schedule version instead.
 @JsonKey(includeIfNull: false) WorkScheduleInput? get schedule;
 /// Create a copy of EmployeeFormData
 /// with the given fields replaced by the non-null parameter values.
@@ -366,16 +406,16 @@ $EmployeeFormDataCopyWith<EmployeeFormData> get copyWith => _$EmployeeFormDataCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmployeeFormData&&(identical(other.ecNumber, ecNumber) || other.ecNumber == ecNumber)&&(identical(other.name, name) || other.name == name)&&(identical(other.mobile, mobile) || other.mobile == mobile)&&(identical(other.department, department) || other.department == department)&&(identical(other.position, position) || other.position == position)&&(identical(other.joiningDate, joiningDate) || other.joiningDate == joiningDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.schedule, schedule) || other.schedule == schedule));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmployeeFormData&&(identical(other.ecNumber, ecNumber) || other.ecNumber == ecNumber)&&(identical(other.name, name) || other.name == name)&&(identical(other.mobile, mobile) || other.mobile == mobile)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.positionId, positionId) || other.positionId == positionId)&&(identical(other.joiningDate, joiningDate) || other.joiningDate == joiningDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.schedule, schedule) || other.schedule == schedule));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ecNumber,name,mobile,department,position,joiningDate,status,schedule);
+int get hashCode => Object.hash(runtimeType,ecNumber,name,mobile,departmentId,positionId,joiningDate,status,schedule);
 
 @override
 String toString() {
-  return 'EmployeeFormData(ecNumber: $ecNumber, name: $name, mobile: $mobile, department: $department, position: $position, joiningDate: $joiningDate, status: $status, schedule: $schedule)';
+  return 'EmployeeFormData(ecNumber: $ecNumber, name: $name, mobile: $mobile, departmentId: $departmentId, positionId: $positionId, joiningDate: $joiningDate, status: $status, schedule: $schedule)';
 }
 
 
@@ -386,7 +426,7 @@ abstract mixin class $EmployeeFormDataCopyWith<$Res>  {
   factory $EmployeeFormDataCopyWith(EmployeeFormData value, $Res Function(EmployeeFormData) _then) = _$EmployeeFormDataCopyWithImpl;
 @useResult
 $Res call({
- String ecNumber, String name, String mobile, JobRole department, JobRole position,@JsonKey(toJson: dateToJson) DateTime joiningDate, EmployeeStatus status,@JsonKey(includeIfNull: false) WorkScheduleInput? schedule
+ String ecNumber, String name, String mobile, String departmentId, String positionId,@JsonKey(toJson: dateToJson) DateTime joiningDate, EmployeeStatus status,@JsonKey(includeIfNull: false) WorkScheduleInput? schedule
 });
 
 
@@ -403,14 +443,14 @@ class _$EmployeeFormDataCopyWithImpl<$Res>
 
 /// Create a copy of EmployeeFormData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? ecNumber = null,Object? name = null,Object? mobile = null,Object? department = null,Object? position = null,Object? joiningDate = null,Object? status = null,Object? schedule = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? ecNumber = null,Object? name = null,Object? mobile = null,Object? departmentId = null,Object? positionId = null,Object? joiningDate = null,Object? status = null,Object? schedule = freezed,}) {
   return _then(_self.copyWith(
 ecNumber: null == ecNumber ? _self.ecNumber : ecNumber // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,mobile: null == mobile ? _self.mobile : mobile // ignore: cast_nullable_to_non_nullable
-as String,department: null == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
-as JobRole,joiningDate: null == joiningDate ? _self.joiningDate : joiningDate // ignore: cast_nullable_to_non_nullable
+as String,departmentId: null == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String,positionId: null == positionId ? _self.positionId : positionId // ignore: cast_nullable_to_non_nullable
+as String,joiningDate: null == joiningDate ? _self.joiningDate : joiningDate // ignore: cast_nullable_to_non_nullable
 as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as EmployeeStatus,schedule: freezed == schedule ? _self.schedule : schedule // ignore: cast_nullable_to_non_nullable
 as WorkScheduleInput?,
@@ -510,10 +550,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String ecNumber,  String name,  String mobile,  JobRole department,  JobRole position, @JsonKey(toJson: dateToJson)  DateTime joiningDate,  EmployeeStatus status, @JsonKey(includeIfNull: false)  WorkScheduleInput? schedule)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String ecNumber,  String name,  String mobile,  String departmentId,  String positionId, @JsonKey(toJson: dateToJson)  DateTime joiningDate,  EmployeeStatus status, @JsonKey(includeIfNull: false)  WorkScheduleInput? schedule)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EmployeeFormData() when $default != null:
-return $default(_that.ecNumber,_that.name,_that.mobile,_that.department,_that.position,_that.joiningDate,_that.status,_that.schedule);case _:
+return $default(_that.ecNumber,_that.name,_that.mobile,_that.departmentId,_that.positionId,_that.joiningDate,_that.status,_that.schedule);case _:
   return orElse();
 
 }
@@ -531,10 +571,10 @@ return $default(_that.ecNumber,_that.name,_that.mobile,_that.department,_that.po
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String ecNumber,  String name,  String mobile,  JobRole department,  JobRole position, @JsonKey(toJson: dateToJson)  DateTime joiningDate,  EmployeeStatus status, @JsonKey(includeIfNull: false)  WorkScheduleInput? schedule)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String ecNumber,  String name,  String mobile,  String departmentId,  String positionId, @JsonKey(toJson: dateToJson)  DateTime joiningDate,  EmployeeStatus status, @JsonKey(includeIfNull: false)  WorkScheduleInput? schedule)  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeFormData():
-return $default(_that.ecNumber,_that.name,_that.mobile,_that.department,_that.position,_that.joiningDate,_that.status,_that.schedule);case _:
+return $default(_that.ecNumber,_that.name,_that.mobile,_that.departmentId,_that.positionId,_that.joiningDate,_that.status,_that.schedule);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -551,10 +591,10 @@ return $default(_that.ecNumber,_that.name,_that.mobile,_that.department,_that.po
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String ecNumber,  String name,  String mobile,  JobRole department,  JobRole position, @JsonKey(toJson: dateToJson)  DateTime joiningDate,  EmployeeStatus status, @JsonKey(includeIfNull: false)  WorkScheduleInput? schedule)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String ecNumber,  String name,  String mobile,  String departmentId,  String positionId, @JsonKey(toJson: dateToJson)  DateTime joiningDate,  EmployeeStatus status, @JsonKey(includeIfNull: false)  WorkScheduleInput? schedule)?  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeFormData() when $default != null:
-return $default(_that.ecNumber,_that.name,_that.mobile,_that.department,_that.position,_that.joiningDate,_that.status,_that.schedule);case _:
+return $default(_that.ecNumber,_that.name,_that.mobile,_that.departmentId,_that.positionId,_that.joiningDate,_that.status,_that.schedule);case _:
   return null;
 
 }
@@ -566,14 +606,16 @@ return $default(_that.ecNumber,_that.name,_that.mobile,_that.department,_that.po
 @JsonSerializable()
 
 class _EmployeeFormData implements EmployeeFormData {
-  const _EmployeeFormData({required this.ecNumber, required this.name, required this.mobile, required this.department, required this.position, @JsonKey(toJson: dateToJson) required this.joiningDate, required this.status, @JsonKey(includeIfNull: false) this.schedule});
+  const _EmployeeFormData({required this.ecNumber, required this.name, required this.mobile, required this.departmentId, required this.positionId, @JsonKey(toJson: dateToJson) required this.joiningDate, required this.status, @JsonKey(includeIfNull: false) this.schedule});
   factory _EmployeeFormData.fromJson(Map<String, dynamic> json) => _$EmployeeFormDataFromJson(json);
 
 @override final  String ecNumber;
 @override final  String name;
 @override final  String mobile;
-@override final  JobRole department;
-@override final  JobRole position;
+/// Ids from the organization's lists (`GET /departments`,
+/// `GET /positions`).
+@override final  String departmentId;
+@override final  String positionId;
 @override@JsonKey(toJson: dateToJson) final  DateTime joiningDate;
 @override final  EmployeeStatus status;
 /// Only when creating; later changes add a schedule version instead.
@@ -592,16 +634,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmployeeFormData&&(identical(other.ecNumber, ecNumber) || other.ecNumber == ecNumber)&&(identical(other.name, name) || other.name == name)&&(identical(other.mobile, mobile) || other.mobile == mobile)&&(identical(other.department, department) || other.department == department)&&(identical(other.position, position) || other.position == position)&&(identical(other.joiningDate, joiningDate) || other.joiningDate == joiningDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.schedule, schedule) || other.schedule == schedule));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmployeeFormData&&(identical(other.ecNumber, ecNumber) || other.ecNumber == ecNumber)&&(identical(other.name, name) || other.name == name)&&(identical(other.mobile, mobile) || other.mobile == mobile)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.positionId, positionId) || other.positionId == positionId)&&(identical(other.joiningDate, joiningDate) || other.joiningDate == joiningDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.schedule, schedule) || other.schedule == schedule));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ecNumber,name,mobile,department,position,joiningDate,status,schedule);
+int get hashCode => Object.hash(runtimeType,ecNumber,name,mobile,departmentId,positionId,joiningDate,status,schedule);
 
 @override
 String toString() {
-  return 'EmployeeFormData(ecNumber: $ecNumber, name: $name, mobile: $mobile, department: $department, position: $position, joiningDate: $joiningDate, status: $status, schedule: $schedule)';
+  return 'EmployeeFormData(ecNumber: $ecNumber, name: $name, mobile: $mobile, departmentId: $departmentId, positionId: $positionId, joiningDate: $joiningDate, status: $status, schedule: $schedule)';
 }
 
 
@@ -612,7 +654,7 @@ abstract mixin class _$EmployeeFormDataCopyWith<$Res> implements $EmployeeFormDa
   factory _$EmployeeFormDataCopyWith(_EmployeeFormData value, $Res Function(_EmployeeFormData) _then) = __$EmployeeFormDataCopyWithImpl;
 @override @useResult
 $Res call({
- String ecNumber, String name, String mobile, JobRole department, JobRole position,@JsonKey(toJson: dateToJson) DateTime joiningDate, EmployeeStatus status,@JsonKey(includeIfNull: false) WorkScheduleInput? schedule
+ String ecNumber, String name, String mobile, String departmentId, String positionId,@JsonKey(toJson: dateToJson) DateTime joiningDate, EmployeeStatus status,@JsonKey(includeIfNull: false) WorkScheduleInput? schedule
 });
 
 
@@ -629,14 +671,14 @@ class __$EmployeeFormDataCopyWithImpl<$Res>
 
 /// Create a copy of EmployeeFormData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? ecNumber = null,Object? name = null,Object? mobile = null,Object? department = null,Object? position = null,Object? joiningDate = null,Object? status = null,Object? schedule = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? ecNumber = null,Object? name = null,Object? mobile = null,Object? departmentId = null,Object? positionId = null,Object? joiningDate = null,Object? status = null,Object? schedule = freezed,}) {
   return _then(_EmployeeFormData(
 ecNumber: null == ecNumber ? _self.ecNumber : ecNumber // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,mobile: null == mobile ? _self.mobile : mobile // ignore: cast_nullable_to_non_nullable
-as String,department: null == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
-as JobRole,joiningDate: null == joiningDate ? _self.joiningDate : joiningDate // ignore: cast_nullable_to_non_nullable
+as String,departmentId: null == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String,positionId: null == positionId ? _self.positionId : positionId // ignore: cast_nullable_to_non_nullable
+as String,joiningDate: null == joiningDate ? _self.joiningDate : joiningDate // ignore: cast_nullable_to_non_nullable
 as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as EmployeeStatus,schedule: freezed == schedule ? _self.schedule : schedule // ignore: cast_nullable_to_non_nullable
 as WorkScheduleInput?,
@@ -1236,7 +1278,7 @@ as int,
 /// @nodoc
 mixin _$EmployeeQuery {
 
- String get search; JobRole? get department; JobRole? get position;/// "Joined" filter (design board 03): joining date within this range.
+ String get search; String? get departmentId; String? get positionId;/// "Joined" filter (design board 03): joining date within this range.
 @DateOnlyConverter() DateTime? get joinedFrom;@DateOnlyConverter() DateTime? get joinedTo;/// The design opens the list filtered to active employees.
  EmployeeStatus? get status; int get page; int get pageSize;
 /// Create a copy of EmployeeQuery
@@ -1249,16 +1291,16 @@ $EmployeeQueryCopyWith<EmployeeQuery> get copyWith => _$EmployeeQueryCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmployeeQuery&&(identical(other.search, search) || other.search == search)&&(identical(other.department, department) || other.department == department)&&(identical(other.position, position) || other.position == position)&&(identical(other.joinedFrom, joinedFrom) || other.joinedFrom == joinedFrom)&&(identical(other.joinedTo, joinedTo) || other.joinedTo == joinedTo)&&(identical(other.status, status) || other.status == status)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmployeeQuery&&(identical(other.search, search) || other.search == search)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.positionId, positionId) || other.positionId == positionId)&&(identical(other.joinedFrom, joinedFrom) || other.joinedFrom == joinedFrom)&&(identical(other.joinedTo, joinedTo) || other.joinedTo == joinedTo)&&(identical(other.status, status) || other.status == status)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,search,department,position,joinedFrom,joinedTo,status,page,pageSize);
+int get hashCode => Object.hash(runtimeType,search,departmentId,positionId,joinedFrom,joinedTo,status,page,pageSize);
 
 @override
 String toString() {
-  return 'EmployeeQuery(search: $search, department: $department, position: $position, joinedFrom: $joinedFrom, joinedTo: $joinedTo, status: $status, page: $page, pageSize: $pageSize)';
+  return 'EmployeeQuery(search: $search, departmentId: $departmentId, positionId: $positionId, joinedFrom: $joinedFrom, joinedTo: $joinedTo, status: $status, page: $page, pageSize: $pageSize)';
 }
 
 
@@ -1269,7 +1311,7 @@ abstract mixin class $EmployeeQueryCopyWith<$Res>  {
   factory $EmployeeQueryCopyWith(EmployeeQuery value, $Res Function(EmployeeQuery) _then) = _$EmployeeQueryCopyWithImpl;
 @useResult
 $Res call({
- String search, JobRole? department, JobRole? position,@DateOnlyConverter() DateTime? joinedFrom,@DateOnlyConverter() DateTime? joinedTo, EmployeeStatus? status, int page, int pageSize
+ String search, String? departmentId, String? positionId,@DateOnlyConverter() DateTime? joinedFrom,@DateOnlyConverter() DateTime? joinedTo, EmployeeStatus? status, int page, int pageSize
 });
 
 
@@ -1286,12 +1328,12 @@ class _$EmployeeQueryCopyWithImpl<$Res>
 
 /// Create a copy of EmployeeQuery
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? search = null,Object? department = freezed,Object? position = freezed,Object? joinedFrom = freezed,Object? joinedTo = freezed,Object? status = freezed,Object? page = null,Object? pageSize = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? search = null,Object? departmentId = freezed,Object? positionId = freezed,Object? joinedFrom = freezed,Object? joinedTo = freezed,Object? status = freezed,Object? page = null,Object? pageSize = null,}) {
   return _then(_self.copyWith(
 search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
-as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,position: freezed == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
-as JobRole?,joinedFrom: freezed == joinedFrom ? _self.joinedFrom : joinedFrom // ignore: cast_nullable_to_non_nullable
+as String,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String?,positionId: freezed == positionId ? _self.positionId : positionId // ignore: cast_nullable_to_non_nullable
+as String?,joinedFrom: freezed == joinedFrom ? _self.joinedFrom : joinedFrom // ignore: cast_nullable_to_non_nullable
 as DateTime?,joinedTo: freezed == joinedTo ? _self.joinedTo : joinedTo // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as EmployeeStatus?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
@@ -1381,10 +1423,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String search,  JobRole? department,  JobRole? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String search,  String? departmentId,  String? positionId, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EmployeeQuery() when $default != null:
-return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
+return $default(_that.search,_that.departmentId,_that.positionId,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
   return orElse();
 
 }
@@ -1402,10 +1444,10 @@ return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String search,  JobRole? department,  JobRole? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String search,  String? departmentId,  String? positionId, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeQuery():
-return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
+return $default(_that.search,_that.departmentId,_that.positionId,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1422,10 +1464,10 @@ return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String search,  JobRole? department,  JobRole? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String search,  String? departmentId,  String? positionId, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)?  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeQuery() when $default != null:
-return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
+return $default(_that.search,_that.departmentId,_that.positionId,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
   return null;
 
 }
@@ -1437,12 +1479,12 @@ return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_t
 
 
 class _EmployeeQuery extends EmployeeQuery {
-  const _EmployeeQuery({this.search = '', this.department, this.position, @DateOnlyConverter() this.joinedFrom, @DateOnlyConverter() this.joinedTo, this.status = EmployeeStatus.active, this.page = 1, this.pageSize = EmployeeQuery.defaultPageSize}): super._();
+  const _EmployeeQuery({this.search = '', this.departmentId, this.positionId, @DateOnlyConverter() this.joinedFrom, @DateOnlyConverter() this.joinedTo, this.status = EmployeeStatus.active, this.page = 1, this.pageSize = EmployeeQuery.defaultPageSize}): super._();
   
 
 @override@JsonKey() final  String search;
-@override final  JobRole? department;
-@override final  JobRole? position;
+@override final  String? departmentId;
+@override final  String? positionId;
 /// "Joined" filter (design board 03): joining date within this range.
 @override@DateOnlyConverter() final  DateTime? joinedFrom;
 @override@DateOnlyConverter() final  DateTime? joinedTo;
@@ -1461,16 +1503,16 @@ _$EmployeeQueryCopyWith<_EmployeeQuery> get copyWith => __$EmployeeQueryCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmployeeQuery&&(identical(other.search, search) || other.search == search)&&(identical(other.department, department) || other.department == department)&&(identical(other.position, position) || other.position == position)&&(identical(other.joinedFrom, joinedFrom) || other.joinedFrom == joinedFrom)&&(identical(other.joinedTo, joinedTo) || other.joinedTo == joinedTo)&&(identical(other.status, status) || other.status == status)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmployeeQuery&&(identical(other.search, search) || other.search == search)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.positionId, positionId) || other.positionId == positionId)&&(identical(other.joinedFrom, joinedFrom) || other.joinedFrom == joinedFrom)&&(identical(other.joinedTo, joinedTo) || other.joinedTo == joinedTo)&&(identical(other.status, status) || other.status == status)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,search,department,position,joinedFrom,joinedTo,status,page,pageSize);
+int get hashCode => Object.hash(runtimeType,search,departmentId,positionId,joinedFrom,joinedTo,status,page,pageSize);
 
 @override
 String toString() {
-  return 'EmployeeQuery(search: $search, department: $department, position: $position, joinedFrom: $joinedFrom, joinedTo: $joinedTo, status: $status, page: $page, pageSize: $pageSize)';
+  return 'EmployeeQuery(search: $search, departmentId: $departmentId, positionId: $positionId, joinedFrom: $joinedFrom, joinedTo: $joinedTo, status: $status, page: $page, pageSize: $pageSize)';
 }
 
 
@@ -1481,7 +1523,7 @@ abstract mixin class _$EmployeeQueryCopyWith<$Res> implements $EmployeeQueryCopy
   factory _$EmployeeQueryCopyWith(_EmployeeQuery value, $Res Function(_EmployeeQuery) _then) = __$EmployeeQueryCopyWithImpl;
 @override @useResult
 $Res call({
- String search, JobRole? department, JobRole? position,@DateOnlyConverter() DateTime? joinedFrom,@DateOnlyConverter() DateTime? joinedTo, EmployeeStatus? status, int page, int pageSize
+ String search, String? departmentId, String? positionId,@DateOnlyConverter() DateTime? joinedFrom,@DateOnlyConverter() DateTime? joinedTo, EmployeeStatus? status, int page, int pageSize
 });
 
 
@@ -1498,12 +1540,12 @@ class __$EmployeeQueryCopyWithImpl<$Res>
 
 /// Create a copy of EmployeeQuery
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? search = null,Object? department = freezed,Object? position = freezed,Object? joinedFrom = freezed,Object? joinedTo = freezed,Object? status = freezed,Object? page = null,Object? pageSize = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? search = null,Object? departmentId = freezed,Object? positionId = freezed,Object? joinedFrom = freezed,Object? joinedTo = freezed,Object? status = freezed,Object? page = null,Object? pageSize = null,}) {
   return _then(_EmployeeQuery(
 search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
-as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,position: freezed == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
-as JobRole?,joinedFrom: freezed == joinedFrom ? _self.joinedFrom : joinedFrom // ignore: cast_nullable_to_non_nullable
+as String,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String?,positionId: freezed == positionId ? _self.positionId : positionId // ignore: cast_nullable_to_non_nullable
+as String?,joinedFrom: freezed == joinedFrom ? _self.joinedFrom : joinedFrom // ignore: cast_nullable_to_non_nullable
 as DateTime?,joinedTo: freezed == joinedTo ? _self.joinedTo : joinedTo // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as EmployeeStatus?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable

@@ -100,7 +100,7 @@ class _UserFormState extends ConsumerState<_UserForm> {
       messenger,
       _isEditing
           ? '${saved.name} updated'
-          : '${saved.name} added. Now choose what they can do.',
+          : 'Invitation sent to ${saved.email}. Now choose what they can do.',
       tone: SnackBarTone.success,
     );
     if (_isEditing) {
@@ -136,12 +136,12 @@ class _UserFormState extends ConsumerState<_UserForm> {
 
     return AppDialog(
       title: _isEditing ? 'Edit user' : 'Add user',
-      // TODO — REQUIREMENT CONFIRMATION REQUIRED: the password invitation
-      // email is assumed (API_CONTRACT `POST /users`).
+      // Adding someone invites them (2026-10-06): they join after signing
+      // up or signing in with this email.
       subtitle: _isEditing
           ? null
-          : 'They get an email to set their password. You choose their '
-                'permissions next.',
+          : "They're invited by email and join after signing up or signing "
+                'in. You choose their permissions next.',
       actions: [
         AppButton(
           label: 'Cancel',

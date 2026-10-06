@@ -6,6 +6,12 @@ this page lists every change and where to read about it. Example payloads
 are in [`api-examples/`](api-examples/), and the app's contract tests parse
 every one of them.
 
+> **Superseded in part (2026-10-06):** with organizations
+> ([`ARCHITECTURE_MULTI_ORG.md`](ARCHITECTURE_MULTI_ORG.md)), departments and
+> positions are each organization's own `{ id, name }` items, and the leave
+> rule below becomes Keshav Clothing's policy. See `API_CONTRACT.md`
+> § Organization settings, departments and positions.
+
 ## 1. API changes
 
 ### Removed
@@ -13,7 +19,7 @@ every one of them.
 | What | Notes | Contract |
 |---|---|---|
 | `email` on employees | Gone from requests, responses, search and validation. Login emails on **users** stay. | § Employees |
-| `GET /departments`, `GET /designations` | Replaced by one fixed list of codes. | § Department and position |
+| `GET /departments`, `GET /designations` | Replaced by one fixed list of codes (since 2026-10-06: per organization again, `GET /departments`, `GET /positions`). | § Organization settings, departments and positions |
 | Sick and Earned leave types | Only `casual` and `unpaid` remain. | § Leave |
 | Per-type `quota` balances | Replaced by one calculated Casual balance. | § Employees, § Leave |
 | `balanceBefore` / `balanceAfter` on the preview | Replaced by `paidDays`, `unpaidDays` and `availableCasual`. | § Leave |
@@ -23,7 +29,7 @@ every one of them.
 
 | What | Now | Contract |
 |---|---|---|
-| Employee `department`, `position` | Codes `accountant`, `graphic_designer`, `tailor` (also in every `employee` summary and the `department` filters). | § Department and position |
+| Employee `department`, `position` | Codes `accountant`, `graphic_designer`, `tailor` (since 2026-10-06: `{ id, name }` items of the organization). | § Organization settings, departments and positions |
 | `GET /employees/{id}/leave-balance` | One object `{ asOf, accrued, used, pending, remaining, unpaidTaken }`. | § Employees |
 | `GET /employees/{id}/leaves` | Each item adds `isPaid` and `balanceAfter`. | § Employees |
 | Leave records | Add `isPaid`, `balanceAfter`, `unpaidPartId`. | § Leave |
@@ -73,7 +79,7 @@ Migration order: [`DATABASE_V2.md`](DATABASE_V2.md) §6, steps 7–9, after the 
 | # | Rule | Enforced by | App tests |
 |---|---|---|---|
 | 1 | No employee email | API and DB (§2.0) | `employee_screens_test` (no email field), `docs_consistency_test` |
-| 2–3 | Department and position: Accountant, Graphic Designer, Tailor | API (codes) | `employee_screens_test`, `job_role_display_test` |
+| 2–3 | Department and position: Accountant, Graphic Designer, Tailor | Keshav's own lists (2026-10-06) | `employee_screens_test`, `api_contract_test` |
 | 4 | Employee list shows this year's overtime, not the joining date | API `overtimeMinutesThisYear` | `overtime_this_year_test` |
 | 5 | 233 minutes shows as "3 Hours 53 Minutes" | App (`DurationFormat`) | `duration_format_test` |
 | 6 | Only Casual and Unpaid leave | API `/leave-types` | `leave_screens_test`, `api_contract_test` |

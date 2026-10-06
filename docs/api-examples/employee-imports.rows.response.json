@@ -1,0 +1,43 @@
+{
+  "items": [
+    {
+      "rowNumber": 18,
+      "status": "error",
+      "ecNumber": "KC1001",
+      "name": "Aarav Shah",
+      "messages": [
+        "EC number KC1001 is also on row 3"
+      ],
+      "changes": []
+    },
+    {
+      "rowNumber": 27,
+      "status": "error",
+      "ecNumber": "KC2026",
+      "name": "Divya Rao",
+      "messages": [
+        "Department is missing"
+      ],
+      "changes": []
+    },
+    {
+      "rowNumber": 42,
+      "status": "warning",
+      "ecNumber": "KC1004",
+      "name": "Priya Desai",
+      "messages": [
+        "Updates KC1004 (Priya Desai)"
+      ],
+      "changes": [
+        {
+          "field": "Department",
+          "before": "Tailor",
+          "after": "Production"
+        }
+      ]
+    }
+  ],
+  "total": 6,
+  "page": 1,
+  "pageSize": 20
+}

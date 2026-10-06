@@ -8,12 +8,11 @@ import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/widgets/app_alert_banner.dart';
 import 'package:kc_admin_portal/core/widgets/app_avatar.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
-import 'package:kc_admin_portal/core/widgets/app_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_empty_view.dart';
-import 'package:kc_admin_portal/core/widgets/app_filter_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_pagination.dart';
 import 'package:kc_admin_portal/core/widgets/app_search_field.dart';
 import 'package:kc_admin_portal/core/widgets/async_value_view.dart';
@@ -23,7 +22,9 @@ import 'package:kc_admin_portal/core/widgets/responsive_grid.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/permission_providers.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
 import 'package:kc_admin_portal/features/leave/presentation/providers/leave_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
+import 'package:kc_admin_portal/features/organization/presentation/providers/organization_providers.dart';
+import 'package:kc_admin_portal/features/organization/presentation/widgets/catalog_filter_dropdown.dart';
 
 /// The Leave page's Balances tab: totals for the filtered employees, then
 /// each active employee's Casual balance and Unpaid days (requirement
@@ -64,7 +65,15 @@ class _LeaveBalancesViewState extends ConsumerState<LeaveBalancesView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: AppSpacing.s16,
       children: [
-        if (list.value case final data?)
+        if (!ref.watch(paidLeaveEnabledProvider))
+          const AppAlertBanner(
+            tone: AlertTone.info,
+            title: 'No paid leave in this organization',
+            message:
+                'Only unpaid leave is used, so there are no balances. Paid '
+                'leave can be turned on in Settings.',
+          )
+        else if (list.value case final data?)
           LeaveBalanceSummary(totals: data.summary, filtered: query.hasFilters),
         AppCard(
           padding: EdgeInsets.zero,
@@ -91,14 +100,10 @@ class _LeaveBalancesViewState extends ConsumerState<LeaveBalancesView> {
                         onSubmitted: notifier.applySearch,
                       ),
                     ),
-                    AppFilterDropdown<JobRole>(
-                      label: 'Department',
-                      value: query.department,
+                    CatalogFilterDropdown(
+                      kind: CatalogKind.departments,
+                      value: query.departmentId,
                       onChanged: notifier.setDepartment,
-                      items: [
-                        for (final d in JobRole.choices)
-                          AppDropdownItem(value: d, label: d.label),
-                      ],
                     ),
                     if (query.hasFilters)
                       AppButton(
@@ -156,8 +161,8 @@ class _LeaveBalancesViewState extends ConsumerState<LeaveBalancesView> {
 }
 
 /// "Casual earned · used · remaining · Unpaid taken" totals for every
-/// employee matching the filters.
-class LeaveBalanceSummary extends StatelessWidget {
+/// employee matching the filters, with the organization's type names.
+class LeaveBalanceSummary extends ConsumerWidget {
   const LeaveBalanceSummary({
     required this.totals,
     required this.filtered,
@@ -172,7 +177,10 @@ class LeaveBalanceSummary extends StatelessWidget {
   static const double _minTileWidth = 170;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paid = ref.watch(paidLeaveNameProvider);
+    final unpaid = ref.watch(unpaidLeaveNameProvider);
+    final perMonth = ref.watch(leavePolicyProvider).value?.daysPerMonth;
     final n = totals.employees;
     final who = '${FormatUtils.count(n)} active employee${n == 1 ? '' : 's'}';
     return Column(
@@ -188,25 +196,27 @@ class LeaveBalanceSummary extends StatelessWidget {
           spacing: AppSpacing.s12,
           children: [
             _SummaryTile(
-              label: 'Casual earned',
+              label: '$paid earned',
               value: totals.accrued,
-              note: '1 day a month each',
+              note: perMonth == null
+                  ? 'Earned every month'
+                  : '${FormatUtils.days(perMonth)} a month each',
             ),
             _SummaryTile(
-              label: 'Casual used',
+              label: '$paid used',
               value: totals.used,
               note: totals.pending > 0
                   ? '+ ${FormatUtils.days(totals.pending)} pending'
                   : 'Approved leave',
             ),
             _SummaryTile(
-              label: 'Casual remaining',
+              label: '$paid remaining',
               value: totals.remaining,
               note: 'Earned − used − pending',
               highlight: true,
             ),
             _SummaryTile(
-              label: 'Unpaid taken',
+              label: '$unpaid taken',
               value: totals.unpaidTaken,
               note: 'No fixed balance',
             ),
@@ -312,7 +322,7 @@ class _BalanceTable extends ConsumerWidget {
           minWidth: 150,
           priority: 3,
           cellBuilder: (context, r) => Text(
-            r.employee.department?.label ?? '—',
+            r.employee.department?.name ?? '—',
             overflow: TextOverflow.ellipsis,
           ),
         ),

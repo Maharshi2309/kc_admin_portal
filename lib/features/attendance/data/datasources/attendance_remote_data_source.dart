@@ -1,20 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:kc_admin_portal/core/config/env.dart';
-import 'package:kc_admin_portal/core/config/mock_latency.dart';
 import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/network/api_client.dart';
-import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
-import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
-import 'package:kc_admin_portal/features/attendance/data/datasources/attendance_mock_data_source.dart';
 import 'package:kc_admin_portal/features/attendance/data/models/attendance_models.dart';
-import 'package:kc_admin_portal/features/employees/data/datasources/employee_mock_data_source.dart';
-import 'package:kc_admin_portal/features/employees/data/datasources/mock_schedule_book.dart';
-import 'package:kc_admin_portal/features/holidays/data/datasources/mock_holiday_store.dart';
-import 'package:kc_admin_portal/features/leave/data/datasources/leave_mock_data_source.dart';
-import 'package:kc_admin_portal/features/leave/data/datasources/leave_remote_data_source.dart';
-import 'package:kc_admin_portal/shared/mock/mock_audit_log.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
+import 'package:kc_admin_portal/shared/mock/mock_tenant.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
 
 abstract interface class AttendanceRemoteDataSource {
@@ -114,21 +105,13 @@ class AttendanceApiDataSource implements AttendanceRemoteDataSource {
   );
 }
 
-final attendanceRemoteDataSourceProvider = Provider<AttendanceRemoteDataSource>(
-  (ref) {
-    if (ref.watch(envProvider).useMockApi) {
-      final leaves = ref.watch(leaveRemoteDataSourceProvider);
-      return AttendanceMockDataSource(
-        guard: ref.watch(mockGuardProvider),
-        now: ref.watch(clockProvider),
-        latency: ref.watch(mockLatencyProvider),
-        store: ref.watch(mockEmployeeStoreProvider),
-        schedules: ref.watch(mockScheduleBookProvider),
-        holidayOn: ref.watch(mockHolidayStoreProvider).on,
-        leaveOn: leaves is LeaveMockDataSource ? leaves.leaveOn : null,
-        audit: ref.watch(mockAuditLogProvider),
-      );
-    }
-    return AttendanceApiDataSource(ref.watch(apiClientProvider));
-  },
-);
+final attendanceRemoteDataSourceProvider = Provider<AttendanceRemoteDataSource>((
+  ref,
+) {
+  if (ref.watch(envProvider).useMockApi) {
+    return ref.watch(mockActiveTenantProvider).attendance;
+  }
+  // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
+  ref.watch(activeOrganizationIdProvider);
+  return AttendanceApiDataSource(ref.watch(apiClientProvider));
+});

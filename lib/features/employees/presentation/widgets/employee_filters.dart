@@ -9,7 +9,8 @@ import 'package:kc_admin_portal/core/widgets/app_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_filter_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_search_field.dart';
 import 'package:kc_admin_portal/features/employees/presentation/providers/employee_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
+import 'package:kc_admin_portal/features/organization/presentation/widgets/catalog_filter_dropdown.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Search and filter row above the employee table. Wraps onto several lines
@@ -43,23 +44,15 @@ class EmployeeFilters extends ConsumerWidget {
             onSubmitted: notifier.applySearch,
           ),
         ),
-        AppFilterDropdown<JobRole>(
-          label: 'Department',
-          value: query.department,
+        CatalogFilterDropdown(
+          kind: CatalogKind.departments,
+          value: query.departmentId,
           onChanged: notifier.setDepartment,
-          items: [
-            for (final d in JobRole.choices)
-              AppDropdownItem(value: d, label: d.label),
-          ],
         ),
-        AppFilterDropdown<JobRole>(
-          label: 'Position',
-          value: query.position,
+        CatalogFilterDropdown(
+          kind: CatalogKind.positions,
+          value: query.positionId,
           onChanged: notifier.setPosition,
-          items: [
-            for (final p in JobRole.choices)
-              AppDropdownItem(value: p, label: p.label),
-          ],
         ),
         AppDateRangeFilter(
           label: 'Joined',

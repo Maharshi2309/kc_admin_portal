@@ -41,7 +41,7 @@ class AppLink extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label),
+          Flexible(child: Text(label)),
           if (showChevron) ...[
             const SizedBox(width: AppSpacing.s2),
             const Icon(Icons.chevron_right_rounded, size: AppSizes.iconSmall),

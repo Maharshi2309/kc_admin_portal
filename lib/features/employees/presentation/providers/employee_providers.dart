@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/features/calendar/presentation/providers/calendar_providers.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/features/employees/data/repositories/employee_repository_impl.dart';
 import 'package:kc_admin_portal/features/overtime/presentation/providers/overtime_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
@@ -21,6 +21,8 @@ class EmployeeQueryNotifier extends Notifier<EmployeeQuery> {
   @override
   EmployeeQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
+    // Another organization starts with fresh filters.
+    ref.watch(activeOrganizationIdProvider);
     return const EmployeeQuery();
   }
 
@@ -39,11 +41,11 @@ class EmployeeQueryNotifier extends Notifier<EmployeeQuery> {
   }
 
   /// Department and position are independent filters.
-  void setDepartment(JobRole? department) =>
-      state = state.copyWith(department: department, page: 1);
+  void setDepartment(String? departmentId) =>
+      state = state.copyWith(departmentId: departmentId, page: 1);
 
-  void setPosition(JobRole? position) =>
-      state = state.copyWith(position: position, page: 1);
+  void setPosition(String? positionId) =>
+      state = state.copyWith(positionId: positionId, page: 1);
 
   void setJoined(DateTime? from, DateTime? to) =>
       state = state.copyWith(joinedFrom: from, joinedTo: to, page: 1);

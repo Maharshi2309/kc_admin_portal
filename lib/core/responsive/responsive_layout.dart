@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'package:kc_admin_portal/core/responsive/app_breakpoints.dart';
+import 'package:kc_admin_portal/core/responsive/layout_mode.dart';
 import 'package:kc_admin_portal/core/responsive/responsive_utils.dart';
 
 /// Builds a layout from the [ScreenSize] of the width available to this
@@ -21,7 +22,11 @@ class ResponsiveBuilder extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) => builder(
         context,
-        ScreenSize.fromWidth(constraints.maxWidth),
+        // Desktop mode keeps desktop layouts in narrower spaces too.
+        LayoutModeScope.of(context).apply(
+          ScreenSize.fromWidth(constraints.maxWidth),
+          MediaQuery.sizeOf(context).width,
+        ),
         constraints,
       ),
     );

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +14,8 @@ import 'package:kc_admin_portal/core/storage/local_storage.dart';
 typedef JsonParser<T> = T Function(Object? json);
 
 /// The only class that talks HTTP. Remote data sources call these methods
-/// (updates use PATCH; only company holidays are ever deleted)
+/// (updates use PATCH; only company holidays, logos and unfinished imports
+/// are ever deleted)
 /// and get typed results back, or an [AppException] — never a dio error.
 class ApiClient {
   ApiClient(this._dio);
@@ -49,6 +52,15 @@ class ApiClient {
   /// holidays); employees, leave and attendance are never deleted.
   Future<T> delete<T>(String path, {required JsonParser<T> parse}) =>
       _send(() => _dio.delete<Object?>(path), parse);
+
+  /// A file the server sends (an Excel template or report), as bytes.
+  Future<Uint8List> getBytes(String path) => _send(
+    () => _dio.get<Object?>(
+      path,
+      options: Options(responseType: ResponseType.bytes),
+    ),
+    (data) => Uint8List.fromList(data! as List<int>),
+  );
 
   /// Parser for endpoints whose response body is not needed.
   static void ignoreBody(Object? _) {}

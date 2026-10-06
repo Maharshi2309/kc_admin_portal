@@ -130,4 +130,50 @@ void main() {
       0,
     );
   });
+
+  group('a carry-forward cap (per organization, 2026-10-06)', () {
+    // 1 day a month from January, the balance holds at most 3.
+    final capped = LeaveAccrual(
+      policyStart: DateTime(2026),
+      carryForwardCap: 3,
+    );
+
+    test('a full balance earns nothing', () {
+      expect(
+        capped.earnedThrough(const [], joinedEarlier, DateTime(2026, 6)),
+        3,
+      );
+      expect(
+        capped.balanceAfter(const [], joinedEarlier, DateTime(2026, 6)),
+        3,
+      );
+    });
+
+    test('using days makes room to earn again', () {
+      // Jan 1, Feb 2, Mar 3, Apr full (earns 0) then 2 taken → 1,
+      // May 2, Jun 3: earned 1+1+1+0+1+1 = 5.
+      final april = days(DateTime(2026, 4, 6), 2);
+      expect(capped.earnedThrough(april, joinedEarlier, DateTime(2026, 6)), 5);
+      expect(
+        capped.balanceAfter(april, joinedEarlier, DateTime(2026, 6, 30)),
+        3,
+      );
+      expect(
+        capped.balanceAfter(april, joinedEarlier, DateTime(2026, 4, 30)),
+        1,
+      );
+    });
+
+    test('never more than the cap in one go', () {
+      expect(capped.fits(days(DateTime(2026, 6, 1), 3), joinedEarlier), true);
+      expect(capped.fits(days(DateTime(2026, 6, 1), 4), joinedEarlier), false);
+    });
+
+    test('half a day a month', () {
+      final half = LeaveAccrual(policyStart: DateTime(2026), perMonth: 0.5);
+      expect(half.accruedThrough(joinedEarlier, DateTime(2026, 4)), 2);
+      expect(half.fits(days(DateTime(2026, 4, 6), 2), joinedEarlier), true);
+      expect(half.fits(days(DateTime(2026, 4, 6), 3), joinedEarlier), false);
+    });
+  });
 }

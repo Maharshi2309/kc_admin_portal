@@ -8,6 +8,8 @@ import 'package:kc_admin_portal/app/shell/account_widgets.dart';
 import 'package:kc_admin_portal/app/shell/app_header.dart';
 import 'package:kc_admin_portal/app/shell/app_sidebar.dart';
 import 'package:kc_admin_portal/app/shell/nav_destinations.dart';
+import 'package:kc_admin_portal/app/shell/organization_brand_mark.dart';
+import 'package:kc_admin_portal/app/shell/organizations_dialog.dart';
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
@@ -16,7 +18,6 @@ import 'package:kc_admin_portal/core/responsive/responsive_utils.dart';
 import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/auth_controller.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/permission_providers.dart';
-import 'package:kc_admin_portal/shared/widgets/brand_mark.dart';
 
 /// Navigation labels grow with the system font size only this far, so the
 /// short labels never break mid-word; page content scales fully. The bottom
@@ -75,8 +76,15 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   void _signOut() => ref.read(authControllerProvider.notifier).signOut();
 
-  Widget? _accountMenu(UserModel? user) =>
-      user == null ? null : AccountMenuButton(user: user, onSignOut: _signOut);
+  void _switchOrganization() => showOrganizationsDialog(context, ref);
+
+  Widget? _accountMenu(UserModel? user) => user == null
+      ? null
+      : AccountMenuButton(
+          user: user,
+          onSignOut: _signOut,
+          onSwitchOrganization: _switchOrganization,
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +117,11 @@ class _AppShellState extends ConsumerState<AppShell> {
               onSelected: onSelected,
               footer: user == null
                   ? null
-                  : SidebarUserCard(user: user, onSignOut: _signOut),
+                  : SidebarUserCard(
+                      user: user,
+                      onSignOut: _signOut,
+                      onSwitchOrganization: _switchOrganization,
+                    ),
             )
           : _TabletRail(
               destinations: destinations,
@@ -192,7 +204,7 @@ class _TabletRail extends StatelessWidget {
           // Short screens (landscape phones) can't fit every section: the
           // rail scrolls, and the account sits right after the sections.
           scrollable: short,
-          leading: const BrandMark(showName: false),
+          leading: const OrganizationBrandMark(showName: false),
           trailing: account == null
               ? null
               : short
@@ -242,7 +254,7 @@ class _MobileFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const BrandMark(),
+        title: const OrganizationBrandMark(),
         actions: [
           if (account != null)
             Padding(

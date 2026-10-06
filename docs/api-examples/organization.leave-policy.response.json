@@ -1,0 +1,8 @@
+{
+  "paidLeaveEnabled": true,
+  "paidLeaveName": "Casual",
+  "unpaidLeaveName": "Unpaid",
+  "daysPerMonth": 1.0,
+  "carryForwardCap": null,
+  "accrualStartMonth": "2026-01-01"
+}

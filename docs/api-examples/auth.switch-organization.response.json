@@ -1,0 +1,36 @@
+{
+  "accessToken": "eyJhbGciOi…",
+  "user": {
+    "id": "1",
+    "name": "Admin",
+    "email": "admin@keshav.in",
+    "permissions": [
+      "dashboard.view",
+      "employee.view",
+      "attendance.view",
+      "attendance.punch",
+      "attendance.correct",
+      "leave.view",
+      "calendar.view",
+      "holiday.view"
+    ],
+    "organization": {
+      "id": "4e7a2b90-8c3d-4f1e-b6a5-0d9c8e7f6a02",
+      "name": "Sunrise Garments",
+      "logoUrl": null,
+      "timezone": "Asia/Kolkata"
+    },
+    "memberships": [
+      {
+        "organizationId": "9b1c0f6e-3d1a-4c55-9a2e-6c1d2f7b8a01",
+        "name": "Keshav Clothing",
+        "logoUrl": "https://cdn.example.com/org/9b1c0f6e/logo.png"
+      },
+      {
+        "organizationId": "4e7a2b90-8c3d-4f1e-b6a5-0d9c8e7f6a02",
+        "name": "Sunrise Garments",
+        "logoUrl": null
+      }
+    ]
+  }
+}

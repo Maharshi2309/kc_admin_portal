@@ -7,11 +7,11 @@ import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/features/attendance/data/models/attendance_models.dart';
 import 'package:kc_admin_portal/features/attendance/data/repositories/attendance_repository_impl.dart';
+import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/features/calendar/presentation/providers/calendar_providers.dart';
 import 'package:kc_admin_portal/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:kc_admin_portal/features/employees/presentation/providers/employee_providers.dart';
 import 'package:kc_admin_portal/features/overtime/presentation/providers/overtime_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 
 /// Date, tile filter, search and department of the attendance screen.
 class AttendanceQueryNotifier extends Notifier<AttendanceQuery> {
@@ -22,6 +22,8 @@ class AttendanceQueryNotifier extends Notifier<AttendanceQuery> {
   @override
   AttendanceQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
+    // Another organization starts with fresh filters.
+    ref.watch(activeOrganizationIdProvider);
     return AttendanceQuery(date: _today);
   }
 
@@ -56,8 +58,8 @@ class AttendanceQueryNotifier extends Notifier<AttendanceQuery> {
     if (search != state.search) state = state.copyWith(search: search);
   }
 
-  void setDepartment(JobRole? department) =>
-      state = state.copyWith(department: department);
+  void setDepartment(String? departmentId) =>
+      state = state.copyWith(departmentId: departmentId);
 }
 
 final attendanceQueryProvider =

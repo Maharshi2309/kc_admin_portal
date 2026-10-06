@@ -19,9 +19,16 @@
     "id": "25",
     "name": "Nisha Solanki",
     "ecNumber": "KC1025",
-    "department": "accountant",
-    "position": "accountant"
+    "department": {
+      "id": "keshav-dep-accountant",
+      "name": "Accountant"
+    },
+    "position": {
+      "id": "keshav-pos-accountant",
+      "name": "Accountant"
+    }
   },
   "isActive": true,
-  "lastSignInAt": null
+  "lastSignInAt": null,
+  "invitationPending": false
 }

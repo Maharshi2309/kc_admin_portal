@@ -9,7 +9,7 @@ import 'package:kc_admin_portal/features/dashboard/data/models/monthly_attendanc
 import 'package:kc_admin_portal/features/leave/data/datasources/leave_mock_data_source.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// DEV ONLY (`USE_MOCK_API=true`): sample dashboard data shaped like the
@@ -98,19 +98,22 @@ class DashboardMockDataSource implements DashboardRemoteDataSource {
           id: '1042',
           name: 'Rohan Patel',
           ecNumber: 'KC1042',
-          department: JobRole.graphicDesigner,
+          department: NamedRef(
+            id: 'keshav-dep-graphic-designer',
+            name: 'Graphic Designer',
+          ),
         ),
         EmployeeSummaryModel(
           id: '1057',
           name: 'Kavya Mehta',
           ecNumber: 'KC1057',
-          department: JobRole.accountant,
+          department: NamedRef(id: 'keshav-dep-accountant', name: 'Accountant'),
         ),
         EmployeeSummaryModel(
           id: '1073',
           name: 'Arjun Joshi',
           ecNumber: 'KC1073',
-          department: JobRole.tailor,
+          department: NamedRef(id: 'keshav-dep-tailor', name: 'Tailor'),
         ),
       ],
       onLeave: [

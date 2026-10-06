@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:kc_admin_portal/features/leave/presentation/providers/leave_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
+import '../../helpers/catalogs.dart';
 import '../../helpers/fake_auth.dart';
 
 void main() {
@@ -42,7 +43,7 @@ void main() {
 
       query
         ..setPage(2)
-        ..setDepartment(JobRole.graphicDesigner);
+        ..setDepartment(dept('Graphic Designer').id);
       expect(container.read(leaveQueryProvider).page, 1);
 
       query

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:kc_admin_portal/app/router/route_names.dart';
 import 'package:kc_admin_portal/app/router/route_permissions.dart';
+import 'package:kc_admin_portal/app/shell/layout_mode_switch.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
@@ -11,6 +12,8 @@ import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_alert_banner.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
+import 'package:kc_admin_portal/core/widgets/app_card.dart';
+import 'package:kc_admin_portal/core/widgets/app_empty_view.dart';
 import 'package:kc_admin_portal/core/widgets/app_page.dart';
 import 'package:kc_admin_portal/core/widgets/app_snackbar.dart';
 import 'package:kc_admin_portal/core/widgets/app_status_badge.dart';
@@ -86,10 +89,48 @@ class DashboardScreen extends ConsumerWidget {
               ),
           ],
         ),
+        // Mobile or desktop layout, or by the screen (2026-10-06).
+        const Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: LayoutModeSwitch(),
+        ),
         AsyncValueView<DashboardSummaryModel>(
           value: summary,
           loadingMessage: 'Loading dashboard…',
           onRetry: () => ref.invalidate(dashboardSummaryProvider),
+          // A new organization: no figures yet, just the first step.
+          isEmpty: (data) => data.totalEmployees == 0,
+          empty: AppCard(
+            child: AppEmptyView(
+              icon: Icons.groups_outlined,
+              title: 'No employees added yet',
+              message:
+                  'Import employees from Excel or add your first employee '
+                  'to start tracking attendance, leave and overtime.',
+              action: can(AppRouteNames.employeeAdd)
+                  ? Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: AppSpacing.s10,
+                      runSpacing: AppSpacing.s10,
+                      children: [
+                        AppButton(
+                          label: 'Import employees',
+                          icon: Icons.upload_file_rounded,
+                          variant: AppButtonVariant.secondary,
+                          onPressed: () =>
+                              context.goNamed(AppRouteNames.employeeImport),
+                        ),
+                        AppButton(
+                          label: 'Add employee',
+                          icon: Icons.person_add_alt_1_outlined,
+                          onPressed: () =>
+                              context.goNamed(AppRouteNames.employeeAdd),
+                        ),
+                      ],
+                    )
+                  : null,
+            ),
+          ),
           data: (data) => _DashboardBody(summary: data, today: now.dateOnly),
         ),
       ],

@@ -48,9 +48,10 @@ class DayResult {
 ///
 /// All values are whole minutes; times are company wall-clock times.
 abstract final class MockDayCalculator {
-  /// Late means arriving after the start time plus this grace (approved
-  /// 2026-09-30).
-  static const int lateGraceMinutes = 15;
+  /// Late means arriving after the start time plus a grace: the
+  /// organization's setting (2026-10-06); 15 minutes for Keshav Clothing
+  /// (approved 2026-09-30).
+  static const int defaultLateGraceMinutes = 15;
 
   static DayResult compute({
     required DateTime date,
@@ -60,6 +61,7 @@ abstract final class MockDayCalculator {
     DayLeave leave = DayLeave.none,
     DateTime? punchIn,
     DateTime? punchOut,
+    int lateGraceMinutes = defaultLateGraceMinutes,
   }) {
     final day = date.dateOnly;
     final isToday = day == now.dateOnly;
@@ -117,6 +119,7 @@ abstract final class MockDayCalculator {
       now: now,
       isToday: isToday,
       punchIn: punchIn,
+      lateGraceMinutes: lateGraceMinutes,
     );
 
     return DayResult(
@@ -162,6 +165,7 @@ abstract final class MockDayCalculator {
     required DateTime now,
     required bool isToday,
     required DateTime? punchIn,
+    required int lateGraceMinutes,
   }) {
     if (dayType != CalendarDayType.working) {
       if (punchIn != null) return (AttendanceDayStatus.present, null, null);
@@ -177,7 +181,7 @@ abstract final class MockDayCalculator {
         ? null
         : day.add(Duration(minutes: schedule.startTime.minutes));
     if (punchIn == null) {
-      final dueBy = start?.add(const Duration(minutes: lateGraceMinutes));
+      final dueBy = start?.add(Duration(minutes: lateGraceMinutes));
       final notDueYet = isToday && dueBy != null && now.isBefore(dueBy);
       return (
         AttendanceDayStatus.absent,

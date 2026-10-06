@@ -67,4 +67,10 @@ const List<AppNavDestination> appNavDestinations = [
     icon: Icons.admin_panel_settings_outlined,
     selectedIcon: Icons.admin_panel_settings_rounded,
   ),
+  AppNavDestination(
+    label: 'Settings',
+    requires: [AppPermission.settingsManage],
+    icon: Icons.settings_outlined,
+    selectedIcon: Icons.settings_rounded,
+  ),
 ];

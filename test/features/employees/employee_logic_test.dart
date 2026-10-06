@@ -7,16 +7,16 @@ import 'package:kc_admin_portal/features/employees/data/datasources/employee_moc
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/features/employees/domain/utils/schedule_rules.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
+import '../../helpers/catalogs.dart';
 
 EmployeeFormData _form({String ec = 'KC2001'}) => EmployeeFormData(
   ecNumber: ec,
   name: 'New Person',
   mobile: '9876543210',
-  department: JobRole.graphicDesigner,
-  position: JobRole.graphicDesigner,
+  departmentId: dept('Graphic Designer').id,
+  positionId: post('Graphic Designer').id,
   joiningDate: DateTime(2026, 10, 1),
   status: EmployeeStatus.active,
   schedule: ScheduleDraft.standard.toInput(DateTime(2026, 10, 1)),
@@ -24,13 +24,23 @@ EmployeeFormData _form({String ec = 'KC2001'}) => EmployeeFormData(
 
 void main() {
   group('Validators', () {
-    test('EC number must be KC followed by digits', () {
-      expect(Validators.ecNumber('KC1001'), isNull);
-      expect(Validators.ecNumber('KC7'), isNull);
-      expect(Validators.ecNumber(''), 'EC number is required');
+    test("EC number: the organization's prefix, then digits", () {
+      expect(Validators.ecNumber('KC1001', prefix: 'KC'), isNull);
+      expect(Validators.ecNumber('KC7', prefix: 'KC'), isNull);
+      expect(Validators.ecNumber('', prefix: 'KC'), 'EC number is required');
       for (final bad in ['KC-1001', 'EC1001', 'kc1001', 'KC', 'KC10A1']) {
-        expect(Validators.ecNumber(bad), isNotNull, reason: bad);
+        expect(Validators.ecNumber(bad, prefix: 'KC'), isNotNull, reason: bad);
       }
+      expect(
+        Validators.ecNumber('EC1001', prefix: 'KC'),
+        'Use KC followed by numbers, e.g. KC1001',
+      );
+      // Another organization's prefix.
+      expect(Validators.ecNumber('SG101', prefix: 'SG'), isNull);
+      expect(Validators.ecNumber('KC1001', prefix: 'SG'), isNotNull);
+      // No prefix: numbers only.
+      expect(Validators.ecNumber('1001', prefix: ''), isNull);
+      expect(Validators.ecNumber('A1001', prefix: ''), isNotNull);
     });
 
     test('mobile must be 10 digits', () {
@@ -66,25 +76,26 @@ void main() {
     test('filters by department and position independently', () async {
       final source = EmployeeMockDataSource(now: () => DateTime(2026, 9, 28));
       final tailors = await source.list(
-        const EmployeeQuery(department: JobRole.tailor, status: null),
+        EmployeeQuery(departmentId: dept('Tailor').id, status: null),
       );
       expect(tailors.items, isNotEmpty);
       expect(
-        tailors.items.every((e) => e.department == JobRole.tailor),
+        tailors.items.every((e) => e.department == dept('Tailor')),
         isTrue,
       );
       final mixed = await source.list(
-        const EmployeeQuery(
-          department: JobRole.graphicDesigner,
-          position: JobRole.tailor,
+        EmployeeQuery(
+          departmentId: dept('Graphic Designer').id,
+          positionId: post('Tailor').id,
           status: null,
         ),
       );
+      expect(mixed.items, isNotEmpty);
       expect(
         mixed.items.every(
           (e) =>
-              e.department == JobRole.graphicDesigner &&
-              e.position == JobRole.tailor,
+              e.department == dept('Graphic Designer') &&
+              e.position == post('Tailor'),
         ),
         isTrue,
       );
@@ -213,7 +224,7 @@ void main() {
 
     test('creates, updates and deactivates without deleting', () async {
       final created = await source.create(_form());
-      expect(created.department, JobRole.graphicDesigner);
+      expect(created.department, dept('Graphic Designer'));
 
       final renamed = await source.update(
         created.id,

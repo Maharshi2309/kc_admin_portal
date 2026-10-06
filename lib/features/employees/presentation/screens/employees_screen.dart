@@ -99,12 +99,19 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
           title: 'Employees',
           subtitle: page == null ? null : _subtitle(page),
           actions: [
-            if (canAdd)
+            if (canAdd) ...[
+              AppButton(
+                label: 'Import employees',
+                icon: Icons.upload_file_rounded,
+                variant: AppButtonVariant.secondary,
+                onPressed: () => context.goNamed(AppRouteNames.employeeImport),
+              ),
               AppButton(
                 label: 'Add employee',
                 icon: Icons.add_rounded,
                 onPressed: _addEmployee,
               ),
+            ],
           ],
         ),
         AppCard(
@@ -187,16 +194,30 @@ class _EmptyState extends ConsumerWidget {
           )
         : AppEmptyView(
             icon: Icons.group_add_outlined,
-            title: 'No employees yet',
+            title: 'No employees added yet',
             message: onAdd == null
                 ? null
-                : 'Add your first employee to get started.',
+                : 'Import them from Excel or add your first employee.',
             action: onAdd == null
                 ? null
-                : AppButton(
-                    label: 'Add employee',
-                    icon: Icons.add_rounded,
-                    onPressed: onAdd,
+                : Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: AppSpacing.s10,
+                    runSpacing: AppSpacing.s10,
+                    children: [
+                      AppButton(
+                        label: 'Import employees',
+                        icon: Icons.upload_file_rounded,
+                        variant: AppButtonVariant.secondary,
+                        onPressed: () =>
+                            context.goNamed(AppRouteNames.employeeImport),
+                      ),
+                      AppButton(
+                        label: 'Add employee',
+                        icon: Icons.add_rounded,
+                        onPressed: onAdd,
+                      ),
+                    ],
                   ),
           );
   }

@@ -4,10 +4,21 @@ abstract final class AppRouteNames {
   static const String splash = 'splash';
   static const String login = 'login';
   static const String noAccess = 'no-access';
+
+  // Sign-up and onboarding (2026-10-06)
+  static const String register = 'register';
+  static const String verifyEmail = 'verify-email';
+  static const String forgotPassword = 'forgot-password';
+  static const String resetPassword = 'reset-password';
+  static const String welcome = 'welcome';
+  static const String createOrganization = 'create-organization';
   static const String dashboard = 'dashboard';
 
   static const String employees = 'employees';
   static const String employeeAdd = 'employee-add';
+
+  /// `/employees/import`: employees from an Excel file (2026-10-06).
+  static const String employeeImport = 'employee-import';
   static const String employeeProfile = 'employee-profile';
   static const String employeeEdit = 'employee-edit';
   static const String employeeSchedule = 'employee-schedule';
@@ -36,6 +47,7 @@ abstract final class AppRouteNames {
   /// Access control: the staff users; each user's page sets their
   /// permissions.
   static const String accessControl = 'access-control';
+  static const String settings = 'settings';
   static const String userAccess = 'user-access';
   static const String userAdd = 'user-add';
   static const String userEdit = 'user-edit';
@@ -49,6 +61,20 @@ abstract final class AppRoutePaths {
   static const String splash = '/splash';
   static const String login = '/login';
 
+  /// Public: create an account, verify its email (`?email=`), and reset a
+  /// forgotten password (`/reset-password?email=`).
+  static const String register = '/register';
+  static const String verifyEmail = '/verify-email';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
+
+  /// Signed in but in no organization yet: create one, or join by
+  /// invitation. Every other page sends such users here.
+  static const String welcome = '/welcome';
+
+  /// Any signed-in user can create (another) organization.
+  static const String createOrganization = '/create-organization';
+
   /// Shown when the signed-in user's role doesn't allow the page asked for
   /// (`?from=` keeps that address).
   static const String noAccess = '/no-access';
@@ -56,6 +82,7 @@ abstract final class AppRoutePaths {
 
   static const String employees = '/employees';
   static const String add = 'add';
+  static const String import = 'import';
 
   /// Adding a missing attendance record: `/attendance/new?employeeId&date`.
   static const String newRecord = 'new';
@@ -80,6 +107,9 @@ abstract final class AppRoutePaths {
   /// `/access-control/:id` (a user's permissions) and its `edit` dialog.
   static const String accessControl = '/access-control';
 
+  /// The organization's settings (2026-10-06).
+  static const String settings = '/settings';
+
   static const String devComponents = '/dev/components';
 }
 
@@ -101,6 +131,9 @@ abstract final class AppRouteParams {
 
   /// Page to open after signing in, e.g. `/login?from=/employees/42`.
   static const String from = 'from';
+
+  /// The email on the verification and password reset pages.
+  static const String email = 'email';
 
   /// A leave id in a calendar day's path.
   static const String leaveId = 'leaveId';

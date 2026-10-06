@@ -21,6 +21,10 @@ abstract class UserAccountModel with _$UserAccountModel {
     EmployeeSummaryModel? employee,
     @Default(true) bool isActive,
     @CompanyDateTimeConverter() DateTime? lastSignInAt,
+
+    /// Invited but not joined yet: the person signs up (or signs in) with
+    /// this email and accepts the invitation (2026-10-06).
+    @Default(false) bool invitationPending,
   }) = _UserAccountModel;
 
   factory UserAccountModel.fromJson(Map<String, dynamic> json) =>

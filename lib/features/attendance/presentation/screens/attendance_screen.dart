@@ -11,9 +11,7 @@ import 'package:kc_admin_portal/core/widgets/app_alert_banner.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
 import 'package:kc_admin_portal/core/widgets/app_dialog.dart';
-import 'package:kc_admin_portal/core/widgets/app_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_empty_view.dart';
-import 'package:kc_admin_portal/core/widgets/app_filter_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_page.dart';
 import 'package:kc_admin_portal/core/widgets/app_pagination.dart';
 import 'package:kc_admin_portal/core/widgets/app_search_field.dart';
@@ -25,7 +23,8 @@ import 'package:kc_admin_portal/features/attendance/presentation/widgets/attenda
 import 'package:kc_admin_portal/features/attendance/presentation/widgets/day_picker.dart';
 import 'package:kc_admin_portal/features/attendance/presentation/widgets/status_filter_tiles.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/permission_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/organization/data/models/organization_models.dart';
+import 'package:kc_admin_portal/features/organization/presentation/widgets/catalog_filter_dropdown.dart';
 
 /// Daily attendance (design board 06): pick a day, filter by status tile,
 /// punch employees in and out, and correct records.
@@ -234,14 +233,10 @@ class _ListCard extends ConsumerWidget {
                     onSubmitted: notifier.applySearch,
                   ),
                 ),
-                AppFilterDropdown<JobRole>(
-                  label: 'Department',
-                  value: query.department,
+                CatalogFilterDropdown(
+                  kind: CatalogKind.departments,
+                  value: query.departmentId,
                   onChanged: notifier.setDepartment,
-                  items: [
-                    for (final d in JobRole.choices)
-                      AppDropdownItem(value: d, label: d.label),
-                  ],
                 ),
               ],
             ),

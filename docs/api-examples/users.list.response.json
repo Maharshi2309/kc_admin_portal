@@ -26,11 +26,13 @@
         "holiday.edit",
         "holiday.delete",
         "permission.manage",
-        "audit.view"
+        "audit.view",
+        "settings.manage"
       ],
       "employee": null,
       "isActive": true,
-      "lastSignInAt": "2026-09-30T09:12:00+05:30"
+      "lastSignInAt": "2026-09-30T09:12:00+05:30",
+      "invitationPending": false
     },
     {
       "id": "7",
@@ -53,11 +55,18 @@
         "id": "25",
         "name": "Nisha Solanki",
         "ecNumber": "KC1025",
-        "department": "accountant",
-        "position": "accountant"
+        "department": {
+          "id": "keshav-dep-accountant",
+          "name": "Accountant"
+        },
+        "position": {
+          "id": "keshav-pos-accountant",
+          "name": "Accountant"
+        }
       },
       "isActive": true,
-      "lastSignInAt": null
+      "lastSignInAt": null,
+      "invitationPending": true
     }
   ],
   "total": 2,

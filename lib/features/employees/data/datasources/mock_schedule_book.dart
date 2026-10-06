@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
-import 'package:kc_admin_portal/features/employees/data/datasources/employee_mock_data_source.dart';
 import 'package:kc_admin_portal/features/employees/domain/utils/schedule_rules.dart';
+import 'package:kc_admin_portal/shared/mock/mock_ids.dart';
+import 'package:kc_admin_portal/shared/mock/mock_tenant.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
 import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
@@ -27,7 +28,7 @@ class MockScheduleBook {
   void seed(Iterable<({String id, DateTime joined})> employees) {
     final year = now().year;
     for (final (:id, :joined) in employees) {
-      final input = switch (int.parse(id) % 4) {
+      final input = switch (mockSeedOf(id) % 4) {
         2 => _input(
           joined,
           9,
@@ -149,12 +150,7 @@ class MockScheduleBook {
   }
 }
 
-/// DEV ONLY: the schedules of the shared sample employees.
-final mockScheduleBookProvider = Provider<MockScheduleBook>((ref) {
-  final book = MockScheduleBook(now: ref.watch(clockProvider));
-  book.seed([
-    for (final e in ref.watch(mockEmployeeStoreProvider))
-      (id: e.id, joined: e.joiningDate),
-  ]);
-  return book;
-});
+/// DEV ONLY: the schedules of the active organization's sample employees.
+final mockScheduleBookProvider = Provider<MockScheduleBook>(
+  (ref) => ref.watch(mockActiveTenantProvider).schedules,
+);

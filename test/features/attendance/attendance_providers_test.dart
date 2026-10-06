@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/features/attendance/data/models/attendance_models.dart';
 import 'package:kc_admin_portal/features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'package:kc_admin_portal/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:kc_admin_portal/features/attendance/presentation/providers/attendance_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/catalogs.dart';
 import '../../helpers/fake_auth.dart';
 import '../../helpers/fake_dashboard.dart';
 
@@ -59,11 +60,11 @@ void main() {
       final container = createTestContainer();
       container.read(attendanceQueryProvider.notifier)
         ..setSearch('ish')
-        ..setDepartment(JobRole.graphicDesigner);
+        ..setDepartment(dept('Graphic Designer').id);
       expect(container.read(attendanceQueryProvider).search, '');
       expect(
-        container.read(attendanceQueryProvider).department,
-        JobRole.graphicDesigner,
+        container.read(attendanceQueryProvider).departmentId,
+        dept('Graphic Designer').id,
       );
 
       await Future<void>.delayed(

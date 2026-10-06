@@ -149,7 +149,8 @@ class _Header extends ConsumerWidget {
             spacing: AppSpacing.s10,
             runSpacing: AppSpacing.s8,
             children: [
-              if (!isYou) UserStatusButton(user: user),
+              if (!isYou && !user.invitationPending)
+                UserStatusButton(user: user),
               AppButton(
                 label: 'Edit details',
                 icon: Icons.edit_outlined,

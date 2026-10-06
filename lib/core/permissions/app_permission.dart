@@ -52,7 +52,11 @@ enum AppPermission {
   /// anything, so users are not split into finer permissions.)
   permissionManage('permission.manage'),
 
-  auditView('audit.view');
+  auditView('audit.view'),
+
+  /// Settings: the organization's name, logo and time zone, its departments
+  /// and positions, and its working defaults (2026-10-06).
+  settingsManage('settings.manage');
 
   const AppPermission(this.key);
 

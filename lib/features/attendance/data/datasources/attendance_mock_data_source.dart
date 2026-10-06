@@ -11,6 +11,7 @@ import 'package:kc_admin_portal/features/employees/data/datasources/employee_moc
 import 'package:kc_admin_portal/features/employees/data/datasources/mock_schedule_book.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/shared/mock/mock_audit_log.dart';
+import 'package:kc_admin_portal/shared/mock/mock_ids.dart';
 import 'package:kc_admin_portal/shared/models/audit_entry_model.dart';
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
@@ -34,13 +35,20 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
     HolidayModel? Function(DateTime date)? holidayOn,
     this.leaveOn,
     this.audit,
-  }) : _store = store ?? EmployeeMockDataSource.seed(now()),
+    int Function()? lateGraceMinutes,
+  }) : _lateGrace =
+           lateGraceMinutes ??
+           (() => MockDayCalculator.defaultLateGraceMinutes),
+       _store = store ?? EmployeeMockDataSource.seed(now()),
        _holidayOn = holidayOn ?? _noHolidays {
     _schedules =
         schedules ??
         (MockScheduleBook(now: now)
           ..seed([for (final e in _store) (id: e.id, joined: e.joiningDate)]));
   }
+
+  /// The organization's late rule (Settings), read on every calculation.
+  final int Function() _lateGrace;
 
   final DateTime Function() now;
   final Duration latency;
@@ -122,6 +130,7 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
       leave: leave,
       punchIn: punchIn,
       punchOut: punchOut,
+      lateGraceMinutes: _lateGrace(),
     );
     final working = result.dayType == CalendarDayType.working;
     final hasRecord =
@@ -183,7 +192,7 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
     }
 
     final schedule = _schedules.on(employee.id, day);
-    final seedIndex = int.parse(employee.id);
+    final seedIndex = mockSeedOf(employee.id);
     final offDay =
         _holidayOn(day) != null ||
         (schedule?.weeklyOffDays.contains(day.weekday) ?? false);
@@ -225,7 +234,11 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
       AttendanceDayStatus.late => _derived(
         employee,
         day,
-        punchIn: _at(day, start + MockDayCalculator.lateGraceMinutes + 23),
+        // Sample punches don't move with the setting; their status does.
+        punchIn: _at(
+          day,
+          start + MockDayCalculator.defaultLateGraceMinutes + 23,
+        ),
         punchOut: finished ? _at(day, outMinutes) : null,
       ),
       AttendanceDayStatus.halfDay => _derived(
@@ -299,8 +312,8 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
             )
             .where(
               (r) =>
-                  query.department == null ||
-                  _employee(r.employee.id).department == query.department,
+                  query.departmentId == null ||
+                  _employee(r.employee.id).department.id == query.departmentId,
             )
             .toList()
           ..sort((a, b) {

@@ -974,7 +974,7 @@ $AttendanceDaySummaryModelCopyWith<$Res> get summary {
 /// @nodoc
 mixin _$AttendanceQuery {
 
-@DateOnlyConverter() DateTime get date; AttendanceFilter get filter; String get search; JobRole? get department;
+@DateOnlyConverter() DateTime get date; AttendanceFilter get filter; String get search; String? get departmentId;
 /// Create a copy of AttendanceQuery
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -985,16 +985,16 @@ $AttendanceQueryCopyWith<AttendanceQuery> get copyWith => _$AttendanceQueryCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceQuery&&(identical(other.date, date) || other.date == date)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.search, search) || other.search == search)&&(identical(other.department, department) || other.department == department));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceQuery&&(identical(other.date, date) || other.date == date)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.search, search) || other.search == search)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,date,filter,search,department);
+int get hashCode => Object.hash(runtimeType,date,filter,search,departmentId);
 
 @override
 String toString() {
-  return 'AttendanceQuery(date: $date, filter: $filter, search: $search, department: $department)';
+  return 'AttendanceQuery(date: $date, filter: $filter, search: $search, departmentId: $departmentId)';
 }
 
 
@@ -1005,7 +1005,7 @@ abstract mixin class $AttendanceQueryCopyWith<$Res>  {
   factory $AttendanceQueryCopyWith(AttendanceQuery value, $Res Function(AttendanceQuery) _then) = _$AttendanceQueryCopyWithImpl;
 @useResult
 $Res call({
-@DateOnlyConverter() DateTime date, AttendanceFilter filter, String search, JobRole? department
+@DateOnlyConverter() DateTime date, AttendanceFilter filter, String search, String? departmentId
 });
 
 
@@ -1022,13 +1022,13 @@ class _$AttendanceQueryCopyWithImpl<$Res>
 
 /// Create a copy of AttendanceQuery
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? filter = null,Object? search = null,Object? department = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? filter = null,Object? search = null,Object? departmentId = freezed,}) {
   return _then(_self.copyWith(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,filter: null == filter ? _self.filter : filter // ignore: cast_nullable_to_non_nullable
 as AttendanceFilter,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
-as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,
+as String,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1113,10 +1113,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  JobRole? department)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  String? departmentId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AttendanceQuery() when $default != null:
-return $default(_that.date,_that.filter,_that.search,_that.department);case _:
+return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
   return orElse();
 
 }
@@ -1134,10 +1134,10 @@ return $default(_that.date,_that.filter,_that.search,_that.department);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  JobRole? department)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  String? departmentId)  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceQuery():
-return $default(_that.date,_that.filter,_that.search,_that.department);case _:
+return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1154,10 +1154,10 @@ return $default(_that.date,_that.filter,_that.search,_that.department);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  JobRole? department)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@DateOnlyConverter()  DateTime date,  AttendanceFilter filter,  String search,  String? departmentId)?  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceQuery() when $default != null:
-return $default(_that.date,_that.filter,_that.search,_that.department);case _:
+return $default(_that.date,_that.filter,_that.search,_that.departmentId);case _:
   return null;
 
 }
@@ -1169,13 +1169,13 @@ return $default(_that.date,_that.filter,_that.search,_that.department);case _:
 
 
 class _AttendanceQuery extends AttendanceQuery {
-  const _AttendanceQuery({@DateOnlyConverter() required this.date, this.filter = AttendanceFilter.all, this.search = '', this.department}): super._();
+  const _AttendanceQuery({@DateOnlyConverter() required this.date, this.filter = AttendanceFilter.all, this.search = '', this.departmentId}): super._();
   
 
 @override@DateOnlyConverter() final  DateTime date;
 @override@JsonKey() final  AttendanceFilter filter;
 @override@JsonKey() final  String search;
-@override final  JobRole? department;
+@override final  String? departmentId;
 
 /// Create a copy of AttendanceQuery
 /// with the given fields replaced by the non-null parameter values.
@@ -1187,16 +1187,16 @@ _$AttendanceQueryCopyWith<_AttendanceQuery> get copyWith => __$AttendanceQueryCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceQuery&&(identical(other.date, date) || other.date == date)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.search, search) || other.search == search)&&(identical(other.department, department) || other.department == department));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceQuery&&(identical(other.date, date) || other.date == date)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.search, search) || other.search == search)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,date,filter,search,department);
+int get hashCode => Object.hash(runtimeType,date,filter,search,departmentId);
 
 @override
 String toString() {
-  return 'AttendanceQuery(date: $date, filter: $filter, search: $search, department: $department)';
+  return 'AttendanceQuery(date: $date, filter: $filter, search: $search, departmentId: $departmentId)';
 }
 
 
@@ -1207,7 +1207,7 @@ abstract mixin class _$AttendanceQueryCopyWith<$Res> implements $AttendanceQuery
   factory _$AttendanceQueryCopyWith(_AttendanceQuery value, $Res Function(_AttendanceQuery) _then) = __$AttendanceQueryCopyWithImpl;
 @override @useResult
 $Res call({
-@DateOnlyConverter() DateTime date, AttendanceFilter filter, String search, JobRole? department
+@DateOnlyConverter() DateTime date, AttendanceFilter filter, String search, String? departmentId
 });
 
 
@@ -1224,13 +1224,13 @@ class __$AttendanceQueryCopyWithImpl<$Res>
 
 /// Create a copy of AttendanceQuery
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? filter = null,Object? search = null,Object? department = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? filter = null,Object? search = null,Object? departmentId = freezed,}) {
   return _then(_AttendanceQuery(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,filter: null == filter ? _self.filter : filter // ignore: cast_nullable_to_non_nullable
 as AttendanceFilter,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
-as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,
+as String,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

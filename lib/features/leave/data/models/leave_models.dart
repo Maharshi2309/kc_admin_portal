@@ -2,7 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
 import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
 import 'package:kc_admin_portal/shared/models/named_ref.dart';
@@ -78,6 +77,11 @@ abstract class LeaveModel with _$LeaveModel {
       status == LeaveStatus.pending || status == LeaveStatus.approved;
 }
 
+/// A leave type's name for sentences: "Casual" → "Casual leave", while
+/// "Paid leave" stays as it is.
+String leaveTypePhrase(String name) =>
+    name.toLowerCase().endsWith('leave') ? name : '$name leave';
+
 /// Reason chips from the design's Add leave drawer.
 @JsonEnum(fieldRename: FieldRename.snake)
 enum LeaveReason {
@@ -143,7 +147,7 @@ abstract class LeaveQuery with _$LeaveQuery {
     DateTime? from,
     DateTime? to,
     String? leaveTypeId,
-    JobRole? department,
+    String? departmentId,
     @Default(1) int page,
     @Default(LeaveQuery.defaultPageSize) int pageSize,
   }) = _LeaveQuery;
@@ -156,7 +160,7 @@ abstract class LeaveQuery with _$LeaveQuery {
       search.isNotEmpty ||
       from != null ||
       leaveTypeId != null ||
-      department != null;
+      departmentId != null;
 
   Map<String, Object?> toQueryParameters() => {
     'status': ?status?.name,
@@ -164,7 +168,7 @@ abstract class LeaveQuery with _$LeaveQuery {
     if (from != null) 'from': dateToJson(from!),
     if (to != null) 'to': dateToJson(to!),
     'leaveTypeId': ?leaveTypeId,
-    'department': ?department?.code,
+    'departmentId': ?departmentId,
     'page': page,
     'pageSize': pageSize,
   };
@@ -315,18 +319,18 @@ abstract class LeaveBalanceListModel with _$LeaveBalanceListModel {
 abstract class LeaveBalanceQuery with _$LeaveBalanceQuery {
   const factory LeaveBalanceQuery({
     @Default('') String search,
-    JobRole? department,
+    String? departmentId,
     @Default(1) int page,
     @Default(LeaveQuery.defaultPageSize) int pageSize,
   }) = _LeaveBalanceQuery;
 
   const LeaveBalanceQuery._();
 
-  bool get hasFilters => search.isNotEmpty || department != null;
+  bool get hasFilters => search.isNotEmpty || departmentId != null;
 
   Map<String, Object?> toQueryParameters() => {
     if (search.isNotEmpty) 'search': search,
-    'department': ?department?.code,
+    'departmentId': ?departmentId,
     'page': page,
     'pageSize': pageSize,
   };

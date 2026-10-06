@@ -1,5 +1,5 @@
 {
-  "accessToken": "eyJhbGciOi\u2026",
+  "accessToken": "eyJhbGciOi…",
   "user": {
     "id": "1",
     "name": "Admin",
@@ -26,7 +26,26 @@
       "holiday.edit",
       "holiday.delete",
       "permission.manage",
-      "audit.view"
+      "audit.view",
+      "settings.manage"
+    ],
+    "organization": {
+      "id": "9b1c0f6e-3d1a-4c55-9a2e-6c1d2f7b8a01",
+      "name": "Keshav Clothing",
+      "logoUrl": "https://cdn.example.com/org/9b1c0f6e/logo.png",
+      "timezone": "Asia/Kolkata"
+    },
+    "memberships": [
+      {
+        "organizationId": "9b1c0f6e-3d1a-4c55-9a2e-6c1d2f7b8a01",
+        "name": "Keshav Clothing",
+        "logoUrl": "https://cdn.example.com/org/9b1c0f6e/logo.png"
+      },
+      {
+        "organizationId": "4e7a2b90-8c3d-4f1e-b6a5-0d9c8e7f6a02",
+        "name": "Sunrise Garments",
+        "logoUrl": null
+      }
     ]
   }
 }

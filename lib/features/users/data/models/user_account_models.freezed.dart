@@ -16,7 +16,9 @@ T _$identity<T>(T value) => value;
 mixin _$UserAccountModel {
 
 @JsonKey(fromJson: idFromJson) String get id; String get name; String get email;/// Permission keys, e.g. `employee.edit`.
- List<String> get permissions; EmployeeSummaryModel? get employee; bool get isActive;@CompanyDateTimeConverter() DateTime? get lastSignInAt;
+ List<String> get permissions; EmployeeSummaryModel? get employee; bool get isActive;@CompanyDateTimeConverter() DateTime? get lastSignInAt;/// Invited but not joined yet: the person signs up (or signs in) with
+/// this email and accepts the invitation (2026-10-06).
+ bool get invitationPending;
 /// Create a copy of UserAccountModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +31,16 @@ $UserAccountModelCopyWith<UserAccountModel> get copyWith => _$UserAccountModelCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserAccountModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&const DeepCollectionEquality().equals(other.permissions, permissions)&&(identical(other.employee, employee) || other.employee == employee)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.lastSignInAt, lastSignInAt) || other.lastSignInAt == lastSignInAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserAccountModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&const DeepCollectionEquality().equals(other.permissions, permissions)&&(identical(other.employee, employee) || other.employee == employee)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.lastSignInAt, lastSignInAt) || other.lastSignInAt == lastSignInAt)&&(identical(other.invitationPending, invitationPending) || other.invitationPending == invitationPending));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,email,const DeepCollectionEquality().hash(permissions),employee,isActive,lastSignInAt);
+int get hashCode => Object.hash(runtimeType,id,name,email,const DeepCollectionEquality().hash(permissions),employee,isActive,lastSignInAt,invitationPending);
 
 @override
 String toString() {
-  return 'UserAccountModel(id: $id, name: $name, email: $email, permissions: $permissions, employee: $employee, isActive: $isActive, lastSignInAt: $lastSignInAt)';
+  return 'UserAccountModel(id: $id, name: $name, email: $email, permissions: $permissions, employee: $employee, isActive: $isActive, lastSignInAt: $lastSignInAt, invitationPending: $invitationPending)';
 }
 
 
@@ -49,7 +51,7 @@ abstract mixin class $UserAccountModelCopyWith<$Res>  {
   factory $UserAccountModelCopyWith(UserAccountModel value, $Res Function(UserAccountModel) _then) = _$UserAccountModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(fromJson: idFromJson) String id, String name, String email, List<String> permissions, EmployeeSummaryModel? employee, bool isActive,@CompanyDateTimeConverter() DateTime? lastSignInAt
+@JsonKey(fromJson: idFromJson) String id, String name, String email, List<String> permissions, EmployeeSummaryModel? employee, bool isActive,@CompanyDateTimeConverter() DateTime? lastSignInAt, bool invitationPending
 });
 
 
@@ -66,7 +68,7 @@ class _$UserAccountModelCopyWithImpl<$Res>
 
 /// Create a copy of UserAccountModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? email = null,Object? permissions = null,Object? employee = freezed,Object? isActive = null,Object? lastSignInAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? email = null,Object? permissions = null,Object? employee = freezed,Object? isActive = null,Object? lastSignInAt = freezed,Object? invitationPending = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -75,7 +77,8 @@ as String,permissions: null == permissions ? _self.permissions : permissions // 
 as List<String>,employee: freezed == employee ? _self.employee : employee // ignore: cast_nullable_to_non_nullable
 as EmployeeSummaryModel?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,lastSignInAt: freezed == lastSignInAt ? _self.lastSignInAt : lastSignInAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,invitationPending: null == invitationPending ? _self.invitationPending : invitationPending // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of UserAccountModel
@@ -172,10 +175,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  EmployeeSummaryModel? employee,  bool isActive, @CompanyDateTimeConverter()  DateTime? lastSignInAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  EmployeeSummaryModel? employee,  bool isActive, @CompanyDateTimeConverter()  DateTime? lastSignInAt,  bool invitationPending)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserAccountModel() when $default != null:
-return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee,_that.isActive,_that.lastSignInAt);case _:
+return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee,_that.isActive,_that.lastSignInAt,_that.invitationPending);case _:
   return orElse();
 
 }
@@ -193,10 +196,10 @@ return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  EmployeeSummaryModel? employee,  bool isActive, @CompanyDateTimeConverter()  DateTime? lastSignInAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  EmployeeSummaryModel? employee,  bool isActive, @CompanyDateTimeConverter()  DateTime? lastSignInAt,  bool invitationPending)  $default,) {final _that = this;
 switch (_that) {
 case _UserAccountModel():
-return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee,_that.isActive,_that.lastSignInAt);case _:
+return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee,_that.isActive,_that.lastSignInAt,_that.invitationPending);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +216,10 @@ return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  EmployeeSummaryModel? employee,  bool isActive, @CompanyDateTimeConverter()  DateTime? lastSignInAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: idFromJson)  String id,  String name,  String email,  List<String> permissions,  EmployeeSummaryModel? employee,  bool isActive, @CompanyDateTimeConverter()  DateTime? lastSignInAt,  bool invitationPending)?  $default,) {final _that = this;
 switch (_that) {
 case _UserAccountModel() when $default != null:
-return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee,_that.isActive,_that.lastSignInAt);case _:
+return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee,_that.isActive,_that.lastSignInAt,_that.invitationPending);case _:
   return null;
 
 }
@@ -228,7 +231,7 @@ return $default(_that.id,_that.name,_that.email,_that.permissions,_that.employee
 @JsonSerializable()
 
 class _UserAccountModel implements UserAccountModel {
-  const _UserAccountModel({@JsonKey(fromJson: idFromJson) required this.id, required this.name, required this.email, final  List<String> permissions = const <String>[], this.employee, this.isActive = true, @CompanyDateTimeConverter() this.lastSignInAt}): _permissions = permissions;
+  const _UserAccountModel({@JsonKey(fromJson: idFromJson) required this.id, required this.name, required this.email, final  List<String> permissions = const <String>[], this.employee, this.isActive = true, @CompanyDateTimeConverter() this.lastSignInAt, this.invitationPending = false}): _permissions = permissions;
   factory _UserAccountModel.fromJson(Map<String, dynamic> json) => _$UserAccountModelFromJson(json);
 
 @override@JsonKey(fromJson: idFromJson) final  String id;
@@ -246,6 +249,9 @@ class _UserAccountModel implements UserAccountModel {
 @override final  EmployeeSummaryModel? employee;
 @override@JsonKey() final  bool isActive;
 @override@CompanyDateTimeConverter() final  DateTime? lastSignInAt;
+/// Invited but not joined yet: the person signs up (or signs in) with
+/// this email and accepts the invitation (2026-10-06).
+@override@JsonKey() final  bool invitationPending;
 
 /// Create a copy of UserAccountModel
 /// with the given fields replaced by the non-null parameter values.
@@ -260,16 +266,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserAccountModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&const DeepCollectionEquality().equals(other._permissions, _permissions)&&(identical(other.employee, employee) || other.employee == employee)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.lastSignInAt, lastSignInAt) || other.lastSignInAt == lastSignInAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserAccountModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&const DeepCollectionEquality().equals(other._permissions, _permissions)&&(identical(other.employee, employee) || other.employee == employee)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.lastSignInAt, lastSignInAt) || other.lastSignInAt == lastSignInAt)&&(identical(other.invitationPending, invitationPending) || other.invitationPending == invitationPending));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,email,const DeepCollectionEquality().hash(_permissions),employee,isActive,lastSignInAt);
+int get hashCode => Object.hash(runtimeType,id,name,email,const DeepCollectionEquality().hash(_permissions),employee,isActive,lastSignInAt,invitationPending);
 
 @override
 String toString() {
-  return 'UserAccountModel(id: $id, name: $name, email: $email, permissions: $permissions, employee: $employee, isActive: $isActive, lastSignInAt: $lastSignInAt)';
+  return 'UserAccountModel(id: $id, name: $name, email: $email, permissions: $permissions, employee: $employee, isActive: $isActive, lastSignInAt: $lastSignInAt, invitationPending: $invitationPending)';
 }
 
 
@@ -280,7 +286,7 @@ abstract mixin class _$UserAccountModelCopyWith<$Res> implements $UserAccountMod
   factory _$UserAccountModelCopyWith(_UserAccountModel value, $Res Function(_UserAccountModel) _then) = __$UserAccountModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(fromJson: idFromJson) String id, String name, String email, List<String> permissions, EmployeeSummaryModel? employee, bool isActive,@CompanyDateTimeConverter() DateTime? lastSignInAt
+@JsonKey(fromJson: idFromJson) String id, String name, String email, List<String> permissions, EmployeeSummaryModel? employee, bool isActive,@CompanyDateTimeConverter() DateTime? lastSignInAt, bool invitationPending
 });
 
 
@@ -297,7 +303,7 @@ class __$UserAccountModelCopyWithImpl<$Res>
 
 /// Create a copy of UserAccountModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? email = null,Object? permissions = null,Object? employee = freezed,Object? isActive = null,Object? lastSignInAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? email = null,Object? permissions = null,Object? employee = freezed,Object? isActive = null,Object? lastSignInAt = freezed,Object? invitationPending = null,}) {
   return _then(_UserAccountModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -306,7 +312,8 @@ as String,permissions: null == permissions ? _self._permissions : permissions //
 as List<String>,employee: freezed == employee ? _self.employee : employee // ignore: cast_nullable_to_non_nullable
 as EmployeeSummaryModel?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,lastSignInAt: freezed == lastSignInAt ? _self.lastSignInAt : lastSignInAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,invitationPending: null == invitationPending ? _self.invitationPending : invitationPending // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

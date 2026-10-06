@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import '../helpers/fake_auth.dart';
 import '../helpers/fake_dashboard.dart';
 
-/// Department and position are enums; on screen they must always read as
-/// "Graphic Designer", never as a code name ("graphicDesigner") or
-/// "JobRole.tailor" (both compile when a string is expected).
+/// Departments and positions are the organization's `{ id, name }` items;
+/// on screen they must always read as "Graphic Designer", never as an id
+/// ("keshav-dep-graphic-designer") or an old code ("graphic_designer").
 void main() {
-  final rawName = RegExp(r'JobRole\.|graphicDesigner|graphic_designer');
+  final rawName = RegExp(r'-dep-|-pos-|graphicDesigner|graphic_designer');
 
   for (final (location, size) in [
     ('/employees', const Size(1440, 1000)),
@@ -19,6 +19,7 @@ void main() {
     ('/leave', const Size(1440, 1000)),
     ('/dashboard', const Size(1440, 1000)),
     ('/access-control', const Size(1440, 1000)),
+    ('/settings', const Size(1440, 1400)),
   ]) {
     testWidgets('$location at ${size.width.toInt()} shows labels', (
       tester,

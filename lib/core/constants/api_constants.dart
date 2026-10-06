@@ -14,6 +14,49 @@ abstract final class ApiConstants {
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
 
+  /// Work in another of the user's organizations (a new token).
+  static const String switchOrganization = '/auth/switch-organization';
+
+  // Public sign-up (2026-10-06)
+  static const String register = '/auth/register';
+  static const String verifyEmail = '/auth/verify-email';
+  static const String resendVerification = '/auth/resend-verification';
+  static const String forgotPassword = '/auth/forgot-password';
+  static const String resetPassword = '/auth/reset-password';
+
+  /// Create an organization; the caller becomes its owner.
+  static const String organizations = '/organizations';
+
+  /// The active organization (no id: the server knows it from the
+  /// session), its logo and its settings (2026-10-06).
+  static const String organization = '/organization';
+  static const String organizationLogo = '/organization/logo';
+  static const String organizationSettings = '/organization/settings';
+  static const String leavePolicy = '/organization/leave-policy';
+
+  /// Importing employees from Excel (2026-10-06,
+  /// docs/ARCHITECTURE_MULTI_ORG.md §D).
+  static const String employeeImports = '/employee-imports';
+  static const String employeeImportTemplate = '/employee-imports/template';
+  static String employeeImport(String id) => '/employee-imports/$id';
+  static String employeeImportRows(String id) => '/employee-imports/$id/rows';
+  static String employeeImportConfirm(String id) =>
+      '/employee-imports/$id/confirm';
+  static String employeeImportReport(String id) =>
+      '/employee-imports/$id/report';
+
+  /// The organization's own lists.
+  static const String departments = '/departments';
+  static const String positions = '/positions';
+
+  /// Invitations waiting for the signed-in person.
+  static const String invitations = '/invitations';
+  static String acceptInvitation(String id) => '/invitations/$id/accept';
+  static String declineInvitation(String id) => '/invitations/$id/decline';
+
+  /// Login with an email address not verified yet (403).
+  static const String emailNotVerifiedCode = 'EMAIL_NOT_VERIFIED';
+
   // Dashboard endpoints
   /// `?date=YYYY-MM-DD` → DashboardSummaryModel.
   static const String dashboardSummary = '/dashboard/summary';
@@ -151,5 +194,12 @@ abstract final class ApiConstants {
 
   /// Requests to these paths never trigger "session expired" on 401
   /// (a 401 from login just means wrong credentials).
-  static const List<String> unauthenticatedPaths = [login];
+  static const List<String> unauthenticatedPaths = [
+    login,
+    register,
+    verifyEmail,
+    resendVerification,
+    forgotPassword,
+    resetPassword,
+  ];
 }

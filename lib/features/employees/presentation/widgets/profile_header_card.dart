@@ -162,7 +162,7 @@ class _Identity extends StatelessWidget {
                 children: [
                   EcNumberText(employee.ecNumber, large: true, copyable: true),
                   Text(
-                    '${employee.position.label} · ${employee.department.label}',
+                    '${employee.position.name} · ${employee.department.name}',
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.textMuted,
                     ),

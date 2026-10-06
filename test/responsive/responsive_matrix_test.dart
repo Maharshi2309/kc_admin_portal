@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:kc_admin_portal/core/responsive/layout_mode.dart';
+
 import '../helpers/fake_auth.dart';
 
 /// Every screen at every device class the portal targets, including the
@@ -25,10 +27,29 @@ const _sizes = <String, Size>{
   '2K (2560x1440)': Size(2560, 1440),
 };
 
+/// Signing in, signing up and recovering a password.
+const _signedOutRoutes = [
+  '/login',
+  '/register',
+  '/verify-email?email=asha@bright.in',
+  '/forgot-password',
+  '/reset-password?email=asha@bright.in',
+];
+
+/// Signed in, in no organization yet.
+const _onboardingRoutes = ['/welcome', '/create-organization'];
+
+const _allRoutes = [
+  ..._signedOutRoutes,
+  ..._onboardingRoutes,
+  ..._signedInRoutes,
+];
+
 const _signedInRoutes = [
   '/dashboard',
   '/employees',
   '/employees/add',
+  '/employees/import',
   '/employees/1',
   '/employees/1/edit',
   '/employees/1/schedule',
@@ -36,7 +57,7 @@ const _signedInRoutes = [
   '/employees/1/calendar/2026-09-20/attendance',
   '/attendance',
   '/attendance/7-20260928/edit',
-  '/attendance/new?employeeId=1',
+  '/attendance/new?employeeId=1&date=2026-09-28',
   '/leave',
   '/leave?view=balances',
   '/leave/add?employeeId=1',
@@ -49,6 +70,7 @@ const _signedInRoutes = [
   '/access-control/u3',
   '/access-control/u1',
   '/access-control/u3/edit',
+  '/settings',
 ];
 
 /// Scrolls every vertical scroll view to its end, so content below the
@@ -71,6 +93,7 @@ Future<void> _check(
   String location,
   Size size, {
   double textScale = 1,
+  LayoutMode mode = LayoutMode.auto,
 }) async {
   tester.platformDispatcher.textScaleFactorTestValue = textScale;
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -78,15 +101,25 @@ Future<void> _check(
   final router = await pumpFullApp(
     tester,
     repository: FakeAuthRepository(
-      sessionUser: location == '/login' ? null : testUser,
+      sessionUser: _signedOutRoutes.contains(location)
+          ? null
+          : _onboardingRoutes.contains(location)
+          ? testUser.copyWith(permissions: const [], memberships: const [])
+          : testUser,
     ),
     mockDashboard: true,
     size: size,
+    overrides: [
+      layoutModeStoreProvider.overrideWithValue(MemoryLayoutModeStore(mode)),
+    ],
   );
-  if (location != '/login') {
-    router.go(location);
-    await tester.pumpAndSettle();
-  }
+  router.go(location);
+  await tester.pumpAndSettle();
+  expect(
+    Uri.parse(currentLocation(router)).path,
+    Uri.parse(location).path,
+    reason: 'not redirected',
+  );
   // Layout errors (overflow) fail the test with the framework's report.
   await _scrollAllToEnd(tester);
 }
@@ -95,7 +128,7 @@ void main() {
   group('every screen at every size', () {
     for (final size in _sizes.entries) {
       group(size.key, () {
-        for (final location in ['/login', ..._signedInRoutes]) {
+        for (final location in _allRoutes) {
           testWidgets(
             location,
             (tester) => _check(tester, location, size.value),
@@ -104,6 +137,23 @@ void main() {
       });
     }
   });
+
+  // The layout the person chose (2026-10-06): every screen at every size
+  // in mobile and in desktop mode too.
+  for (final mode in [LayoutMode.mobile, LayoutMode.desktop]) {
+    group('${mode.label} mode', () {
+      for (final size in _sizes.entries) {
+        group(size.key, () {
+          for (final location in _allRoutes) {
+            testWidgets(
+              location,
+              (tester) => _check(tester, location, size.value, mode: mode),
+            );
+          }
+        });
+      }
+    });
+  }
 
   // Large system font sizes (accessibility settings on phones and browser
   // zoom-like text scaling on desktop).
@@ -116,7 +166,7 @@ void main() {
     for (final scale in [1.3, 2.0]) {
       for (final size in cases.entries) {
         group('${scale}x on ${size.key}', () {
-          for (final location in ['/login', ..._signedInRoutes]) {
+          for (final location in _allRoutes) {
             testWidgets(
               location,
               (tester) =>

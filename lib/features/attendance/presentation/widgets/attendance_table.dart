@@ -117,7 +117,7 @@ class _EmployeeCell extends ConsumerWidget {
               Text(
                 [
                   employee.ecNumber,
-                  ?employee.department?.label,
+                  ?employee.department?.name,
                   ?_shiftText(record),
                 ].join(' · '),
                 overflow: TextOverflow.ellipsis,

@@ -174,7 +174,7 @@ class _Results extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              '${e.ecNumber} · ${e.department.label}',
+                              '${e.ecNumber} · ${e.department.name}',
                               style: muted,
                             ),
                           ],
@@ -220,7 +220,7 @@ class _SelectedCard extends StatelessWidget {
               children: [
                 Text(employee.name, style: AppTextStyles.bodyBold),
                 Text(
-                  [employee.ecNumber, ?employee.position?.label].join(' · '),
+                  [employee.ecNumber, ?employee.position?.name].join(' · '),
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.textMuted,
                   ),

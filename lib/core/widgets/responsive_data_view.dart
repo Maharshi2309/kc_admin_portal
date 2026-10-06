@@ -4,6 +4,7 @@ import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/responsive/app_breakpoints.dart';
+import 'package:kc_admin_portal/core/responsive/layout_mode.dart';
 
 /// One table column of a [ResponsiveDataView].
 class AppDataColumn<T> {
@@ -118,7 +119,12 @@ class ResponsiveDataView<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < tableMinWidth) {
+        // Desktop mode shows the table (scrolling sideways if needed)
+        // wherever the screen has room for the desktop layout.
+        final desktopMode =
+            LayoutModeScope.of(context) == LayoutMode.desktop &&
+            LayoutMode.desktopFits(MediaQuery.sizeOf(context).width);
+        if (constraints.maxWidth < tableMinWidth && !desktopMode) {
           return _MobileList<T>(
             rows: rows,
             itemBuilder: mobileItemBuilder,

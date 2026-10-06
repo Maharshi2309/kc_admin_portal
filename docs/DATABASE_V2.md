@@ -238,6 +238,14 @@ The app shows minutes as days using the basis. For example, with a 450-minute ba
 
 ### 3.7 Casual leave balance (approved 2026-10-05)
 
+> **Per organization since 2026-10-06:** the numbers below come from the
+> organization's leave policy (`ARCHITECTURE_MULTI_ORG.md` §B): `days_per_month`
+> instead of 1, the organization's `accrual_start_month`, and an optional
+> `carry_forward_cap`. With a cap, each month earns
+> `min(days_per_month, cap − balance)` (never negative) before that month's
+> leave is taken off, so a full balance earns nothing. Without a cap the rules
+> are exactly as below. "Casual" means the organization's paid type.
+
 One backend function, `casualBalance(employeeId, asOf)`, used by
 `/employees/{id}/leave-balance`, the preview, create, update and status
 changes. Nothing is stored.
@@ -320,7 +328,7 @@ holds who punched and when. **(confirm)**
 5. **Snapshots:** run `computeDay` for all existing attendance records, in batches.
 6. **Deploy the backend first.** The old app keeps working; the new fields are optional for it. Then release the app, which needs `permissions` in `/auth/me` and `/auth/login`.
 7. **Employee email (2026-10-05):** drop `employees.email` after deploying the backend that no longer reads it. No data moves: user logins keep their own email.
-8. **Department and position (2026-10-05):** add the two columns and fill them from today's department and designation using a mapping **the client provides (confirm)**. Employees without a mapping are listed for an admin to set. Then drop `department_id`, `designation_id`, `departments` and `designations`.
+8. **Department and position (2026-10-05; superseded 2026-10-06 by per-organization `departments` and `positions` tables, `ARCHITECTURE_MULTI_ORG.md` §B and §J step 4):** add the two columns and fill them from today's department and designation using a mapping **the client provides (confirm)**. Employees without a mapping are listed for an admin to set. Then drop `department_id`, `designation_id`, `departments` and `designations`.
 9. **Leave types (2026-10-05):** add `leave_types.is_paid`, `leaves.unpaid_part_of`, `leave_balance_adjustments` and the `leave_accrual_start_month` setting. Move existing Sick and Earned leave to Casual or Unpaid using a mapping **the client provides (confirm)**, then retire those types. Existing Casual leave dated before the start month needs an opening adjustment so balances don't go negative **(confirm the opening balances)**.
 
 ---

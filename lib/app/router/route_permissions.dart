@@ -14,6 +14,7 @@ const Map<String, List<AppPermission>> routePermissions = {
 
   AppRouteNames.employees: [_P.employeeView],
   AppRouteNames.employeeAdd: [_P.employeeView, _P.employeeCreate],
+  AppRouteNames.employeeImport: [_P.employeeView, _P.employeeCreate],
   AppRouteNames.employeeProfile: [_P.employeeView],
   AppRouteNames.employeeEdit: [_P.employeeView, _P.employeeEdit],
   AppRouteNames.employeeSchedule: [_P.employeeView, _P.scheduleEdit],
@@ -59,6 +60,7 @@ const Map<String, List<AppPermission>> routePermissions = {
 
   // Everything about users and their permissions needs this one.
   AppRouteNames.accessControl: [_P.permissionManage],
+  AppRouteNames.settings: [_P.settingsManage],
   AppRouteNames.userAdd: [_P.permissionManage],
   AppRouteNames.userAccess: [_P.permissionManage],
   AppRouteNames.userEdit: [_P.permissionManage],
@@ -75,6 +77,7 @@ const List<(String name, String path)> _sectionStarts = [
   (AppRouteNames.leave, AppRoutePaths.leave),
   (AppRouteNames.holidays, AppRoutePaths.holidays),
   (AppRouteNames.accessControl, AppRoutePaths.accessControl),
+  (AppRouteNames.settings, AppRoutePaths.settings),
 ];
 
 /// Where a signed-in user lands: the first page they may open, or null when
