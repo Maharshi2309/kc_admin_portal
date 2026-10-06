@@ -6,7 +6,6 @@ import 'package:kc_admin_portal/features/calendar/presentation/providers/calenda
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/features/employees/data/repositories/employee_repository_impl.dart';
 import 'package:kc_admin_portal/features/overtime/presentation/providers/overtime_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/models/work_schedule_model.dart';
@@ -38,11 +37,11 @@ class EmployeeQueryNotifier extends Notifier<EmployeeQuery> {
     state = state.copyWith(search: search, page: 1);
   }
 
-  /// Department and position are independent filters.
-  void setDepartment(JobRole? department) =>
+  /// Department and position are independent filters (API codes).
+  void setDepartment(String? department) =>
       state = state.copyWith(department: department, page: 1);
 
-  void setPosition(JobRole? position) =>
+  void setPosition(String? position) =>
       state = state.copyWith(position: position, page: 1);
 
   void setJoined(DateTime? from, DateTime? to) =>

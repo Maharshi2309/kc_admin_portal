@@ -24,7 +24,7 @@ import 'package:kc_admin_portal/features/leave/presentation/providers/leave_prov
 import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_balances_view.dart';
 import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_status_tabs.dart';
 import 'package:kc_admin_portal/features/leave/presentation/widgets/leave_table.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/master_data/presentation/providers/master_data_providers.dart';
 
 /// The Leave page's two tabs (requirement 2026-10-05).
 enum LeaveView {
@@ -133,6 +133,7 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
     final list = ref.watch(leaveListProvider);
     final types = ref.watch(leaveTypesProvider).value ?? const [];
     final today = ref.watch(clockProvider)();
+    final departments = watchDepartments(ref);
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -187,13 +188,13 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
                       AppDropdownItem(value: t.id, label: t.name),
                   ],
                 ),
-                AppFilterDropdown<JobRole>(
+                AppFilterDropdown<String>(
                   label: 'Department',
                   value: query.department,
                   onChanged: notifier.setDepartment,
                   items: [
-                    for (final d in JobRole.choices)
-                      AppDropdownItem(value: d, label: d.label),
+                    for (final d in departments)
+                      AppDropdownItem(value: d.code, label: d.name),
                   ],
                 ),
                 if (query.hasFilters)

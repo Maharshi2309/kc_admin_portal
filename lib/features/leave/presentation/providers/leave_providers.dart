@@ -11,7 +11,6 @@ import 'package:kc_admin_portal/features/employees/presentation/providers/employ
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
 import 'package:kc_admin_portal/features/leave/data/repositories/leave_repository_impl.dart';
 import 'package:kc_admin_portal/features/overtime/presentation/providers/overtime_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Status tab, search, filters and page of the leave list.
@@ -48,7 +47,7 @@ class LeaveQueryNotifier extends Notifier<LeaveQuery> {
   void setLeaveType(String? id) =>
       state = state.copyWith(leaveTypeId: id, page: 1);
 
-  void setDepartment(JobRole? department) =>
+  void setDepartment(String? department) =>
       state = state.copyWith(department: department, page: 1);
 
   void setPage(int page) => state = state.copyWith(page: page);
@@ -98,7 +97,7 @@ class LeaveBalanceQueryNotifier extends Notifier<LeaveBalanceQuery> {
     }
   }
 
-  void setDepartment(JobRole? department) =>
+  void setDepartment(String? department) =>
       state = state.copyWith(department: department, page: 1);
 
   void setPage(int page) => state = state.copyWith(page: page);

@@ -21,6 +21,13 @@ abstract final class ApiConstants {
   /// `?month=YYYY-MM` → MonthlyAttendanceModel.
   static const String dashboardAttendanceChart = '/dashboard/attendance-chart';
 
+  // Master data
+  /// `GET` → `List<ListEntry>`. `POST { name, code? }` adds one.
+  static const String departments = '/departments';
+
+  /// `GET` → `List<ListEntry>`. `POST { name, code? }` adds one.
+  static const String positions = '/positions';
+
   // Employees
   /// `?search&department&position&status&page&pageSize` → page of
   /// employees. `POST` creates one.

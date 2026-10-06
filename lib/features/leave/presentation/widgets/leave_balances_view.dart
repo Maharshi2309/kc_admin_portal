@@ -23,7 +23,7 @@ import 'package:kc_admin_portal/core/widgets/responsive_grid.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/permission_providers.dart';
 import 'package:kc_admin_portal/features/leave/data/models/leave_models.dart';
 import 'package:kc_admin_portal/features/leave/presentation/providers/leave_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/master_data/presentation/providers/master_data_providers.dart';
 
 /// The Leave page's Balances tab: totals for the filtered employees, then
 /// each active employee's Casual balance and Unpaid days (requirement
@@ -59,6 +59,7 @@ class _LeaveBalancesViewState extends ConsumerState<LeaveBalancesView> {
     final query = ref.watch(leaveBalanceQueryProvider);
     final notifier = ref.read(leaveBalanceQueryProvider.notifier);
     final list = ref.watch(leaveBalanceListProvider);
+    final departments = watchDepartments(ref);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -91,13 +92,13 @@ class _LeaveBalancesViewState extends ConsumerState<LeaveBalancesView> {
                         onSubmitted: notifier.applySearch,
                       ),
                     ),
-                    AppFilterDropdown<JobRole>(
+                    AppFilterDropdown<String>(
                       label: 'Department',
                       value: query.department,
                       onChanged: notifier.setDepartment,
                       items: [
-                        for (final d in JobRole.choices)
-                          AppDropdownItem(value: d, label: d.label),
+                        for (final d in departments)
+                          AppDropdownItem(value: d.code, label: d.name),
                       ],
                     ),
                     if (query.hasFilters)

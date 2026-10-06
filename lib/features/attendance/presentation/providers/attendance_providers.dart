@@ -11,7 +11,6 @@ import 'package:kc_admin_portal/features/calendar/presentation/providers/calenda
 import 'package:kc_admin_portal/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:kc_admin_portal/features/employees/presentation/providers/employee_providers.dart';
 import 'package:kc_admin_portal/features/overtime/presentation/providers/overtime_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 
 /// Date, tile filter, search and department of the attendance screen.
 class AttendanceQueryNotifier extends Notifier<AttendanceQuery> {
@@ -56,7 +55,7 @@ class AttendanceQueryNotifier extends Notifier<AttendanceQuery> {
     if (search != state.search) state = state.copyWith(search: search);
   }
 
-  void setDepartment(JobRole? department) =>
+  void setDepartment(String? department) =>
       state = state.copyWith(department: department);
 }
 

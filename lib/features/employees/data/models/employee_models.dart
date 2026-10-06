@@ -97,12 +97,14 @@ abstract class EmployeeStatusCounts with _$EmployeeStatusCounts {
 }
 
 /// Search, filters and page of the employee list.
+///
+/// [department] and [position] are API codes (e.g. `graphic_designer`).
 @freezed
 abstract class EmployeeQuery with _$EmployeeQuery {
   const factory EmployeeQuery({
     @Default('') String search,
-    JobRole? department,
-    JobRole? position,
+    String? department,
+    String? position,
 
     /// "Joined" filter (design board 03): joining date within this range.
     @DateOnlyConverter() DateTime? joinedFrom,
@@ -127,8 +129,8 @@ abstract class EmployeeQuery with _$EmployeeQuery {
 
   Map<String, Object?> toQueryParameters() => {
     if (search.isNotEmpty) 'search': search,
-    'department': ?department?.code,
-    'position': ?position?.code,
+    'department': ?department,
+    'position': ?position,
     if (joinedFrom != null) 'joinedFrom': dateToJson(joinedFrom!),
     if (joinedTo != null) 'joinedTo': dateToJson(joinedTo!),
     'status': ?status?.name,

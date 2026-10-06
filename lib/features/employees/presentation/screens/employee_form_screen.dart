@@ -33,7 +33,9 @@ import 'package:kc_admin_portal/features/employees/presentation/providers/employ
 import 'package:kc_admin_portal/features/employees/presentation/widgets/employee_preview_card.dart';
 import 'package:kc_admin_portal/features/employees/presentation/widgets/work_schedule_card.dart';
 import 'package:kc_admin_portal/features/employees/presentation/widgets/work_schedule_fields.dart';
+import 'package:kc_admin_portal/features/master_data/presentation/providers/master_data_providers.dart';
 import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/shared/models/list_entry.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Add employee (`employeeId == null`) or edit one (design board 04).
@@ -78,12 +80,12 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   late final _ecNumber = TextEditingController(text: widget.initial?.ecNumber);
   late final _name = TextEditingController(text: widget.initial?.name);
   late final _mobile = TextEditingController(text: widget.initial?.mobile);
-  late JobRole? _department = _known(widget.initial?.department);
-  late JobRole? _position = _known(widget.initial?.position);
 
-  /// A value this app version doesn't know must be chosen again.
-  static JobRole? _known(JobRole? value) =>
-      JobRole.choices.contains(value) ? value : null;
+  /// Department and position are stored as API codes (e.g. `graphic_designer`).
+  /// Mapped to [JobRole] when creating [EmployeeFormData] for submission.
+  late String? _department = widget.initial?.department.code;
+  late String? _position = widget.initial?.position.code;
+
   late DateTime? _joiningDate = widget.initial?.joiningDate;
   late EmployeeStatus _status =
       widget.initial?.status == EmployeeStatus.inactive
@@ -105,6 +107,14 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   bool _ecEdited = false;
 
   bool get _isEditing => widget.initial != null;
+
+  /// Maps an API code to the matching [JobRole], falling back to [JobRole.unknown]
+  /// for codes this app version doesn't recognise yet.
+  static JobRole _toJobRole(String code) =>
+      JobRole.values.firstWhere(
+        (r) => r.code == code,
+        orElse: () => JobRole.unknown,
+      );
 
   /// Wide enough to show the preview beside the form.
   static const double _previewMinWidth = 900;
@@ -183,13 +193,14 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
             ecNumber: _ecNumber.text,
             name: _name.text,
             mobile: _mobile.text,
-            department: _department!,
-            position: _position!,
+            department: _toJobRole(_department!),
+            position: _toJobRole(_position!),
             joiningDate: _joiningDate!,
             status: _status,
             schedule: schedule,
           ),
         );
+
     if (saved == null || !mounted) return;
 
     showAppSnackBar(
@@ -354,12 +365,16 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   }
 
   Widget _preview() {
+    final departments = watchDepartments(ref);
+    final positions = watchPositions(ref);
     return EmployeePreviewCard(
       name: _name.text,
       ecNumber: _ecNumber.text,
       mobile: _mobile.text,
-      departmentName: _department?.label,
-      positionName: _position?.label,
+      departmentName:
+          _department == null ? null : resolveEntryName(_department, departments),
+      positionName:
+          _position == null ? null : resolveEntryName(_position, positions),
       joiningDate: _joiningDate,
     );
   }
@@ -475,11 +490,12 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
 
   List<Widget> _jobFields(bool isSaving) {
     final today = ref.watch(clockProvider)().dateOnly;
+    final departments = watchDepartments(ref);
+    final positions = watchPositions(ref);
 
     return [
-      // Department and position use the same list and don't depend on
-      // each other.
-      AppDropdown<JobRole>(
+      // Department and position dropdowns are populated from the API.
+      AppDropdown<String>(
         label: 'Department',
         isRequired: true,
         enabled: !isSaving,
@@ -488,15 +504,15 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
         errorText: _serverErrors['department'],
         validator: Validators.requiredValue('Department'),
         items: [
-          for (final d in JobRole.choices)
-            AppDropdownItem(value: d, label: d.label),
+          for (final d in departments)
+            AppDropdownItem(value: d.code, label: d.name),
         ],
         onChanged: (value) {
           _clearServerError('department');
           setState(() => _department = value);
         },
       ),
-      AppDropdown<JobRole>(
+      AppDropdown<String>(
         label: 'Position',
         isRequired: true,
         enabled: !isSaving,
@@ -505,8 +521,8 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
         errorText: _serverErrors['position'],
         validator: Validators.requiredValue('Position'),
         items: [
-          for (final p in JobRole.choices)
-            AppDropdownItem(value: p, label: p.label),
+          for (final p in positions)
+            AppDropdownItem(value: p.code, label: p.name),
         ],
         onChanged: (value) {
           _clearServerError('position');

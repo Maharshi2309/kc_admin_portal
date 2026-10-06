@@ -1236,7 +1236,7 @@ as int,
 /// @nodoc
 mixin _$EmployeeQuery {
 
- String get search; JobRole? get department; JobRole? get position;/// "Joined" filter (design board 03): joining date within this range.
+ String get search; String? get department; String? get position;/// "Joined" filter (design board 03): joining date within this range.
 @DateOnlyConverter() DateTime? get joinedFrom;@DateOnlyConverter() DateTime? get joinedTo;/// The design opens the list filtered to active employees.
  EmployeeStatus? get status; int get page; int get pageSize;
 /// Create a copy of EmployeeQuery
@@ -1269,7 +1269,7 @@ abstract mixin class $EmployeeQueryCopyWith<$Res>  {
   factory $EmployeeQueryCopyWith(EmployeeQuery value, $Res Function(EmployeeQuery) _then) = _$EmployeeQueryCopyWithImpl;
 @useResult
 $Res call({
- String search, JobRole? department, JobRole? position,@DateOnlyConverter() DateTime? joinedFrom,@DateOnlyConverter() DateTime? joinedTo, EmployeeStatus? status, int page, int pageSize
+ String search, String? department, String? position,@DateOnlyConverter() DateTime? joinedFrom,@DateOnlyConverter() DateTime? joinedTo, EmployeeStatus? status, int page, int pageSize
 });
 
 
@@ -1290,8 +1290,8 @@ class _$EmployeeQueryCopyWithImpl<$Res>
   return _then(_self.copyWith(
 search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,position: freezed == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
-as JobRole?,joinedFrom: freezed == joinedFrom ? _self.joinedFrom : joinedFrom // ignore: cast_nullable_to_non_nullable
+as String?,position: freezed == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
+as String?,joinedFrom: freezed == joinedFrom ? _self.joinedFrom : joinedFrom // ignore: cast_nullable_to_non_nullable
 as DateTime?,joinedTo: freezed == joinedTo ? _self.joinedTo : joinedTo // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as EmployeeStatus?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
@@ -1381,7 +1381,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String search,  JobRole? department,  JobRole? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String search,  String? department,  String? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EmployeeQuery() when $default != null:
 return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
@@ -1402,7 +1402,7 @@ return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String search,  JobRole? department,  JobRole? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String search,  String? department,  String? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeQuery():
 return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
@@ -1422,7 +1422,7 @@ return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String search,  JobRole? department,  JobRole? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String search,  String? department,  String? position, @DateOnlyConverter()  DateTime? joinedFrom, @DateOnlyConverter()  DateTime? joinedTo,  EmployeeStatus? status,  int page,  int pageSize)?  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeQuery() when $default != null:
 return $default(_that.search,_that.department,_that.position,_that.joinedFrom,_that.joinedTo,_that.status,_that.page,_that.pageSize);case _:
@@ -1441,8 +1441,8 @@ class _EmployeeQuery extends EmployeeQuery {
   
 
 @override@JsonKey() final  String search;
-@override final  JobRole? department;
-@override final  JobRole? position;
+@override final  String? department;
+@override final  String? position;
 /// "Joined" filter (design board 03): joining date within this range.
 @override@DateOnlyConverter() final  DateTime? joinedFrom;
 @override@DateOnlyConverter() final  DateTime? joinedTo;
@@ -1481,7 +1481,7 @@ abstract mixin class _$EmployeeQueryCopyWith<$Res> implements $EmployeeQueryCopy
   factory _$EmployeeQueryCopyWith(_EmployeeQuery value, $Res Function(_EmployeeQuery) _then) = __$EmployeeQueryCopyWithImpl;
 @override @useResult
 $Res call({
- String search, JobRole? department, JobRole? position,@DateOnlyConverter() DateTime? joinedFrom,@DateOnlyConverter() DateTime? joinedTo, EmployeeStatus? status, int page, int pageSize
+ String search, String? department, String? position,@DateOnlyConverter() DateTime? joinedFrom,@DateOnlyConverter() DateTime? joinedTo, EmployeeStatus? status, int page, int pageSize
 });
 
 
@@ -1502,8 +1502,8 @@ class __$EmployeeQueryCopyWithImpl<$Res>
   return _then(_EmployeeQuery(
 search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,department: freezed == department ? _self.department : department // ignore: cast_nullable_to_non_nullable
-as JobRole?,position: freezed == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
-as JobRole?,joinedFrom: freezed == joinedFrom ? _self.joinedFrom : joinedFrom // ignore: cast_nullable_to_non_nullable
+as String?,position: freezed == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
+as String?,joinedFrom: freezed == joinedFrom ? _self.joinedFrom : joinedFrom // ignore: cast_nullable_to_non_nullable
 as DateTime?,joinedTo: freezed == joinedTo ? _self.joinedTo : joinedTo // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as EmployeeStatus?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable

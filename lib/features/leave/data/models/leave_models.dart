@@ -2,7 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
 import 'package:kc_admin_portal/shared/models/holiday_model.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
 import 'package:kc_admin_portal/shared/models/leave_balance_model.dart';
 import 'package:kc_admin_portal/shared/models/named_ref.dart';
@@ -134,6 +133,8 @@ abstract class LeaveListModel with _$LeaveListModel {
 }
 
 /// Tab, search, filters and page of the leave list.
+///
+/// [department] is an API code (e.g. `graphic_designer`).
 @freezed
 abstract class LeaveQuery with _$LeaveQuery {
   const factory LeaveQuery({
@@ -143,7 +144,7 @@ abstract class LeaveQuery with _$LeaveQuery {
     DateTime? from,
     DateTime? to,
     String? leaveTypeId,
-    JobRole? department,
+    String? department,
     @Default(1) int page,
     @Default(LeaveQuery.defaultPageSize) int pageSize,
   }) = _LeaveQuery;
@@ -164,7 +165,7 @@ abstract class LeaveQuery with _$LeaveQuery {
     if (from != null) 'from': dateToJson(from!),
     if (to != null) 'to': dateToJson(to!),
     'leaveTypeId': ?leaveTypeId,
-    'department': ?department?.code,
+    'department': ?department,
     'page': page,
     'pageSize': pageSize,
   };
@@ -311,11 +312,13 @@ abstract class LeaveBalanceListModel with _$LeaveBalanceListModel {
 }
 
 /// Search, department and page of the Balances tab.
+///
+/// [department] is an API code (e.g. `graphic_designer`).
 @freezed
 abstract class LeaveBalanceQuery with _$LeaveBalanceQuery {
   const factory LeaveBalanceQuery({
     @Default('') String search,
-    JobRole? department,
+    String? department,
     @Default(1) int page,
     @Default(LeaveQuery.defaultPageSize) int pageSize,
   }) = _LeaveBalanceQuery;
@@ -326,7 +329,7 @@ abstract class LeaveBalanceQuery with _$LeaveBalanceQuery {
 
   Map<String, Object?> toQueryParameters() => {
     if (search.isNotEmpty) 'search': search,
-    'department': ?department?.code,
+    'department': ?department,
     'page': page,
     'pageSize': pageSize,
   };

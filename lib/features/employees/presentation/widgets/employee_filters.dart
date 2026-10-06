@@ -9,7 +9,7 @@ import 'package:kc_admin_portal/core/widgets/app_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_filter_dropdown.dart';
 import 'package:kc_admin_portal/core/widgets/app_search_field.dart';
 import 'package:kc_admin_portal/features/employees/presentation/providers/employee_providers.dart';
-import 'package:kc_admin_portal/shared/models/job_role.dart';
+import 'package:kc_admin_portal/features/master_data/presentation/providers/master_data_providers.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 
 /// Search and filter row above the employee table. Wraps onto several lines
@@ -27,6 +27,8 @@ class EmployeeFilters extends ConsumerWidget {
     final query = ref.watch(employeeQueryProvider);
     final notifier = ref.read(employeeQueryProvider.notifier);
     final today = ref.watch(clockProvider)();
+    final departments = watchDepartments(ref);
+    final positions = watchPositions(ref);
 
     return Wrap(
       spacing: AppSpacing.s10,
@@ -43,22 +45,22 @@ class EmployeeFilters extends ConsumerWidget {
             onSubmitted: notifier.applySearch,
           ),
         ),
-        AppFilterDropdown<JobRole>(
+        AppFilterDropdown<String>(
           label: 'Department',
           value: query.department,
           onChanged: notifier.setDepartment,
           items: [
-            for (final d in JobRole.choices)
-              AppDropdownItem(value: d, label: d.label),
+            for (final d in departments)
+              AppDropdownItem(value: d.code, label: d.name),
           ],
         ),
-        AppFilterDropdown<JobRole>(
+        AppFilterDropdown<String>(
           label: 'Position',
           value: query.position,
           onChanged: notifier.setPosition,
           items: [
-            for (final p in JobRole.choices)
-              AppDropdownItem(value: p, label: p.label),
+            for (final p in positions)
+              AppDropdownItem(value: p.code, label: p.name),
           ],
         ),
         AppDateRangeFilter(
