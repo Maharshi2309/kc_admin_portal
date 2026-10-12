@@ -23,6 +23,11 @@ void main() {
     return;
   }
 
+  debugPrint(
+    '[ENV] ${env.environment.name} | api=${env.apiBaseUrl} | '
+    'mock=${env.useMockApi} | timeout=${env.apiTimeout.inSeconds}s',
+  );
+
   runApp(
     ProviderScope(
       overrides: [envProvider.overrideWithValue(env)],

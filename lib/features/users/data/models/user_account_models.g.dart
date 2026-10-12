@@ -76,6 +76,7 @@ _UserAccountInput _$UserAccountInputFromJson(Map<String, dynamic> json) =>
     _UserAccountInput(
       name: json['name'] as String,
       email: json['email'] as String,
+      password: json['password'] as String,
       employeeId: json['employeeId'] as String?,
       permissions:
           (json['permissions'] as List<dynamic>?)
@@ -88,6 +89,7 @@ Map<String, dynamic> _$UserAccountInputToJson(_UserAccountInput instance) =>
     <String, dynamic>{
       'name': instance.name,
       'email': instance.email,
+      'password': instance.password,
       'employeeId': ?instance.employeeId,
       'permissions': instance.permissions,
     };
@@ -98,6 +100,7 @@ _UserAccountUpdate _$UserAccountUpdateFromJson(Map<String, dynamic> json) =>
       email: json['email'] as String,
       employeeId: json['employeeId'] as String?,
       isActive: json['isActive'] as bool?,
+      password: json['password'] as String?,
     );
 
 Map<String, dynamic> _$UserAccountUpdateToJson(_UserAccountUpdate instance) =>
@@ -106,4 +109,5 @@ Map<String, dynamic> _$UserAccountUpdateToJson(_UserAccountUpdate instance) =>
       'email': instance.email,
       'employeeId': instance.employeeId,
       'isActive': ?instance.isActive,
+      'password': ?instance.password,
     };

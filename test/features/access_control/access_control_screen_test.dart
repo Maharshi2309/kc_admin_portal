@@ -89,6 +89,15 @@ void main() {
 
       await tester.enterText(_input('Full name'), 'Meera Rathod');
       await tester.enterText(_input('Email'), 'admin@keshav.in');
+      await tester.enterText(_input('Password'), 'short');
+      await tester.pumpAndSettle();
+      await tester.enterText(_input('Confirm password'), 'other');
+      await _tap(tester, find.widgetWithText(FilledButton, 'Add user').last);
+      expect(find.text('Use at least 8 characters'), findsOneWidget);
+      expect(find.text('Passwords do not match'), findsOneWidget);
+
+      await tester.enterText(_input('Password'), 'meera-pass');
+      await tester.enterText(_input('Confirm password'), 'meera-pass');
       await _tap(tester, find.widgetWithText(FilledButton, 'Add user').last);
       expect(find.text('Already used by Admin'), findsOneWidget);
 

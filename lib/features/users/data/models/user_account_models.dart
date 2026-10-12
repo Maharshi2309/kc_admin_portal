@@ -41,14 +41,18 @@ abstract class UserAccountListModel with _$UserAccountListModel {
       _$UserAccountListModelFromJson(json);
 }
 
-/// Body of `POST /users`. The backend sends the new user an invitation to
-/// set their own password; the app never handles other people's passwords.
-/// A new user starts with [permissions] (often none, chosen next).
+/// The shortest password accepted for a staff user (matches the backend).
+const int minUserPasswordLength = 8;
+
+/// Body of `POST /users`. The admin sets the user's first [password]; the
+/// backend stores only its hash and the user signs in with it. A new user
+/// starts with [permissions] (often none, chosen next).
 @freezed
 abstract class UserAccountInput with _$UserAccountInput {
   const factory UserAccountInput({
     required String name,
     required String email,
+    required String password,
     @JsonKey(includeIfNull: false) String? employeeId,
     @Default(<String>[]) List<String> permissions,
   }) = _UserAccountInput;
@@ -68,6 +72,9 @@ abstract class UserAccountUpdate with _$UserAccountUpdate {
 
     /// Only sent when changing it (deactivate / reactivate).
     @JsonKey(includeIfNull: false) bool? isActive,
+
+    /// Only sent when the admin sets a new password.
+    @JsonKey(includeIfNull: false) String? password,
   }) = _UserAccountUpdate;
 
   factory UserAccountUpdate.fromJson(Map<String, dynamic> json) =>

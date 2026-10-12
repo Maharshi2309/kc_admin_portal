@@ -327,7 +327,7 @@ holds who punched and when. **(confirm)**
 
 ## 7. Still to confirm
 
-- **Password setup for new staff users:** the app never sends passwords for other users. Assumed: `POST /users` emails an invitation link where the user sets their password. **(confirm)**
+- **Password setup for new staff users:** decided 2026-10-10: the admin sets the password in `POST /users` (and can set a new one with `PATCH /users/{id}`); the backend stores only its hash.
 - **Break length of the current global shift,** for migration step 3. **(confirm)**
 - **Casual leave start month** (`leave_accrual_start_month`), opening balances, and the mapping of existing Sick/Earned leave (§2.7, §6 step 9). **(confirm)**
 - **Inactive employees on the Balances list:** left out (they earn nothing while inactive). **(confirm)**

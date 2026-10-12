@@ -7,7 +7,8 @@ import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
 /// DEV ONLY (`USE_MOCK_API=true`): lets the app be used before the backend
 /// exists. Signs in as one of the mock staff users ([MockAccessStore], e.g.
 /// `admin@keshav.in` or `nisha.solanki@keshav.in`) with the password
-/// [password], and answers with that user's own permissions, so the app
+/// [password], or a user added in Access control with the password set for
+/// them, and answers with that user's own permissions, so the app
 /// can be tried with different access. Never enabled in production builds (see
 /// `Env.fromEnvironment`).
 class AuthMockDataSource implements AuthRemoteDataSource {
@@ -23,7 +24,7 @@ class AuthMockDataSource implements AuthRemoteDataSource {
   final Future<String?> Function()? readToken;
   final Duration latency;
 
-  static const String password = 'password';
+  static const String password = MockAccessStore.seedPassword;
 
   /// Tokens are `mock-dev-token.<userId>`.
   static const String _tokenPrefix = 'mock-dev-token.';
@@ -35,11 +36,11 @@ class AuthMockDataSource implements AuthRemoteDataSource {
   }) async {
     await Future<void>.delayed(latency);
     final account = store.userByEmail(email);
-    if (account == null || password != AuthMockDataSource.password) {
+    if (account == null || !store.passwordMatches(account.id, password)) {
       throw const UnauthorizedException(
         'Incorrect email or password. (Mock API: sign in as a user from '
-        'Access control › Users, e.g. admin@keshav.in; the password is '
-        '"password")',
+        'Access control › Users, e.g. admin@keshav.in with the password '
+        '"password", or a user you added with the password you set)',
       );
     }
     if (!account.isActive) {

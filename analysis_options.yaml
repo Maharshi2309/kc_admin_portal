@@ -8,6 +8,13 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
   errors:
     # freezed + json_serializable place @JsonKey on constructor parameters.
     invalid_annotation_target: ignore

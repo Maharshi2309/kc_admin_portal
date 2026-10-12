@@ -56,6 +56,7 @@ class DevLogInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     options.extra[_startKey] = DateTime.now();
+    debugPrint('[API] → ${options.method} ${options.uri}');
     handler.next(options);
   }
 
@@ -71,6 +72,24 @@ class DevLogInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     _log(err.requestOptions, err.response?.statusCode, error: err.type.name);
+    // Failure details, to tell a blocked call (CORS, DNS, offline: no
+    // response at all) from one the server answered. Error bodies hold only
+    // server messages, never tokens or passwords; request bodies are not logged.
+    debugPrint('[API]   type: ${err.type.name}');
+    if (err.message != null) debugPrint('[API]   message: ${err.message}');
+    if (err.error != null) debugPrint('[API]   cause: ${err.error}');
+    if (err.response == null) {
+      debugPrint(
+        '[API]   no response from ${err.requestOptions.uri}. In Chrome this '
+        'is usually CORS or an unreachable host: open DevTools > Console and '
+        'Network for the browser\'s own reason.',
+      );
+    } else {
+      final body = '${err.response?.data}';
+      debugPrint(
+        '[API]   response: ${body.length > 300 ? body.substring(0, 300) : body}',
+      );
+    }
     handler.next(err);
   }
 
@@ -80,7 +99,7 @@ class DevLogInterceptor extends Interceptor {
         ? '${DateTime.now().difference(started).inMilliseconds}ms'
         : '';
     debugPrint(
-      '[API] ${options.method} ${options.path} → '
+      '[API] ← ${options.method} ${options.uri} '
       '${status ?? error ?? '?'} $elapsed',
     );
   }

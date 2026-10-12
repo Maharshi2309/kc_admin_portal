@@ -295,6 +295,7 @@ void main() {
         const UserAccountInput(
           name: 'Nisha Solanki',
           email: 'nisha.solanki@keshav.in',
+          password: 'Nisha@2026',
           employeeId: '25',
         ).toJson(),
         _object('users.create.request.json'),

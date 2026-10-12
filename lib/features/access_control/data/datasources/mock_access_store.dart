@@ -103,7 +103,14 @@ class MockAccessStore {
   final List<EmployeeModel> _employees;
   final DateTime Function() _now;
   final List<UserAccountModel> _users = [];
+
+  /// Each user's password by id. The seeded users share
+  /// [seedPassword]; users added in the app keep the one set for them.
+  /// (The real backend stores only a hash.)
+  final Map<String, String> _passwords = {};
   int _nextId = 1;
+
+  static const String seedPassword = 'password';
 
   static List<String> _keys(List<AppPermission> permissions) => [
     for (final p in permissions) p.key,
@@ -139,6 +146,10 @@ class MockAccessStore {
   );
 
   List<UserAccountModel> get users => List.unmodifiable(_users);
+
+  /// Whether [password] is [userId]'s password.
+  bool passwordMatches(String userId, String password) =>
+      (_passwords[userId] ?? seedPassword) == password;
 
   // Permissions
 
@@ -271,6 +282,7 @@ class MockAccessStore {
         employeeId: input.employeeId,
       ),
     );
+    _throwIfAny(_passwordProblems(input.password));
     _knownOnly(input.permissions);
     final created = UserAccountModel(
       id: 'u${100 + _nextId++}',
@@ -280,6 +292,7 @@ class MockAccessStore {
       employee: _employeeSummary(input.employeeId),
     );
     _users.add(created);
+    _passwords[created.id] = input.password;
     return created;
   }
 
@@ -293,6 +306,8 @@ class MockAccessStore {
         exceptUserId: id,
       ),
     );
+    final password = input.password;
+    if (password != null) _throwIfAny(_passwordProblems(password));
     final active = input.isActive ?? current.isActive;
     final updated = current.copyWith(
       name: input.name.trim(),
@@ -310,8 +325,14 @@ class MockAccessStore {
       _keepsAPermissionManager(_replaced(id, updated));
     }
     _users[_users.indexWhere((u) => u.id == id)] = updated;
+    if (password != null) _passwords[id] = password;
     return updated;
   }
+
+  static Map<String, String> _passwordProblems(String password) => {
+    if (password.length < minUserPasswordLength)
+      'password': 'Use at least $minUserPasswordLength characters',
+  };
 
   EmployeeSummaryModel? _employeeSummary(String? employeeId) =>
       employeeId == null

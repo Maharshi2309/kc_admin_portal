@@ -607,7 +607,7 @@ as int,
 /// @nodoc
 mixin _$UserAccountInput {
 
- String get name; String get email;@JsonKey(includeIfNull: false) String? get employeeId; List<String> get permissions;
+ String get name; String get email; String get password;@JsonKey(includeIfNull: false) String? get employeeId; List<String> get permissions;
 /// Create a copy of UserAccountInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -620,16 +620,16 @@ $UserAccountInputCopyWith<UserAccountInput> get copyWith => _$UserAccountInputCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserAccountInput&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&const DeepCollectionEquality().equals(other.permissions, permissions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserAccountInput&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&const DeepCollectionEquality().equals(other.permissions, permissions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,email,employeeId,const DeepCollectionEquality().hash(permissions));
+int get hashCode => Object.hash(runtimeType,name,email,password,employeeId,const DeepCollectionEquality().hash(permissions));
 
 @override
 String toString() {
-  return 'UserAccountInput(name: $name, email: $email, employeeId: $employeeId, permissions: $permissions)';
+  return 'UserAccountInput(name: $name, email: $email, password: $password, employeeId: $employeeId, permissions: $permissions)';
 }
 
 
@@ -640,7 +640,7 @@ abstract mixin class $UserAccountInputCopyWith<$Res>  {
   factory $UserAccountInputCopyWith(UserAccountInput value, $Res Function(UserAccountInput) _then) = _$UserAccountInputCopyWithImpl;
 @useResult
 $Res call({
- String name, String email,@JsonKey(includeIfNull: false) String? employeeId, List<String> permissions
+ String name, String email, String password,@JsonKey(includeIfNull: false) String? employeeId, List<String> permissions
 });
 
 
@@ -657,10 +657,11 @@ class _$UserAccountInputCopyWithImpl<$Res>
 
 /// Create a copy of UserAccountInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? email = null,Object? employeeId = freezed,Object? permissions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? email = null,Object? password = null,Object? employeeId = freezed,Object? permissions = null,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String,employeeId: freezed == employeeId ? _self.employeeId : employeeId // ignore: cast_nullable_to_non_nullable
 as String?,permissions: null == permissions ? _self.permissions : permissions // ignore: cast_nullable_to_non_nullable
 as List<String>,
@@ -748,10 +749,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String email, @JsonKey(includeIfNull: false)  String? employeeId,  List<String> permissions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String email,  String password, @JsonKey(includeIfNull: false)  String? employeeId,  List<String> permissions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserAccountInput() when $default != null:
-return $default(_that.name,_that.email,_that.employeeId,_that.permissions);case _:
+return $default(_that.name,_that.email,_that.password,_that.employeeId,_that.permissions);case _:
   return orElse();
 
 }
@@ -769,10 +770,10 @@ return $default(_that.name,_that.email,_that.employeeId,_that.permissions);case 
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String email, @JsonKey(includeIfNull: false)  String? employeeId,  List<String> permissions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String email,  String password, @JsonKey(includeIfNull: false)  String? employeeId,  List<String> permissions)  $default,) {final _that = this;
 switch (_that) {
 case _UserAccountInput():
-return $default(_that.name,_that.email,_that.employeeId,_that.permissions);case _:
+return $default(_that.name,_that.email,_that.password,_that.employeeId,_that.permissions);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -789,10 +790,10 @@ return $default(_that.name,_that.email,_that.employeeId,_that.permissions);case 
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String email, @JsonKey(includeIfNull: false)  String? employeeId,  List<String> permissions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String email,  String password, @JsonKey(includeIfNull: false)  String? employeeId,  List<String> permissions)?  $default,) {final _that = this;
 switch (_that) {
 case _UserAccountInput() when $default != null:
-return $default(_that.name,_that.email,_that.employeeId,_that.permissions);case _:
+return $default(_that.name,_that.email,_that.password,_that.employeeId,_that.permissions);case _:
   return null;
 
 }
@@ -804,11 +805,12 @@ return $default(_that.name,_that.email,_that.employeeId,_that.permissions);case 
 @JsonSerializable()
 
 class _UserAccountInput implements UserAccountInput {
-  const _UserAccountInput({required this.name, required this.email, @JsonKey(includeIfNull: false) this.employeeId, final  List<String> permissions = const <String>[]}): _permissions = permissions;
+  const _UserAccountInput({required this.name, required this.email, required this.password, @JsonKey(includeIfNull: false) this.employeeId, final  List<String> permissions = const <String>[]}): _permissions = permissions;
   factory _UserAccountInput.fromJson(Map<String, dynamic> json) => _$UserAccountInputFromJson(json);
 
 @override final  String name;
 @override final  String email;
+@override final  String password;
 @override@JsonKey(includeIfNull: false) final  String? employeeId;
  final  List<String> _permissions;
 @override@JsonKey() List<String> get permissions {
@@ -831,16 +833,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserAccountInput&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&const DeepCollectionEquality().equals(other._permissions, _permissions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserAccountInput&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&const DeepCollectionEquality().equals(other._permissions, _permissions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,email,employeeId,const DeepCollectionEquality().hash(_permissions));
+int get hashCode => Object.hash(runtimeType,name,email,password,employeeId,const DeepCollectionEquality().hash(_permissions));
 
 @override
 String toString() {
-  return 'UserAccountInput(name: $name, email: $email, employeeId: $employeeId, permissions: $permissions)';
+  return 'UserAccountInput(name: $name, email: $email, password: $password, employeeId: $employeeId, permissions: $permissions)';
 }
 
 
@@ -851,7 +853,7 @@ abstract mixin class _$UserAccountInputCopyWith<$Res> implements $UserAccountInp
   factory _$UserAccountInputCopyWith(_UserAccountInput value, $Res Function(_UserAccountInput) _then) = __$UserAccountInputCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String email,@JsonKey(includeIfNull: false) String? employeeId, List<String> permissions
+ String name, String email, String password,@JsonKey(includeIfNull: false) String? employeeId, List<String> permissions
 });
 
 
@@ -868,10 +870,11 @@ class __$UserAccountInputCopyWithImpl<$Res>
 
 /// Create a copy of UserAccountInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? email = null,Object? employeeId = freezed,Object? permissions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? email = null,Object? password = null,Object? employeeId = freezed,Object? permissions = null,}) {
   return _then(_UserAccountInput(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String,employeeId: freezed == employeeId ? _self.employeeId : employeeId // ignore: cast_nullable_to_non_nullable
 as String?,permissions: null == permissions ? _self._permissions : permissions // ignore: cast_nullable_to_non_nullable
 as List<String>,
@@ -886,7 +889,8 @@ as List<String>,
 mixin _$UserAccountUpdate {
 
  String get name; String get email; String? get employeeId;/// Only sent when changing it (deactivate / reactivate).
-@JsonKey(includeIfNull: false) bool? get isActive;
+@JsonKey(includeIfNull: false) bool? get isActive;/// Only sent when the admin sets a new password.
+@JsonKey(includeIfNull: false) String? get password;
 /// Create a copy of UserAccountUpdate
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -899,16 +903,16 @@ $UserAccountUpdateCopyWith<UserAccountUpdate> get copyWith => _$UserAccountUpdat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserAccountUpdate&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserAccountUpdate&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.password, password) || other.password == password));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,email,employeeId,isActive);
+int get hashCode => Object.hash(runtimeType,name,email,employeeId,isActive,password);
 
 @override
 String toString() {
-  return 'UserAccountUpdate(name: $name, email: $email, employeeId: $employeeId, isActive: $isActive)';
+  return 'UserAccountUpdate(name: $name, email: $email, employeeId: $employeeId, isActive: $isActive, password: $password)';
 }
 
 
@@ -919,7 +923,7 @@ abstract mixin class $UserAccountUpdateCopyWith<$Res>  {
   factory $UserAccountUpdateCopyWith(UserAccountUpdate value, $Res Function(UserAccountUpdate) _then) = _$UserAccountUpdateCopyWithImpl;
 @useResult
 $Res call({
- String name, String email, String? employeeId,@JsonKey(includeIfNull: false) bool? isActive
+ String name, String email, String? employeeId,@JsonKey(includeIfNull: false) bool? isActive,@JsonKey(includeIfNull: false) String? password
 });
 
 
@@ -936,13 +940,14 @@ class _$UserAccountUpdateCopyWithImpl<$Res>
 
 /// Create a copy of UserAccountUpdate
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? email = null,Object? employeeId = freezed,Object? isActive = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? email = null,Object? employeeId = freezed,Object? isActive = freezed,Object? password = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,employeeId: freezed == employeeId ? _self.employeeId : employeeId // ignore: cast_nullable_to_non_nullable
 as String?,isActive: freezed == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
-as bool?,
+as bool?,password: freezed == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1027,10 +1032,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String email,  String? employeeId, @JsonKey(includeIfNull: false)  bool? isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String email,  String? employeeId, @JsonKey(includeIfNull: false)  bool? isActive, @JsonKey(includeIfNull: false)  String? password)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserAccountUpdate() when $default != null:
-return $default(_that.name,_that.email,_that.employeeId,_that.isActive);case _:
+return $default(_that.name,_that.email,_that.employeeId,_that.isActive,_that.password);case _:
   return orElse();
 
 }
@@ -1048,10 +1053,10 @@ return $default(_that.name,_that.email,_that.employeeId,_that.isActive);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String email,  String? employeeId, @JsonKey(includeIfNull: false)  bool? isActive)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String email,  String? employeeId, @JsonKey(includeIfNull: false)  bool? isActive, @JsonKey(includeIfNull: false)  String? password)  $default,) {final _that = this;
 switch (_that) {
 case _UserAccountUpdate():
-return $default(_that.name,_that.email,_that.employeeId,_that.isActive);case _:
+return $default(_that.name,_that.email,_that.employeeId,_that.isActive,_that.password);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1068,10 +1073,10 @@ return $default(_that.name,_that.email,_that.employeeId,_that.isActive);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String email,  String? employeeId, @JsonKey(includeIfNull: false)  bool? isActive)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String email,  String? employeeId, @JsonKey(includeIfNull: false)  bool? isActive, @JsonKey(includeIfNull: false)  String? password)?  $default,) {final _that = this;
 switch (_that) {
 case _UserAccountUpdate() when $default != null:
-return $default(_that.name,_that.email,_that.employeeId,_that.isActive);case _:
+return $default(_that.name,_that.email,_that.employeeId,_that.isActive,_that.password);case _:
   return null;
 
 }
@@ -1083,7 +1088,7 @@ return $default(_that.name,_that.email,_that.employeeId,_that.isActive);case _:
 @JsonSerializable()
 
 class _UserAccountUpdate implements UserAccountUpdate {
-  const _UserAccountUpdate({required this.name, required this.email, this.employeeId, @JsonKey(includeIfNull: false) this.isActive});
+  const _UserAccountUpdate({required this.name, required this.email, this.employeeId, @JsonKey(includeIfNull: false) this.isActive, @JsonKey(includeIfNull: false) this.password});
   factory _UserAccountUpdate.fromJson(Map<String, dynamic> json) => _$UserAccountUpdateFromJson(json);
 
 @override final  String name;
@@ -1091,6 +1096,8 @@ class _UserAccountUpdate implements UserAccountUpdate {
 @override final  String? employeeId;
 /// Only sent when changing it (deactivate / reactivate).
 @override@JsonKey(includeIfNull: false) final  bool? isActive;
+/// Only sent when the admin sets a new password.
+@override@JsonKey(includeIfNull: false) final  String? password;
 
 /// Create a copy of UserAccountUpdate
 /// with the given fields replaced by the non-null parameter values.
@@ -1105,16 +1112,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserAccountUpdate&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserAccountUpdate&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.password, password) || other.password == password));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,email,employeeId,isActive);
+int get hashCode => Object.hash(runtimeType,name,email,employeeId,isActive,password);
 
 @override
 String toString() {
-  return 'UserAccountUpdate(name: $name, email: $email, employeeId: $employeeId, isActive: $isActive)';
+  return 'UserAccountUpdate(name: $name, email: $email, employeeId: $employeeId, isActive: $isActive, password: $password)';
 }
 
 
@@ -1125,7 +1132,7 @@ abstract mixin class _$UserAccountUpdateCopyWith<$Res> implements $UserAccountUp
   factory _$UserAccountUpdateCopyWith(_UserAccountUpdate value, $Res Function(_UserAccountUpdate) _then) = __$UserAccountUpdateCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String email, String? employeeId,@JsonKey(includeIfNull: false) bool? isActive
+ String name, String email, String? employeeId,@JsonKey(includeIfNull: false) bool? isActive,@JsonKey(includeIfNull: false) String? password
 });
 
 
@@ -1142,13 +1149,14 @@ class __$UserAccountUpdateCopyWithImpl<$Res>
 
 /// Create a copy of UserAccountUpdate
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? email = null,Object? employeeId = freezed,Object? isActive = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? email = null,Object? employeeId = freezed,Object? isActive = freezed,Object? password = freezed,}) {
   return _then(_UserAccountUpdate(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,employeeId: freezed == employeeId ? _self.employeeId : employeeId // ignore: cast_nullable_to_non_nullable
 as String?,isActive: freezed == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
-as bool?,
+as bool?,password: freezed == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

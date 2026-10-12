@@ -4,6 +4,7 @@ import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/access_mock_data_source.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/mock_access_store.dart';
+import 'package:kc_admin_portal/features/auth/data/datasources/auth_mock_data_source.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/employee_mock_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/datasources/user_mock_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/models/user_account_models.dart';
@@ -132,6 +133,7 @@ void main() {
         UserAccountInput(
           name: ' Meera Rathod ',
           email: ' Meera.Rathod@Keshav.in ',
+          password: 'meera-pass',
           employeeId: meera.id,
         ),
       );
@@ -144,6 +146,7 @@ void main() {
         const UserAccountInput(
           name: 'Ravi',
           email: 'ravi@keshav.in',
+          password: 'ravi-pass',
           permissions: ['leave.view'],
         ),
       );
@@ -153,12 +156,18 @@ void main() {
     test('emails are unique; an employee links to one user', () async {
       await expectLater(
         users.create(
-          const UserAccountInput(name: 'X', email: 'ADMIN@keshav.in'),
+          const UserAccountInput(
+            name: 'X',
+            email: 'ADMIN@keshav.in',
+            password: 'password1',
+          ),
         ),
         _fieldError('email', 'Already used by Admin'),
       );
       await expectLater(
-        users.create(const UserAccountInput(name: 'X', email: 'x@')),
+        users.create(
+          const UserAccountInput(name: 'X', email: 'x@', password: 'password1'),
+        ),
         _fieldError('email', 'Enter a valid email address'),
       );
       final nisha = (await users.getById('u3')).employee!;
@@ -167,6 +176,7 @@ void main() {
           UserAccountInput(
             name: 'X',
             email: 'x@keshav.in',
+            password: 'password1',
             employeeId: nisha.id,
           ),
         ),
@@ -198,6 +208,59 @@ void main() {
       );
       expect(off.isActive, isFalse);
       expect(off.employee?.name, 'Arjun Joshi');
+    });
+
+    test('a new user signs in with their own password', () async {
+      final auth = AuthMockDataSource(store: store);
+      await expectLater(
+        users.create(
+          const UserAccountInput(
+            name: 'X',
+            email: 'x@keshav.in',
+            password: '123',
+          ),
+        ),
+        _fieldError('password', 'Use at least 8 characters'),
+      );
+      final ravi = await users.create(
+        const UserAccountInput(
+          name: 'Ravi',
+          email: 'ravi@keshav.in',
+          password: 'ravi-pass',
+          permissions: ['leave.view'],
+        ),
+      );
+
+      await expectLater(
+        auth.login(email: 'ravi@keshav.in', password: 'password'),
+        throwsA(isA<UnauthorizedException>()),
+      );
+      final session = await auth.login(
+        email: 'ravi@keshav.in',
+        password: 'ravi-pass',
+      );
+      expect(session.user.permissions, ['leave.view']);
+
+      open();
+      await users.create(
+        const UserAccountInput(
+          name: 'Ravi',
+          email: 'ravi@keshav.in',
+          password: 'ravi-pass',
+        ),
+      );
+      final id = store.userByEmail('ravi@keshav.in')!.id;
+      await users.update(
+        id,
+        const UserAccountUpdate(
+          name: 'Ravi',
+          email: 'ravi@keshav.in',
+          password: 'new-pass-1',
+        ),
+      );
+      expect(store.passwordMatches(id, 'ravi-pass'), isFalse);
+      expect(store.passwordMatches(id, 'new-pass-1'), isTrue);
+      expect(ravi.id, isNotEmpty);
     });
   });
 }

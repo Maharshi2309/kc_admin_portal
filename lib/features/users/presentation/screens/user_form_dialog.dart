@@ -20,9 +20,11 @@ import 'package:kc_admin_portal/features/users/presentation/providers/user_provi
 import 'package:kc_admin_portal/shared/models/employee_summary_model.dart';
 import 'package:kc_admin_portal/shared/widgets/employee_picker.dart';
 
-/// Adds a staff user, or edits one ([userId]): name, email, and an optional
-/// link to their employee record. A new user starts with no permissions and
-/// opens on their permissions page, to choose what they can do.
+/// Adds a staff user, or edits one ([userId]): name, email, password, and an
+/// optional link to their employee record. A new user signs in with the
+/// password set here; editing can set a new one. A new user starts with no
+/// permissions and opens on their permissions page, to choose what they can
+/// do.
 class UserFormDialog extends ConsumerWidget {
   const UserFormDialog({this.userId, super.key});
 
@@ -60,6 +62,8 @@ class _UserFormState extends ConsumerState<_UserForm> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.initial?.name);
   late final _email = TextEditingController(text: widget.initial?.email);
+  final _password = TextEditingController();
+  final _confirmPassword = TextEditingController();
   late EmployeeSummaryModel? _employee = widget.initial?.employee;
   Map<String, String> _serverErrors = const {};
 
@@ -69,6 +73,8 @@ class _UserFormState extends ConsumerState<_UserForm> {
   void dispose() {
     _name.dispose();
     _email.dispose();
+    _password.dispose();
+    _confirmPassword.dispose();
     super.dispose();
   }
 
@@ -84,6 +90,7 @@ class _UserFormState extends ConsumerState<_UserForm> {
             UserAccountInput(
               name: _name.text,
               email: _email.text,
+              password: _password.text,
               employeeId: _employee?.id,
             ),
           )
@@ -93,6 +100,8 @@ class _UserFormState extends ConsumerState<_UserForm> {
               name: _name.text,
               email: _email.text,
               employeeId: _employee?.id,
+              // Left empty when editing keeps the current password.
+              password: _password.text.isEmpty ? null : _password.text,
             ),
           );
     if (saved == null || !mounted) return;
@@ -111,6 +120,15 @@ class _UserFormState extends ConsumerState<_UserForm> {
         pathParameters: {AppRouteParams.id: saved.id},
       );
     }
+  }
+
+  String? _validatePassword(String? value) {
+    final password = value ?? '';
+    if (password.isEmpty) return _isEditing ? null : 'Enter a password';
+    if (password.length < minUserPasswordLength) {
+      return 'Use at least $minUserPasswordLength characters';
+    }
+    return null;
   }
 
   @override
@@ -136,11 +154,9 @@ class _UserFormState extends ConsumerState<_UserForm> {
 
     return AppDialog(
       title: _isEditing ? 'Edit user' : 'Add user',
-      // TODO — REQUIREMENT CONFIRMATION REQUIRED: the password invitation
-      // email is assumed (API_CONTRACT `POST /users`).
       subtitle: _isEditing
           ? null
-          : 'They get an email to set their password. You choose their '
+          : 'They sign in with this email and password. You choose their '
                 'permissions next.',
       actions: [
         AppButton(
@@ -181,6 +197,31 @@ class _UserFormState extends ConsumerState<_UserForm> {
               errorText: _serverErrors['email'],
               validator: Validators.email,
             ),
+            AppTextField(
+              label: _isEditing ? 'New password' : 'Password',
+              isRequired: !_isEditing,
+              controller: _password,
+              enabled: !isSaving,
+              isPassword: true,
+              autofillHints: const [AutofillHints.newPassword],
+              helperText: _isEditing
+                  ? 'Leave empty to keep their current password'
+                  : 'At least $minUserPasswordLength characters',
+              errorText: _serverErrors['password'],
+              onChanged: (_) => setState(() {}),
+              validator: _validatePassword,
+            ),
+            if (!_isEditing || _password.text.isNotEmpty)
+              AppTextField(
+                label: 'Confirm password',
+                isRequired: true,
+                controller: _confirmPassword,
+                enabled: !isSaving,
+                isPassword: true,
+                autofillHints: const [AutofillHints.newPassword],
+                validator: (value) =>
+                    value == _password.text ? null : 'Passwords do not match',
+              ),
             if (canPickEmployee || _employee != null)
               EmployeePicker(
                 label: 'Linked employee (optional)',
