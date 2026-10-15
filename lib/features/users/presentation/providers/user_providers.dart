@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/auth_controller.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/organization_providers.dart';
@@ -19,7 +20,7 @@ class UserQueryNotifier extends Notifier<UserQuery> {
   UserQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
     // Another organization starts with fresh filters.
-    ref.watch(activeOrganizationIdProvider);
+    ref.watch(activeOrganizationScopeProvider);
     return const UserQuery();
   }
 
@@ -126,6 +127,40 @@ class UserActions extends Notifier<Set<String>> {
       refreshAfterUserChange(ref);
       return null;
     } on Object catch (error) {
+      return ErrorHandler.messageFor(error);
+    } finally {
+      state = {...state}..remove(user.id);
+    }
+  }
+
+  /// Withdraws [user]'s pending invitation. Returns null on success,
+  /// otherwise a user-facing message.
+  Future<String?> cancelInvitation(UserAccountModel user) => _run(
+    user,
+    () => ref.read(userRepositoryProvider).cancelInvitation(user.id),
+    refresh: true,
+  );
+
+  /// Emails [user]'s pending invitation again.
+  Future<String?> resendInvitation(UserAccountModel user) => _run(
+    user,
+    () => ref.read(userRepositoryProvider).resendInvitation(user.id),
+  );
+
+  Future<String?> _run(
+    UserAccountModel user,
+    Future<void> Function() action, {
+    bool refresh = false,
+  }) async {
+    if (state.contains(user.id)) return null;
+    state = {...state, user.id};
+    try {
+      await action();
+      if (refresh) refreshAfterUserChange(ref);
+      return null;
+    } on Object catch (error) {
+      // Accepted or cancelled elsewhere meanwhile: show the current list.
+      if (error is NotFoundException) refreshAfterUserChange(ref);
       return ErrorHandler.messageFor(error);
     } finally {
       state = {...state}..remove(user.id);

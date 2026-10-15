@@ -33,6 +33,6 @@ final accessRemoteDataSourceProvider = Provider<AccessRemoteDataSource>((ref) {
     return ref.watch(mockActiveTenantProvider).accessSource;
   }
   // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
-  ref.watch(activeOrganizationIdProvider);
+  ref.watch(activeOrganizationScopeProvider);
   return AccessApiDataSource(ref.watch(apiClientProvider));
 });

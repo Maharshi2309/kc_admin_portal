@@ -44,6 +44,6 @@ final dashboardRemoteDataSourceProvider = Provider<DashboardRemoteDataSource>((
     return ref.watch(mockActiveTenantProvider).dashboard;
   }
   // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
-  ref.watch(activeOrganizationIdProvider);
+  ref.watch(activeOrganizationScopeProvider);
   return DashboardApiDataSource(ref.watch(apiClientProvider));
 });

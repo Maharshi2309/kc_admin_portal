@@ -13,4 +13,11 @@ abstract interface class UserRepository {
   Future<UserAccountModel> update(String id, UserAccountUpdate input);
 
   Future<UserAccountModel> setPermissions(String id, List<String> keys);
+
+  /// Cancels a pending invitation; the user is removed. An invitation
+  /// accepted or cancelled meanwhile fails with `NotFoundException`.
+  Future<void> cancelInvitation(String id);
+
+  /// Emails a pending invitation again.
+  Future<void> resendInvitation(String id);
 }

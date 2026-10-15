@@ -4,6 +4,7 @@ import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/access_mock_data_source.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/mock_access_store.dart';
+import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/employee_mock_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/datasources/user_mock_data_source.dart';
 import 'package:kc_admin_portal/features/users/data/models/user_account_models.dart';
@@ -198,6 +199,68 @@ void main() {
       );
       expect(off.isActive, isFalse);
       expect(off.employee?.name, 'Arjun Joshi');
+    });
+  });
+
+  group('invitations (mock)', () {
+    test('cancelling removes the invited user', () async {
+      final invited = await users.create(
+        const UserAccountInput(name: 'Ravi', email: 'ravi@keshav.in'),
+      );
+      expect(invited.invitationPending, isTrue);
+      await users.resendInvitation(invited.id);
+
+      await users.cancelInvitation(invited.id);
+      final list = await users.list(const UserQuery(search: 'ravi'));
+      expect(list.items, isEmpty);
+      expect(store.invitationFor('ravi@keshav.in'), isNull);
+      // Already gone: nothing to cancel or resend.
+      await expectLater(
+        users.cancelInvitation(invited.id),
+        throwsA(isA<NotFoundException>()),
+      );
+      await expectLater(
+        users.resendInvitation(invited.id),
+        throwsA(isA<NotFoundException>()),
+      );
+    });
+
+    test("a member's account isn't an invitation", () async {
+      final arjun = store.users.firstWhere((u) => u.name == 'Arjun Joshi');
+      await expectLater(
+        users.cancelInvitation(arjun.id),
+        throwsA(isA<NotFoundException>()),
+      );
+      await expectLater(
+        users.resendInvitation(arjun.id),
+        throwsA(isA<NotFoundException>()),
+      );
+      expect(store.users.any((u) => u.id == arjun.id), isTrue);
+    });
+
+    test('needs Manage users and permissions', () async {
+      final invited = await users.create(
+        const UserAccountInput(name: 'Ravi', email: 'ravi@keshav.in'),
+      );
+      final staff = store.users.firstWhere(
+        (u) =>
+            u.isActive &&
+            !u.invitationPending &&
+            !u.permissions.contains(_manage),
+      );
+      store.signIn(staff.id);
+      final guarded = UserMockDataSource(
+        store: store,
+        guard: MockGuard(store: store),
+      );
+      await expectLater(
+        guarded.cancelInvitation(invited.id),
+        throwsA(isA<ForbiddenException>()),
+      );
+      await expectLater(
+        guarded.resendInvitation(invited.id),
+        throwsA(isA<ForbiddenException>()),
+      );
     });
   });
 }

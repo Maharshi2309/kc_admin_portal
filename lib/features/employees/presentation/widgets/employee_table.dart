@@ -8,7 +8,7 @@ import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/duration_format.dart';
-import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_avatar.dart';
 import 'package:kc_admin_portal/core/widgets/app_icon_button.dart';
 import 'package:kc_admin_portal/core/widgets/ec_number_text.dart';
@@ -16,6 +16,7 @@ import 'package:kc_admin_portal/core/widgets/responsive_data_view.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/permission_providers.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/features/employees/presentation/widgets/employee_status_action.dart';
+import 'package:kc_admin_portal/features/organization/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/widgets/status_badges.dart';
 
@@ -49,6 +50,7 @@ class EmployeeTable extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final phoneCountry = ref.watch(defaultPhoneCountryProvider);
     final muted = AppTextStyles.body.copyWith(color: AppColors.textSecondary);
     // The server sends overtime only to people who may see it.
     final showOvertime = ref.can(AppPermission.overtimeView);
@@ -99,8 +101,10 @@ class EmployeeTable extends ConsumerWidget {
           label: 'Mobile',
           minWidth: 150,
           priority: 5,
-          cellBuilder: (context, e) =>
-              Text(FormatUtils.mobile(e.mobile), style: muted),
+          cellBuilder: (context, e) => Text(
+            PhoneUtils.format(e.mobile, country: phoneCountry),
+            style: muted,
+          ),
         ),
         if (showOvertime)
           AppDataColumn(

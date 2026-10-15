@@ -194,6 +194,33 @@ void main() {
       );
     });
 
+    test('a cancelled invitation is gone for the invitee', () async {
+      final access = tenant(MockSession.sunriseId).access;
+      final invited = access.createUser(
+        const UserAccountInput(name: 'Asha Iyer', email: 'asha@bright.in'),
+      );
+      await auth.register(
+        name: 'Asha Iyer',
+        email: 'asha@bright.in',
+        password: 'long-enough',
+      );
+      await auth.verifyEmail(email: 'asha@bright.in', code: _code);
+      final invitation = (await auth.invitations()).single;
+
+      access.cancelInvitation(invited.id);
+      expect(await auth.invitations(), isEmpty);
+      await expectLater(
+        auth.acceptInvitation(invitation.id),
+        throwsA(
+          isA<NotFoundException>().having(
+            (e) => e.message,
+            'message',
+            'This invitation is no longer valid.',
+          ),
+        ),
+      );
+    });
+
     test('a forgotten password is reset with the emailed code', () async {
       await auth.forgotPassword('nisha.solanki@keshav.in');
       await expectLater(
@@ -354,6 +381,33 @@ void main() {
       ).read(routerProvider).go('/leave?view=balances');
       await tester.pumpAndSettle();
       expect(find.text('No paid leave in this organization'), findsOneWidget);
+    });
+
+    testWidgets("a new organization's phone country starts from the device", (
+      tester,
+    ) async {
+      await pumpFullApp(
+        tester,
+        repository: null,
+        mockDashboard: true,
+        deviceCountry: 'AE',
+      );
+      await signUp(tester, email: 'asha@bright.in');
+      await tap(tester, find.text('Create your organization'));
+      expect(find.text('United Arab Emirates (+971)'), findsWidgets);
+      await tester.enterText(field('Organization name'), 'Desert Threads');
+      await tap(
+        tester,
+        find.widgetWithText(FilledButton, 'Create organization'),
+      );
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(KeshavAdminApp)),
+      );
+      final settings = await tester.runAsync(
+        () => container.read(mockActiveTenantProvider).organization.settings(),
+      );
+      expect(settings!.defaultCountry, 'AE');
     });
 
     testWidgets('an invited person joins their organization', (tester) async {

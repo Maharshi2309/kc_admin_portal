@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
 import 'package:kc_admin_portal/features/organization/data/datasources/organization_remote_data_source.dart';
@@ -23,7 +24,9 @@ class OrganizationMockDataSource implements OrganizationRemoteDataSource {
     DateTime Function()? now,
     this.guard = const MockGuard.allowAll(),
     this.latency = Duration.zero,
-  }) : _settings = MockCatalogs.settings(organizationId),
+  }) : _settings = MockCatalogs.settings(
+         organizationId,
+       ).copyWith(defaultCountry: directory.defaultCountryFor(organizationId)),
        _leavePolicy = MockCatalogs.leavePolicy(
          organizationId,
          now: (now ?? DateTime.now)(),
@@ -191,10 +194,13 @@ class OrganizationMockDataSource implements OrganizationRemoteDataSource {
         'defaultSchedule.endTime': 'The end must be after the start',
       if (schedule.weeklyOffDays.length >= DateTime.daysPerWeek)
         'defaultSchedule.weeklyOffDays': 'Leave at least one working day',
+      if (!PhoneUtils.isCountry(settings.defaultCountry))
+        'defaultCountry': 'Choose a country',
     };
     _throwIfAny(errors);
     return _settings = settings.copyWith(
       ecNumberPrefix: settings.ecNumberPrefix.trim().toUpperCase(),
+      defaultCountry: settings.defaultCountry.toUpperCase(),
     );
   }
 

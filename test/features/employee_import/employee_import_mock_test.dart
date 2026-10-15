@@ -141,7 +141,8 @@ void main() {
       const EmployeeQuery(search: 'Asha Iyer'),
     )).items.single;
     expect(asha.ecNumber, 'KC2001');
-    expect(asha.mobile, '9876543210');
+    // Stored with its country code (the organization's: India).
+    expect(asha.mobile, '+919876543210');
     expect(asha.joiningDate, DateTime(2026, 9));
     // Without hours in the file, the default schedule.
     expect(
@@ -189,6 +190,69 @@ void main() {
     expect(aarav.position.name, 'Tailor');
     expect(aarav.name, 'Aarav Shah');
     expect(aarav.department.name, 'Graphic Designer');
+  });
+
+  test('mobile numbers from any country (2026-10-13)', () async {
+    final upload = await keshav.employeeImport.upload(
+      xlsx([
+        ['EC number', 'Name', 'Mobile', 'Department', 'Position', 'DOJ'],
+        [
+          'KC2101',
+          'Uk Worker',
+          '+44 7400 123456',
+          'Tailor',
+          'Tailor',
+          '01/09/2026',
+        ],
+        [
+          'KC2102',
+          'Local Worker',
+          '098765 00009',
+          'Tailor',
+          'Tailor',
+          '01/09/2026',
+        ],
+        ['KC2103', 'Bad Number', '12345', 'Tailor', 'Tailor', '01/09/2026'],
+      ]),
+      'phones.xlsx',
+    );
+    final result = await checked(upload);
+    expect(result.counts!.errors, 1);
+    final rows = await keshav.employeeImport.rows(result.id);
+    expect(
+      rows.items.firstWhere((r) => r.rowNumber == 4).messages,
+      contains('Enter a valid mobile number for India'),
+    );
+    await keshav.employeeImport.confirm(upload.id);
+    Future<String> mobileOf(String name) async =>
+        (await keshav.employeeSource.list(
+          EmployeeQuery(search: name),
+        )).items.single.mobile;
+    expect(await mobileOf('Uk Worker'), '+447400123456');
+    expect(await mobileOf('Local Worker'), '+919876500009');
+  });
+
+  test('a number saved without its country code is no change', () async {
+    final upload = await keshav.employeeImport.upload(
+      xlsx([
+        ['EC number', 'Mobile'],
+        ['KC1001', '+91 98250 11234'], // Aarav's, saved as 9825011234
+      ]),
+      'same.xlsx',
+    );
+    final result = await keshav.employeeImport.check(
+      upload.id,
+      ImportOptionsModel(
+        mapping: upload.suggestedMapping,
+        duplicateStrategy: DuplicateStrategy.update,
+      ),
+    );
+    final row = (await keshav.employeeImport.rows(
+      result.id,
+      filter: ImportRowFilter.all,
+    )).items.single;
+    expect(row.changes, isEmpty);
+    expect(row.messages, ['KC1001 already exists with the same details']);
   });
 
   test('a required field without a column is refused', () async {

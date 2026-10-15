@@ -46,6 +46,6 @@ void main() {
   test('company "now" follows the company offset', () {
     final instant = DateTime.utc(2026, 9, 30, 20, 0);
     expect(CompanyTime.fromInstant(instant), DateTime(2026, 10, 1, 1, 30));
-    expect(CompanyTime.utcOffsetText, '+05:30');
+    expect(CompanyTime.offsetTextAt(DateTime(2026, 10)), '+05:30');
   });
 }

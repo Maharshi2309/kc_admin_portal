@@ -100,7 +100,7 @@ void main() {
       final body = EmployeeFormData(
         ecNumber: 'KC1129',
         name: 'Rahul Sharma',
-        mobile: '9876543210',
+        mobile: '+919876543210',
         departmentId: dept('Graphic Designer').id,
         positionId: post('Graphic Designer').id,
         joiningDate: _sep28,
@@ -114,7 +114,7 @@ void main() {
       final body = EmployeeFormData(
         ecNumber: 'KC1129',
         name: 'Rahul Sharma',
-        mobile: '9876543210',
+        mobile: '+919876543210',
         departmentId: dept('Graphic Designer').id,
         positionId: post('Graphic Designer').id,
         joiningDate: _sep28,

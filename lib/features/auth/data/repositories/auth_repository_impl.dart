@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/storage/local_storage.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:kc_admin_portal/features/auth/data/models/login_response_model.dart';
 import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
@@ -113,11 +114,13 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
     required String timezone,
     bool paidLeave = true,
+    String defaultCountry = PhoneUtils.defaultCountry,
   }) async => _continueWith(
     await remote.createOrganization(
       name: name.trim(),
       timezone: timezone,
       paidLeave: paidLeave,
+      defaultCountry: defaultCountry,
     ),
   );
 

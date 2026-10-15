@@ -24,7 +24,7 @@ class LeaveQueryNotifier extends Notifier<LeaveQuery> {
   LeaveQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
     // Another organization starts with fresh filters.
-    ref.watch(activeOrganizationIdProvider);
+    ref.watch(activeOrganizationScopeProvider);
     return const LeaveQuery();
   }
 
@@ -82,7 +82,7 @@ class LeaveBalanceQueryNotifier extends Notifier<LeaveBalanceQuery> {
   LeaveBalanceQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
     // Another organization starts with fresh filters.
-    ref.watch(activeOrganizationIdProvider);
+    ref.watch(activeOrganizationScopeProvider);
     return const LeaveBalanceQuery();
   }
 

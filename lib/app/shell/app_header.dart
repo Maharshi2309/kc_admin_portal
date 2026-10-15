@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kc_admin_portal/app/shell/organization_time_note.dart';
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
@@ -8,7 +9,8 @@ import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_search_field.dart';
 
-/// Top bar on tablet and desktop: global employee search and today's date.
+/// Top bar on tablet and desktop: global employee search and today's date
+/// (with the organization's zone when the device is on another).
 ///
 /// TODO — REQUIREMENT CONFIRMATION REQUIRED: the design also shows a
 /// notifications bell, but no notifications are defined in the requirement
@@ -60,11 +62,19 @@ class AppHeader extends ConsumerWidget {
                     ),
             ),
           ),
-          Text(
-            AppDateFormat.long(today),
-            style: AppTextStyles.smallSemibold.copyWith(
-              color: AppColors.textMuted,
-            ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            spacing: AppSpacing.s2,
+            children: [
+              Text(
+                AppDateFormat.long(today),
+                style: AppTextStyles.smallSemibold.copyWith(
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const OrganizationTimeNote(),
+            ],
           ),
         ],
       ),

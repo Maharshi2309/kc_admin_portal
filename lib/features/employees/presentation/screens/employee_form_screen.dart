@@ -12,6 +12,7 @@ import 'package:kc_admin_portal/core/errors/error_handler.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
 import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/core/utils/validation_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_alert_banner.dart';
 import 'package:kc_admin_portal/core/widgets/app_breadcrumb.dart';
@@ -37,6 +38,7 @@ import 'package:kc_admin_portal/features/organization/data/models/organization_m
 import 'package:kc_admin_portal/features/organization/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/shared/models/named_ref.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
+import 'package:kc_admin_portal/shared/widgets/phone_number_field.dart';
 
 /// Add employee (`employeeId == null`) or edit one (design board 04).
 class EmployeeFormScreen extends ConsumerWidget {
@@ -79,7 +81,24 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
   final _formKey = GlobalKey<FormState>();
   late final _ecNumber = TextEditingController(text: widget.initial?.ecNumber);
   late final _name = TextEditingController(text: widget.initial?.name);
-  late final _mobile = TextEditingController(text: widget.initial?.mobile);
+  late final _mobile = TextEditingController(
+    text: widget.initial == null
+        ? null
+        : PhoneUtils.nationalDigits(
+            widget.initial!.mobile,
+            country: _phoneCountry,
+          ),
+  );
+
+  /// The mobile number's country: the saved number's, or the
+  /// organization's default (2026-10-13).
+  late String _phoneCountry = PhoneUtils.countryOf(
+    widget.initial?.mobile,
+    fallback: ref.read(defaultPhoneCountryProvider),
+  );
+
+  /// The admin picked the country, so the default must not replace it.
+  bool _phoneCountryChosen = false;
   late NamedRef? _department = widget.initial?.department;
   late NamedRef? _position = widget.initial?.position;
   late DateTime? _joiningDate = widget.initial?.joiningDate;
@@ -131,6 +150,9 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
     // unless the admin has typed one. Set outside build so listeners of the
     // text controller are never notified mid-build.
     if (!_isEditing) {
+      ref.listenManual(defaultPhoneCountryProvider, (_, next) {
+        if (!_phoneCountryChosen) setState(() => _phoneCountry = next);
+      });
       ref.listenManual(organizationSettingsProvider, fireImmediately: true, (
         _,
         next,
@@ -158,6 +180,11 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
     if (!_serverErrors.containsKey(field)) return;
     setState(() => _serverErrors = {..._serverErrors}..remove(field));
   }
+
+  /// The number as sent: international (`+919825011234`) when valid.
+  String get _storedMobile =>
+      PhoneUtils.toStored(_mobile.text, country: _phoneCountry) ??
+      _mobile.text.trim();
 
   List<String> get _missingRequired => [
     if (_ecNumber.text.trim().isEmpty) 'EC number',
@@ -192,7 +219,7 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
           data: EmployeeFormData(
             ecNumber: _ecNumber.text,
             name: _name.text,
-            mobile: _mobile.text,
+            mobile: _storedMobile,
             departmentId: _department!.id,
             positionId: _position!.id,
             joiningDate: _joiningDate!,
@@ -371,7 +398,7 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
     return EmployeePreviewCard(
       name: _name.text,
       ecNumber: _ecNumber.text,
-      mobile: _mobile.text,
+      mobile: _storedMobile,
       departmentName: _department?.name,
       positionName: _position?.name,
       joiningDate: _joiningDate,
@@ -472,21 +499,18 @@ class _EmployeeFormState extends ConsumerState<_EmployeeForm> {
       validator: (value) => Validators.required(value, field: 'Full name'),
       onChanged: (_) => _clearServerError('name'),
     ),
-    AppTextField(
-      label: 'Mobile number',
-      isRequired: true,
+    PhoneNumberField(
       controller: _mobile,
+      country: _phoneCountry,
       enabled: !isSaving,
-      prefixText: '+91',
-      keyboardType: TextInputType.phone,
-      helperText: '10 digits',
-      autofillHints: const [AutofillHints.telephoneNumberNational],
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(10),
-      ],
+      onCountryChanged: (country) {
+        setState(() {
+          _phoneCountry = country;
+          _phoneCountryChosen = true;
+        });
+        _clearServerError('mobile');
+      },
       errorText: _serverErrors['mobile'],
-      validator: Validators.mobile,
       onChanged: (_) => _clearServerError('mobile'),
     ),
   ];

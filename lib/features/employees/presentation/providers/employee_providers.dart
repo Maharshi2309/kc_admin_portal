@@ -22,7 +22,7 @@ class EmployeeQueryNotifier extends Notifier<EmployeeQuery> {
   EmployeeQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
     // Another organization starts with fresh filters.
-    ref.watch(activeOrganizationIdProvider);
+    ref.watch(activeOrganizationScopeProvider);
     return const EmployeeQuery();
   }
 

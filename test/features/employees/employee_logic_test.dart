@@ -42,17 +42,10 @@ void main() {
       expect(Validators.ecNumber('1001', prefix: ''), isNull);
       expect(Validators.ecNumber('A1001', prefix: ''), isNotNull);
     });
-
-    test('mobile must be 10 digits', () {
-      expect(Validators.mobile('9825011234'), isNull);
-      expect(Validators.mobile('982501123'), 'Enter a 10-digit mobile number');
-      expect(Validators.mobile('98250 11234'), isNotNull);
-    });
   });
 
   group('formatting', () {
-    test('mobile, tenure, duration and date ranges', () {
-      expect(FormatUtils.mobile('9825011234'), '+91 98250 11234');
+    test('tenure, duration and date ranges', () {
       expect(
         FormatUtils.tenure(DateTime(2021, 1, 12), DateTime(2026, 9, 28)),
         '5 yrs 8 mos',

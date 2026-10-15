@@ -24,6 +24,7 @@ class AppTextField extends StatefulWidget {
     this.helperText,
     this.errorText,
     this.prefixText,
+    this.prefixWidget,
     this.prefixIcon,
     this.suffix,
     this.validator,
@@ -62,6 +63,9 @@ class AppTextField extends StatefulWidget {
 
   /// Fixed text before the input, separated by a divider (e.g. "+91").
   final String? prefixText;
+
+  /// Like [prefixText], but any widget, e.g. a country-code button.
+  final Widget? prefixWidget;
   final IconData? prefixIcon;
   final Widget? suffix;
   final FormFieldValidator<String>? validator;
@@ -261,7 +265,11 @@ class _AppTextFieldState extends State<AppTextField> {
   );
 
   Widget? _buildPrefix() {
-    if (widget.prefixText == null && widget.prefixIcon == null) return null;
+    if (widget.prefixText == null &&
+        widget.prefixWidget == null &&
+        widget.prefixIcon == null) {
+      return null;
+    }
 
     return Padding(
       padding: const EdgeInsets.only(left: AppSpacing.s12),
@@ -270,18 +278,20 @@ class _AppTextFieldState extends State<AppTextField> {
         children: [
           if (widget.prefixIcon != null)
             Icon(widget.prefixIcon, size: AppSizes.icon),
-          if (widget.prefixText != null)
+          if (widget.prefixText != null || widget.prefixWidget != null)
             Container(
               padding: const EdgeInsets.only(right: AppSpacing.s10),
               decoration: const BoxDecoration(
                 border: Border(right: BorderSide(color: AppColors.border)),
               ),
-              child: Text(
-                widget.prefixText!,
-                style: AppTextStyles.bodySemibold.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
+              child:
+                  widget.prefixWidget ??
+                  Text(
+                    widget.prefixText!,
+                    style: AppTextStyles.bodySemibold.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
             ),
           const SizedBox(width: AppSpacing.s10),
         ],

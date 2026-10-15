@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
 import 'package:kc_admin_portal/features/attendance/data/datasources/attendance_mock_data_source.dart';
 import 'package:kc_admin_portal/features/employees/data/datasources/employee_remote_data_source.dart';
@@ -425,6 +426,14 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
   String get _ecPrefix =>
       organization?.currentSettings.ecNumberPrefix ?? _defaultEcPrefix;
 
+  /// Mobile numbers without a country code are read in this country.
+  String get _phoneCountry =>
+      organization?.currentSettings.defaultCountry ?? PhoneUtils.defaultCountry;
+
+  /// [mobile] as stored: international (`+919825011234`).
+  String _storedMobile(String mobile) =>
+      PhoneUtils.toStored(mobile, country: _phoneCountry) ?? mobile;
+
   Future<void> _wait() => Future<void>.delayed(latency);
 
   EmployeeModel _find(String id) {
@@ -444,6 +453,7 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
         'ecNumber': 'Use $_ecPrefix followed by numbers, e.g. ${_ecPrefix}1001'
       else if (others.any((e) => e.ecNumber == data.ecNumber))
         'ecNumber': 'This EC number is already in use',
+      'mobile': ?PhoneUtils.validate(data.mobile, country: _phoneCountry),
     };
     if (errors.isNotEmpty) {
       throw ValidationException(errors.values.first, fieldErrors: errors);
@@ -543,7 +553,7 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
       id: '${_employees.length + 1}',
       ecNumber: data.ecNumber,
       name: data.name,
-      mobile: data.mobile,
+      mobile: _storedMobile(data.mobile),
       department: _choice(CatalogKind.departments, data.departmentId),
       position: _choice(CatalogKind.positions, data.positionId),
       joiningDate: data.joiningDate,
@@ -565,7 +575,7 @@ class EmployeeMockDataSource implements EmployeeRemoteDataSource {
     final updated = current.copyWith(
       ecNumber: data.ecNumber,
       name: data.name,
-      mobile: data.mobile,
+      mobile: _storedMobile(data.mobile),
       department: _choice(
         CatalogKind.departments,
         data.departmentId,

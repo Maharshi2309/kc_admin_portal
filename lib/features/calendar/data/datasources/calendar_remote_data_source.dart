@@ -46,6 +46,6 @@ final calendarRemoteDataSourceProvider = Provider<CalendarRemoteDataSource>((
     return ref.watch(mockActiveTenantProvider).calendar;
   }
   // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
-  ref.watch(activeOrganizationIdProvider);
+  ref.watch(activeOrganizationScopeProvider);
   return CalendarApiDataSource(ref.watch(apiClientProvider));
 });

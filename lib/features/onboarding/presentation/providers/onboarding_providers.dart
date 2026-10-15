@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/auth_controller.dart';
 import 'package:kc_admin_portal/shared/models/organization_model.dart';
@@ -85,6 +86,7 @@ class CreateOrganizationController extends _Submission {
     required String name,
     required String timezone,
     required bool paidLeave,
+    required String defaultCountry,
   }) => run(
     () => ref
         .read(authControllerProvider.notifier)
@@ -92,6 +94,7 @@ class CreateOrganizationController extends _Submission {
           name: name,
           timezone: timezone,
           paidLeave: paidLeave,
+          defaultCountry: defaultCountry,
         ),
   );
 }
@@ -132,6 +135,10 @@ class InvitationActions extends Notifier<Set<String>> {
       await action();
       return null;
     } on Object catch (error) {
+      // Cancelled by the organization meanwhile: drop it from the list.
+      if (error is NotFoundException && ref.mounted) {
+        ref.invalidate(invitationsProvider);
+      }
       return error;
     } finally {
       if (ref.mounted) state = {...state}..remove(id);

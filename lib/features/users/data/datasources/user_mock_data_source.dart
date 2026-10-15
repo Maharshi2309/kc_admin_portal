@@ -55,4 +55,18 @@ class UserMockDataSource implements UserRemoteDataSource {
     guard.require(AppPermission.permissionManage);
     return store.setPermissions(id, keys);
   }
+
+  @override
+  Future<void> cancelInvitation(String id) async {
+    await _wait();
+    guard.require(AppPermission.permissionManage);
+    store.cancelInvitation(id);
+  }
+
+  @override
+  Future<void> resendInvitation(String id) async {
+    await _wait();
+    guard.require(AppPermission.permissionManage);
+    store.pendingInvitation(id);
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/permissions/app_permission.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/mock_guard.dart';
 import 'package:kc_admin_portal/features/employee_import/data/datasources/employee_import_remote_data_source.dart';
 import 'package:kc_admin_portal/features/employee_import/data/datasources/mock_excel.dart';
@@ -292,7 +293,10 @@ class EmployeeImportMockDataSource implements EmployeeImportRemoteDataSource {
       if (mobileText.isEmpty) {
         if (existing == null) errors.add('Mobile number is missing');
       } else if (mobile == null) {
-        errors.add('Mobile number must have 10 digits');
+        errors.add(
+          PhoneUtils.validate(mobileText, country: _phoneCountry) ??
+              'Mobile number is not valid',
+        );
       }
 
       // Department and position
@@ -386,7 +390,7 @@ class EmployeeImportMockDataSource implements EmployeeImportRemoteDataSource {
         final twin = _employees
             .where(
               (e) =>
-                  e.mobile == mobile &&
+                  _mobile(e.mobile) == mobile &&
                   e.name.toLowerCase() == name.toLowerCase(),
             )
             .firstOrNull;
@@ -416,14 +420,12 @@ class EmployeeImportMockDataSource implements EmployeeImportRemoteDataSource {
   String _toCreate(CatalogKind kind, String name) =>
       'new:${kind.name}:${name.trim()}';
 
-  static String? _mobile(String text) {
-    var digits = text.replaceAll(RegExp(r'[\s\-()]'), '');
-    if (digits.startsWith('+91')) digits = digits.substring(3);
-    if (digits.length == 11 && digits.startsWith('0')) {
-      digits = digits.substring(1);
-    }
-    return RegExp(r'^\d{10}$').hasMatch(digits) ? digits : null;
-  }
+  String get _phoneCountry => organization.currentSettings.defaultCountry;
+
+  /// International form (`+919825011234`): "+44 7400 123456", "98250 11234"
+  /// or "098250 11234" (the organization's country), or null if invalid.
+  String? _mobile(String text) =>
+      PhoneUtils.toStored(text, country: _phoneCountry);
 
   /// `yyyy-mm-dd` (Excel dates arrive like that), `dd/mm/yyyy`,
   /// `dd-mm-yyyy` or `dd.mm.yyyy`. Anything else is an error, never a guess.
@@ -555,11 +557,14 @@ class EmployeeImportMockDataSource implements EmployeeImportRemoteDataSource {
           before: existing.name,
           after: row.name,
         ),
-      if (row.mobile != null && row.mobile != existing.mobile)
+      // The same number, saved before without its country code, is no
+      // change.
+      if (row.mobile != null &&
+          row.mobile != (_mobile(existing.mobile) ?? existing.mobile))
         ImportChangeModel(
           field: 'Mobile number',
-          before: existing.mobile,
-          after: row.mobile,
+          before: PhoneUtils.format(existing.mobile, country: _phoneCountry),
+          after: PhoneUtils.format(row.mobile!, country: _phoneCountry),
         ),
       if (row.departmentId != null &&
           row.departmentId != existing.department.id)

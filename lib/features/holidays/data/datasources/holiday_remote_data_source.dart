@@ -69,6 +69,6 @@ final holidayRemoteDataSourceProvider = Provider<HolidayRemoteDataSource>((
     return ref.watch(mockActiveTenantProvider).holidaySource;
   }
   // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
-  ref.watch(activeOrganizationIdProvider);
+  ref.watch(activeOrganizationScopeProvider);
   return HolidayApiDataSource(ref.watch(apiClientProvider));
 });

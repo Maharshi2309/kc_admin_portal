@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/shared/models/clock_time.dart';
 import 'package:kc_admin_portal/shared/models/json_converters.dart';
 
@@ -51,6 +52,11 @@ abstract class OrganizationSettingsModel with _$OrganizationSettingsModel {
 
     /// Starting values for a new employee's working schedule.
     required DefaultScheduleModel defaultSchedule,
+
+    /// ISO country code (e.g. `IN`) for mobile numbers written without a
+    /// country code, and the one the mobile field starts on (2026-10-13).
+    /// Missing (older server): India.
+    @Default(PhoneUtils.defaultCountry) String defaultCountry,
   }) = _OrganizationSettingsModel;
 
   factory OrganizationSettingsModel.fromJson(Map<String, dynamic> json) =>

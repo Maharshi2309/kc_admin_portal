@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
 import 'package:kc_admin_portal/core/network/session_events.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
 import 'package:kc_admin_portal/features/auth/data/repositories/auth_repository_impl.dart';
 
@@ -75,6 +76,7 @@ class AuthController extends AsyncNotifier<UserModel?> {
     required String name,
     required String timezone,
     bool paidLeave = true,
+    String defaultCountry = PhoneUtils.defaultCountry,
   }) async {
     final user = await ref
         .read(authRepositoryProvider)
@@ -82,6 +84,7 @@ class AuthController extends AsyncNotifier<UserModel?> {
           name: name,
           timezone: timezone,
           paidLeave: paidLeave,
+          defaultCountry: defaultCountry,
         );
     if (!ref.mounted) return;
     state = AsyncData(user);

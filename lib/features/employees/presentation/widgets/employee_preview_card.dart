@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
-import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_avatar.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
 import 'package:kc_admin_portal/core/widgets/ec_number_text.dart';
+import 'package:kc_admin_portal/features/organization/presentation/providers/organization_providers.dart';
 
 /// Live preview of the employee being added or edited (design board 04).
-class EmployeePreviewCard extends StatelessWidget {
+class EmployeePreviewCard extends ConsumerWidget {
   const EmployeePreviewCard({
     required this.name,
     required this.ecNumber,
@@ -31,7 +33,7 @@ class EmployeePreviewCard extends StatelessWidget {
   static const String _placeholder = '—';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final displayName = name.trim().isEmpty ? 'New employee' : name.trim();
 
     return AppCard(
@@ -75,7 +77,12 @@ class EmployeePreviewCard extends StatelessWidget {
           ),
           _Row(
             label: 'Mobile',
-            value: mobile.isEmpty ? '' : FormatUtils.mobile(mobile),
+            value: mobile.isEmpty
+                ? ''
+                : PhoneUtils.format(
+                    mobile,
+                    country: ref.watch(defaultPhoneCountryProvider),
+                  ),
           ),
           _Row(
             label: 'Joins',

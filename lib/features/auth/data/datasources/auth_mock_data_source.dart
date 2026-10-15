@@ -1,5 +1,6 @@
 import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/access_control/data/datasources/mock_access_store.dart';
 import 'package:kc_admin_portal/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:kc_admin_portal/features/auth/data/models/login_response_model.dart';
@@ -208,6 +209,7 @@ class AuthMockDataSource implements AuthRemoteDataSource {
     required String name,
     required String timezone,
     bool paidLeave = true,
+    String defaultCountry = PhoneUtils.defaultCountry,
   }) async {
     await _wait();
     final account = directory.account(_signedInUser())!;
@@ -215,6 +217,7 @@ class AuthMockDataSource implements AuthRemoteDataSource {
       name: name,
       timezone: timezone,
       paidLeave: paidLeave,
+      defaultCountry: defaultCountry,
     );
     _store(
       organization.id,
@@ -256,7 +259,7 @@ class AuthMockDataSource implements AuthRemoteDataSource {
         return (organization, store);
       }
     }
-    throw const NotFoundException('This invitation was not found.');
+    throw const NotFoundException('This invitation is no longer valid.');
   }
 
   @override

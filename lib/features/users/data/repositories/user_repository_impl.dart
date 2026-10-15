@@ -31,6 +31,12 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<UserAccountModel> setPermissions(String id, List<String> keys) =>
       _remote.setPermissions(id, keys.toSet().toList()..sort());
+
+  @override
+  Future<void> cancelInvitation(String id) => _remote.cancelInvitation(id);
+
+  @override
+  Future<void> resendInvitation(String id) => _remote.resendInvitation(id);
 }
 
 final userRepositoryProvider = Provider<UserRepository>(

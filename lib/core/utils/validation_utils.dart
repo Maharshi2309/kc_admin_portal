@@ -6,9 +6,6 @@ abstract final class Validators {
     r"^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$",
   );
 
-  /// Design: 10-digit mobile number entered after a fixed "+91" prefix.
-  static final RegExp _mobile = RegExp(r'^\d{10}$');
-
   static String? required(String? value, {String field = 'This field'}) =>
       (value == null || value.trim().isEmpty) ? '$field is required' : null;
 
@@ -30,14 +27,6 @@ abstract final class Validators {
     return prefix == null || prefix.isEmpty
         ? 'Use numbers, e.g. 1001'
         : 'Use $prefix followed by numbers, e.g. ${prefix}1001';
-  }
-
-  static String? mobile(String? value) {
-    final missing = required(value, field: 'Mobile number');
-    if (missing != null) return missing;
-    return _mobile.hasMatch(value!.trim())
-        ? null
-        : 'Enter a 10-digit mobile number';
   }
 
   /// Required check for non-text values (dropdowns, dates).

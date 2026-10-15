@@ -18,6 +18,12 @@ abstract interface class UserRemoteDataSource {
 
   /// Replaces the user's permissions with [keys].
   Future<UserAccountModel> setPermissions(String id, List<String> keys);
+
+  /// Cancels the pending invitation [id]; the user is removed.
+  Future<void> cancelInvitation(String id);
+
+  /// Emails the pending invitation [id] again.
+  Future<void> resendInvitation(String id);
 }
 
 class UserApiDataSource implements UserRemoteDataSource {
@@ -55,6 +61,18 @@ class UserApiDataSource implements UserRemoteDataSource {
         body: {'permissions': keys},
         parse: _user,
       );
+
+  @override
+  Future<void> cancelInvitation(String id) => _client.delete(
+    ApiConstants.userInvitation(id),
+    parse: ApiClient.ignoreBody,
+  );
+
+  @override
+  Future<void> resendInvitation(String id) => _client.post(
+    ApiConstants.resendUserInvitation(id),
+    parse: ApiClient.ignoreBody,
+  );
 }
 
 final userRemoteDataSourceProvider = Provider<UserRemoteDataSource>((ref) {
@@ -62,6 +80,6 @@ final userRemoteDataSourceProvider = Provider<UserRemoteDataSource>((ref) {
     return ref.watch(mockActiveTenantProvider).users;
   }
   // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
-  ref.watch(activeOrganizationIdProvider);
+  ref.watch(activeOrganizationScopeProvider);
   return UserApiDataSource(ref.watch(apiClientProvider));
 });

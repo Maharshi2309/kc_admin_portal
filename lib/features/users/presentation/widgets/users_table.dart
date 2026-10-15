@@ -87,7 +87,7 @@ class UsersTable extends ConsumerWidget {
         AppDataColumn(
           label: 'Status',
           minWidth: 110,
-          cellBuilder: (context, u) => _StatusBadge(user: u),
+          cellBuilder: (context, u) => UserStatusBadge(user: u),
         ),
         AppDataColumn(
           label: '',
@@ -190,8 +190,9 @@ class _AccessBadge extends StatelessWidget {
   }
 }
 
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.user});
+/// "Invited", "Active" or "Inactive".
+class UserStatusBadge extends StatelessWidget {
+  const UserStatusBadge({required this.user, super.key});
 
   final UserAccountModel user;
 
@@ -233,6 +234,53 @@ Future<void> toggleUserStatus(
   );
 }
 
+/// Withdraws [user]'s invitation after asking, and says how it went.
+/// Returns true when it was cancelled.
+Future<bool> cancelUserInvitation(
+  BuildContext context,
+  WidgetRef ref,
+  UserAccountModel user,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final confirmed = await showAppConfirmDialog(
+    context,
+    title: 'Cancel the invitation to ${user.name}?',
+    message:
+        '${user.email} will no longer be able to join with this invitation. '
+        'You can invite them again later.',
+    confirmLabel: 'Cancel invitation',
+    cancelLabel: 'Keep invitation',
+    isDestructive: true,
+  );
+  if (!confirmed) return false;
+  final error = await ref
+      .read(userActionsProvider.notifier)
+      .cancelInvitation(user);
+  showAppSnackBarOn(
+    messenger,
+    error ?? 'Invitation to ${user.name} cancelled',
+    tone: error == null ? SnackBarTone.success : SnackBarTone.error,
+  );
+  return error == null;
+}
+
+/// Emails [user]'s invitation again, and says how it went.
+Future<void> resendUserInvitation(
+  BuildContext context,
+  WidgetRef ref,
+  UserAccountModel user,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final error = await ref
+      .read(userActionsProvider.notifier)
+      .resendInvitation(user);
+  showAppSnackBarOn(
+    messenger,
+    error ?? 'Invitation sent again to ${user.email}',
+    tone: error == null ? SnackBarTone.success : SnackBarTone.error,
+  );
+}
+
 /// "Deactivate" / "Reactivate" for a user's page.
 class UserStatusButton extends ConsumerWidget {
   const UserStatusButton({required this.user, super.key});
@@ -253,8 +301,9 @@ class UserStatusButton extends ConsumerWidget {
   }
 }
 
-/// Permissions, edit, and (in the menu) deactivate / reactivate. Nobody can
-/// deactivate themselves, so the menu is off on their own row.
+/// Permissions, edit, and a menu: deactivate / reactivate, or for an
+/// invitation, resend / cancel it. Nobody can deactivate themselves, so the
+/// menu is off on their own row.
 class _Actions extends ConsumerWidget {
   const _Actions({required this.user, required this.isYou});
 
@@ -285,26 +334,41 @@ class _Actions extends ConsumerWidget {
         ),
         MenuAnchor(
           menuChildren: [
-            MenuItemButton(
-              leadingIcon: Icon(
-                user.isActive
-                    ? Icons.block_rounded
-                    : Icons.check_circle_outline_rounded,
-                size: AppSizes.icon,
+            if (user.invitationPending) ...[
+              MenuItemButton(
+                leadingIcon: const Icon(
+                  Icons.forward_to_inbox_outlined,
+                  size: AppSizes.icon,
+                ),
+                onPressed: () => resendUserInvitation(context, ref, user),
+                child: const Text('Resend invitation'),
               ),
-              onPressed: () => toggleUserStatus(context, ref, user),
-              child: Text(user.isActive ? 'Deactivate' : 'Reactivate'),
-            ),
+              MenuItemButton(
+                leadingIcon: const Icon(
+                  Icons.cancel_outlined,
+                  size: AppSizes.icon,
+                ),
+                onPressed: () => cancelUserInvitation(context, ref, user),
+                child: const Text('Cancel invitation'),
+              ),
+            ] else
+              MenuItemButton(
+                leadingIcon: Icon(
+                  user.isActive
+                      ? Icons.block_rounded
+                      : Icons.check_circle_outline_rounded,
+                  size: AppSizes.icon,
+                ),
+                onPressed: () => toggleUserStatus(context, ref, user),
+                child: Text(user.isActive ? 'Deactivate' : 'Reactivate'),
+              ),
           ],
           builder: (context, controller, _) => AppIconButton(
             icon: Icons.more_vert_rounded,
             tooltip: isYou
                 ? 'You cannot deactivate yourself'
-                : user.invitationPending
-                ? '${user.name} has not joined yet'
                 : 'More actions for ${user.name}',
-            // An invitation has nothing to deactivate until it's accepted.
-            onPressed: busy || isYou || user.invitationPending
+            onPressed: busy || isYou
                 ? null
                 : () => controller.isOpen
                       ? controller.close()
@@ -348,7 +412,7 @@ class _MobileItem extends StatelessWidget {
           runSpacing: AppSpacing.s6,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            _StatusBadge(user: user),
+            UserStatusBadge(user: user),
             _AccessBadge(user: user),
             Text(
               user.employee == null

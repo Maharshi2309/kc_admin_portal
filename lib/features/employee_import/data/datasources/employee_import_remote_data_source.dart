@@ -116,6 +116,6 @@ final employeeImportRemoteDataSourceProvider =
         return ref.watch(mockActiveTenantProvider).employeeImport;
       }
       // A new organization means new data: rebuild (§C).
-      ref.watch(activeOrganizationIdProvider);
+      ref.watch(activeOrganizationScopeProvider);
       return EmployeeImportApiDataSource(ref.watch(apiClientProvider));
     });

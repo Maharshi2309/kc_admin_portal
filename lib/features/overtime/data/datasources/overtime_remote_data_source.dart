@@ -42,6 +42,6 @@ final overtimeRemoteDataSourceProvider = Provider<OvertimeRemoteDataSource>((
     return ref.watch(mockActiveTenantProvider).overtime;
   }
   // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
-  ref.watch(activeOrganizationIdProvider);
+  ref.watch(activeOrganizationScopeProvider);
   return OvertimeApiDataSource(ref.watch(apiClientProvider));
 });

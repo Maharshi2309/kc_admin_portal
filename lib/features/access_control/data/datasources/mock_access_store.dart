@@ -303,7 +303,7 @@ class MockAccessStore {
       (u) => u.id == invitationId && u.invitationPending,
     );
     if (index < 0) {
-      throw const NotFoundException('This invitation was not found.');
+      throw const NotFoundException('This invitation is no longer valid.');
     }
     _users[index] = _users[index].copyWith(
       id: userId,
@@ -312,12 +312,28 @@ class MockAccessStore {
     );
   }
 
+  /// The pending invitation [id], for resending. Accepted or gone → 404.
+  UserAccountModel pendingInvitation(String id) {
+    final found = _users
+        .where((u) => u.id == id && u.invitationPending)
+        .firstOrNull;
+    if (found == null) {
+      throw const NotFoundException(
+        'This invitation is no longer pending. Refresh the list.',
+      );
+    }
+    return found;
+  }
+
+  /// `DELETE /users/{id}/invitation`: an admin withdraws the invitation.
+  void cancelInvitation(String id) => _users.remove(pendingInvitation(id));
+
   /// `POST /invitations/{id}/decline`: removes the invitation.
   void declineInvitation(String invitationId) {
     final before = _users.length;
     _users.removeWhere((u) => u.id == invitationId && u.invitationPending);
     if (_users.length == before) {
-      throw const NotFoundException('This invitation was not found.');
+      throw const NotFoundException('This invitation is no longer valid.');
     }
   }
 

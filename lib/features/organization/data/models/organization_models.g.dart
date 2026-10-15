@@ -30,6 +30,8 @@ _OrganizationSettingsModel _$OrganizationSettingsModelFromJson(
   defaultSchedule: DefaultScheduleModel.fromJson(
     json['defaultSchedule'] as Map<String, dynamic>,
   ),
+  defaultCountry:
+      json['defaultCountry'] as String? ?? PhoneUtils.defaultCountry,
 );
 
 Map<String, dynamic> _$OrganizationSettingsModelToJson(
@@ -38,6 +40,7 @@ Map<String, dynamic> _$OrganizationSettingsModelToJson(
   'ecNumberPrefix': instance.ecNumberPrefix,
   'lateGraceMinutes': instance.lateGraceMinutes,
   'defaultSchedule': instance.defaultSchedule.toJson(),
+  'defaultCountry': instance.defaultCountry,
 };
 
 _DefaultScheduleModel _$DefaultScheduleModelFromJson(

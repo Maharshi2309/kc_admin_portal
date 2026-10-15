@@ -157,6 +157,8 @@ abstract final class MockExcel {
           'position, joining date.',
       'EC number: $ecNumberPrefix followed by numbers, e.g. '
           '${ecNumberPrefix}1001.',
+      'Mobile number: with the country code, e.g. +44 7400 123456, or '
+          'without it for numbers in this organization\'s country.',
       'Joining date: dd/mm/yyyy, e.g. 01/10/2026 (or an Excel date).',
       'Status: Active or Inactive (empty means Active).',
       'Shift start and end: e.g. 09:30 and 18:30. Empty uses the default '

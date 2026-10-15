@@ -1,3 +1,4 @@
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
 import 'package:kc_admin_portal/shared/models/organization_model.dart';
 
@@ -59,6 +60,7 @@ abstract interface class AuthRepository {
     required String name,
     required String timezone,
     bool paidLeave = true,
+    String defaultCountry = PhoneUtils.defaultCountry,
   });
 
   /// Invitations waiting for the signed-in person.

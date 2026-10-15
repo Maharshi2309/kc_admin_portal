@@ -292,7 +292,10 @@ mixin _$OrganizationSettingsModel {
 /// Letters every EC number starts with, e.g. `KC` for `KC1001`.
  String get ecNumberPrefix;/// Minutes after the scheduled start before a punch-in counts as late.
  int get lateGraceMinutes;/// Starting values for a new employee's working schedule.
- DefaultScheduleModel get defaultSchedule;
+ DefaultScheduleModel get defaultSchedule;/// ISO country code (e.g. `IN`) for mobile numbers written without a
+/// country code, and the one the mobile field starts on (2026-10-13).
+/// Missing (older server): India.
+ String get defaultCountry;
 /// Create a copy of OrganizationSettingsModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -305,16 +308,16 @@ $OrganizationSettingsModelCopyWith<OrganizationSettingsModel> get copyWith => _$
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrganizationSettingsModel&&(identical(other.ecNumberPrefix, ecNumberPrefix) || other.ecNumberPrefix == ecNumberPrefix)&&(identical(other.lateGraceMinutes, lateGraceMinutes) || other.lateGraceMinutes == lateGraceMinutes)&&(identical(other.defaultSchedule, defaultSchedule) || other.defaultSchedule == defaultSchedule));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrganizationSettingsModel&&(identical(other.ecNumberPrefix, ecNumberPrefix) || other.ecNumberPrefix == ecNumberPrefix)&&(identical(other.lateGraceMinutes, lateGraceMinutes) || other.lateGraceMinutes == lateGraceMinutes)&&(identical(other.defaultSchedule, defaultSchedule) || other.defaultSchedule == defaultSchedule)&&(identical(other.defaultCountry, defaultCountry) || other.defaultCountry == defaultCountry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ecNumberPrefix,lateGraceMinutes,defaultSchedule);
+int get hashCode => Object.hash(runtimeType,ecNumberPrefix,lateGraceMinutes,defaultSchedule,defaultCountry);
 
 @override
 String toString() {
-  return 'OrganizationSettingsModel(ecNumberPrefix: $ecNumberPrefix, lateGraceMinutes: $lateGraceMinutes, defaultSchedule: $defaultSchedule)';
+  return 'OrganizationSettingsModel(ecNumberPrefix: $ecNumberPrefix, lateGraceMinutes: $lateGraceMinutes, defaultSchedule: $defaultSchedule, defaultCountry: $defaultCountry)';
 }
 
 
@@ -325,7 +328,7 @@ abstract mixin class $OrganizationSettingsModelCopyWith<$Res>  {
   factory $OrganizationSettingsModelCopyWith(OrganizationSettingsModel value, $Res Function(OrganizationSettingsModel) _then) = _$OrganizationSettingsModelCopyWithImpl;
 @useResult
 $Res call({
- String ecNumberPrefix, int lateGraceMinutes, DefaultScheduleModel defaultSchedule
+ String ecNumberPrefix, int lateGraceMinutes, DefaultScheduleModel defaultSchedule, String defaultCountry
 });
 
 
@@ -342,12 +345,13 @@ class _$OrganizationSettingsModelCopyWithImpl<$Res>
 
 /// Create a copy of OrganizationSettingsModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? ecNumberPrefix = null,Object? lateGraceMinutes = null,Object? defaultSchedule = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? ecNumberPrefix = null,Object? lateGraceMinutes = null,Object? defaultSchedule = null,Object? defaultCountry = null,}) {
   return _then(_self.copyWith(
 ecNumberPrefix: null == ecNumberPrefix ? _self.ecNumberPrefix : ecNumberPrefix // ignore: cast_nullable_to_non_nullable
 as String,lateGraceMinutes: null == lateGraceMinutes ? _self.lateGraceMinutes : lateGraceMinutes // ignore: cast_nullable_to_non_nullable
 as int,defaultSchedule: null == defaultSchedule ? _self.defaultSchedule : defaultSchedule // ignore: cast_nullable_to_non_nullable
-as DefaultScheduleModel,
+as DefaultScheduleModel,defaultCountry: null == defaultCountry ? _self.defaultCountry : defaultCountry // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 /// Create a copy of OrganizationSettingsModel
@@ -441,10 +445,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String ecNumberPrefix,  int lateGraceMinutes,  DefaultScheduleModel defaultSchedule)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String ecNumberPrefix,  int lateGraceMinutes,  DefaultScheduleModel defaultSchedule,  String defaultCountry)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OrganizationSettingsModel() when $default != null:
-return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedule);case _:
+return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedule,_that.defaultCountry);case _:
   return orElse();
 
 }
@@ -462,10 +466,10 @@ return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedul
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String ecNumberPrefix,  int lateGraceMinutes,  DefaultScheduleModel defaultSchedule)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String ecNumberPrefix,  int lateGraceMinutes,  DefaultScheduleModel defaultSchedule,  String defaultCountry)  $default,) {final _that = this;
 switch (_that) {
 case _OrganizationSettingsModel():
-return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedule);case _:
+return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedule,_that.defaultCountry);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -482,10 +486,10 @@ return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedul
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String ecNumberPrefix,  int lateGraceMinutes,  DefaultScheduleModel defaultSchedule)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String ecNumberPrefix,  int lateGraceMinutes,  DefaultScheduleModel defaultSchedule,  String defaultCountry)?  $default,) {final _that = this;
 switch (_that) {
 case _OrganizationSettingsModel() when $default != null:
-return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedule);case _:
+return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedule,_that.defaultCountry);case _:
   return null;
 
 }
@@ -497,7 +501,7 @@ return $default(_that.ecNumberPrefix,_that.lateGraceMinutes,_that.defaultSchedul
 @JsonSerializable()
 
 class _OrganizationSettingsModel implements OrganizationSettingsModel {
-  const _OrganizationSettingsModel({required this.ecNumberPrefix, required this.lateGraceMinutes, required this.defaultSchedule});
+  const _OrganizationSettingsModel({required this.ecNumberPrefix, required this.lateGraceMinutes, required this.defaultSchedule, this.defaultCountry = PhoneUtils.defaultCountry});
   factory _OrganizationSettingsModel.fromJson(Map<String, dynamic> json) => _$OrganizationSettingsModelFromJson(json);
 
 /// Letters every EC number starts with, e.g. `KC` for `KC1001`.
@@ -506,6 +510,10 @@ class _OrganizationSettingsModel implements OrganizationSettingsModel {
 @override final  int lateGraceMinutes;
 /// Starting values for a new employee's working schedule.
 @override final  DefaultScheduleModel defaultSchedule;
+/// ISO country code (e.g. `IN`) for mobile numbers written without a
+/// country code, and the one the mobile field starts on (2026-10-13).
+/// Missing (older server): India.
+@override@JsonKey() final  String defaultCountry;
 
 /// Create a copy of OrganizationSettingsModel
 /// with the given fields replaced by the non-null parameter values.
@@ -520,16 +528,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrganizationSettingsModel&&(identical(other.ecNumberPrefix, ecNumberPrefix) || other.ecNumberPrefix == ecNumberPrefix)&&(identical(other.lateGraceMinutes, lateGraceMinutes) || other.lateGraceMinutes == lateGraceMinutes)&&(identical(other.defaultSchedule, defaultSchedule) || other.defaultSchedule == defaultSchedule));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrganizationSettingsModel&&(identical(other.ecNumberPrefix, ecNumberPrefix) || other.ecNumberPrefix == ecNumberPrefix)&&(identical(other.lateGraceMinutes, lateGraceMinutes) || other.lateGraceMinutes == lateGraceMinutes)&&(identical(other.defaultSchedule, defaultSchedule) || other.defaultSchedule == defaultSchedule)&&(identical(other.defaultCountry, defaultCountry) || other.defaultCountry == defaultCountry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ecNumberPrefix,lateGraceMinutes,defaultSchedule);
+int get hashCode => Object.hash(runtimeType,ecNumberPrefix,lateGraceMinutes,defaultSchedule,defaultCountry);
 
 @override
 String toString() {
-  return 'OrganizationSettingsModel(ecNumberPrefix: $ecNumberPrefix, lateGraceMinutes: $lateGraceMinutes, defaultSchedule: $defaultSchedule)';
+  return 'OrganizationSettingsModel(ecNumberPrefix: $ecNumberPrefix, lateGraceMinutes: $lateGraceMinutes, defaultSchedule: $defaultSchedule, defaultCountry: $defaultCountry)';
 }
 
 
@@ -540,7 +548,7 @@ abstract mixin class _$OrganizationSettingsModelCopyWith<$Res> implements $Organ
   factory _$OrganizationSettingsModelCopyWith(_OrganizationSettingsModel value, $Res Function(_OrganizationSettingsModel) _then) = __$OrganizationSettingsModelCopyWithImpl;
 @override @useResult
 $Res call({
- String ecNumberPrefix, int lateGraceMinutes, DefaultScheduleModel defaultSchedule
+ String ecNumberPrefix, int lateGraceMinutes, DefaultScheduleModel defaultSchedule, String defaultCountry
 });
 
 
@@ -557,12 +565,13 @@ class __$OrganizationSettingsModelCopyWithImpl<$Res>
 
 /// Create a copy of OrganizationSettingsModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? ecNumberPrefix = null,Object? lateGraceMinutes = null,Object? defaultSchedule = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? ecNumberPrefix = null,Object? lateGraceMinutes = null,Object? defaultSchedule = null,Object? defaultCountry = null,}) {
   return _then(_OrganizationSettingsModel(
 ecNumberPrefix: null == ecNumberPrefix ? _self.ecNumberPrefix : ecNumberPrefix // ignore: cast_nullable_to_non_nullable
 as String,lateGraceMinutes: null == lateGraceMinutes ? _self.lateGraceMinutes : lateGraceMinutes // ignore: cast_nullable_to_non_nullable
 as int,defaultSchedule: null == defaultSchedule ? _self.defaultSchedule : defaultSchedule // ignore: cast_nullable_to_non_nullable
-as DefaultScheduleModel,
+as DefaultScheduleModel,defaultCountry: null == defaultCountry ? _self.defaultCountry : defaultCountry // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

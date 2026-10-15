@@ -1,5 +1,6 @@
 {
   "name": "Bright Bakery",
   "timezone": "Asia/Dubai",
-  "paidLeave": true
+  "paidLeave": true,
+  "defaultCountry": "AE"
 }

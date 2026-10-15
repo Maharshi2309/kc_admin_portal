@@ -157,6 +157,13 @@ abstract final class ApiConstants {
   /// `PUT { "permissions": [keys] }` replaces the user's permissions.
   static String userPermissions(String id) => '/users/$id/permissions';
 
+  /// `DELETE` cancels a pending invitation (the user disappears).
+  static String userInvitation(String id) => '/users/$id/invitation';
+
+  /// `POST` emails a pending invitation again.
+  static String resendUserInvitation(String id) =>
+      '/users/$id/invitation/resend';
+
   // Audit
   /// `?employeeId&date&from&to&entityType&page&pageSize`.
   static const String auditLogs = '/audit-logs';

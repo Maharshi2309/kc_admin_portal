@@ -7,6 +7,7 @@ import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
 import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/core/utils/validation_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
 import 'package:kc_admin_portal/core/widgets/app_dropdown.dart';
@@ -16,6 +17,7 @@ import 'package:kc_admin_portal/features/auth/presentation/screens/login_screen.
 import 'package:kc_admin_portal/features/onboarding/presentation/providers/onboarding_providers.dart';
 import 'package:kc_admin_portal/features/onboarding/presentation/widgets/account_page_parts.dart';
 import 'package:kc_admin_portal/shared/models/time_zones.dart';
+import 'package:kc_admin_portal/shared/widgets/phone_number_field.dart';
 
 /// "Create your organization": only its name and time zone. Everything else
 /// (logo, departments, leave, holidays, people) is set up inside it later.
@@ -33,8 +35,14 @@ class _CreateOrganizationScreenState
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   late String _timezone = suggestedTimeZone(
-    ref.read(clockProvider)().timeZoneOffset,
+    ref.read(deviceUtcOffsetProvider)(),
   );
+
+  /// For mobile numbers written without a country code; from the device's
+  /// region when it has one (2026-10-13).
+  late String _country = PhoneUtils.isCountry(ref.read(deviceCountryProvider))
+      ? ref.read(deviceCountryProvider)!.toUpperCase()
+      : PhoneUtils.defaultCountry;
 
   /// The one-tap leave preset (approved 2026-10-06): 1 paid day a month,
   /// carried forward. Off: unpaid leave only, set up later in Settings.
@@ -53,7 +61,12 @@ class _CreateOrganizationScreenState
     FocusScope.of(context).unfocus();
     final created = await ref
         .read(createOrganizationControllerProvider.notifier)
-        .submit(name: _name.text, timezone: _timezone, paidLeave: _paidLeave);
+        .submit(
+          name: _name.text,
+          timezone: _timezone,
+          paidLeave: _paidLeave,
+          defaultCountry: _country,
+        );
     // The first organization: open it. (Creating another one replaces the
     // whole app, which then opens on its own.)
     if (created && mounted) context.goNamed(AppRouteNames.dashboard);
@@ -111,9 +124,22 @@ class _CreateOrganizationScreenState
                 if (zone != null) setState(() => _timezone = zone);
               },
               items: [
-                for (final zone in timeZoneChoices)
-                  AppDropdownItem(value: zone.id, label: timeZoneLabel(zone)),
+                for (final zone in timeZoneOptions())
+                  AppDropdownItem(value: zone.id, label: zone.label),
               ],
+            ),
+            AppDropdown<String>(
+              label: 'Country',
+              isRequired: true,
+              searchable: true,
+              value: _country,
+              enabled: !sending,
+              helperText: 'Mobile numbers start with this country code',
+              errorText: fieldErrorOf(error, 'defaultCountry'),
+              onChanged: (code) {
+                if (code != null) setState(() => _country = code);
+              },
+              items: phoneCountryItems(),
             ),
             _PaidLeaveChoice(
               value: _paidLeave,

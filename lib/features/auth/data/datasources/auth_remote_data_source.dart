@@ -5,6 +5,7 @@ import 'package:kc_admin_portal/core/config/mock_latency.dart';
 import 'package:kc_admin_portal/core/constants/api_constants.dart';
 import 'package:kc_admin_portal/core/network/api_client.dart';
 import 'package:kc_admin_portal/core/storage/local_storage.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/auth/data/datasources/auth_mock_data_source.dart';
 import 'package:kc_admin_portal/features/auth/data/models/login_response_model.dart';
 import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
@@ -59,6 +60,7 @@ abstract interface class AuthRemoteDataSource {
     required String name,
     required String timezone,
     bool paidLeave = true,
+    String defaultCountry = PhoneUtils.defaultCountry,
   });
 
   Future<List<InvitationModel>> invitations();
@@ -157,9 +159,15 @@ class AuthApiDataSource implements AuthRemoteDataSource {
     required String name,
     required String timezone,
     bool paidLeave = true,
+    String defaultCountry = PhoneUtils.defaultCountry,
   }) => _client.post(
     ApiConstants.organizations,
-    body: {'name': name, 'timezone': timezone, 'paidLeave': paidLeave},
+    body: {
+      'name': name,
+      'timezone': timezone,
+      'paidLeave': paidLeave,
+      'defaultCountry': defaultCountry,
+    },
     parse: _session,
   );
 

@@ -23,7 +23,7 @@ class HolidayQueryNotifier extends Notifier<HolidayQuery> {
   HolidayQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
     // Another organization starts with fresh filters.
-    ref.watch(activeOrganizationIdProvider);
+    ref.watch(activeOrganizationScopeProvider);
     return (year: ref.read(clockProvider)().year, search: '');
   }
 

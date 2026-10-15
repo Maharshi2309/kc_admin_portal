@@ -9,5 +9,6 @@
     "weeklyOffDays": [
       7
     ]
-  }
+  },
+  "defaultCountry": "IN"
 }

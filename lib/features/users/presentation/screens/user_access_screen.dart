@@ -117,15 +117,7 @@ class _Header extends ConsumerWidget {
                             label: 'You',
                             tone: StatusTone.info,
                           ),
-                        user.isActive
-                            ? const AppStatusBadge(
-                                label: 'Active',
-                                tone: StatusTone.success,
-                              )
-                            : const AppStatusBadge(
-                                label: 'Inactive',
-                                tone: StatusTone.neutral,
-                              ),
+                        UserStatusBadge(user: user),
                       ],
                     ),
                     Text(user.email, style: muted),
@@ -149,7 +141,9 @@ class _Header extends ConsumerWidget {
             spacing: AppSpacing.s10,
             runSpacing: AppSpacing.s8,
             children: [
-              if (!isYou && !user.invitationPending)
+              if (user.invitationPending)
+                ..._invitationButtons(context, ref)
+              else if (!isYou)
                 UserStatusButton(user: user),
               AppButton(
                 label: 'Edit details',
@@ -165,5 +159,33 @@ class _Header extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// A user who hasn't joined yet: send the invitation again, or withdraw
+  /// it (then back to the list, as the user is gone).
+  List<Widget> _invitationButtons(BuildContext context, WidgetRef ref) {
+    final busy = ref.watch(userActionsProvider).contains(user.id);
+    return [
+      AppButton(
+        label: 'Cancel invitation',
+        icon: Icons.cancel_outlined,
+        variant: AppButtonVariant.danger,
+        onPressed: busy
+            ? null
+            : () async {
+                final router = GoRouter.of(context);
+                if (await cancelUserInvitation(context, ref, user)) {
+                  router.goNamed(AppRouteNames.accessControl);
+                }
+              },
+      ),
+      AppButton(
+        label: 'Resend invitation',
+        icon: Icons.forward_to_inbox_outlined,
+        variant: AppButtonVariant.secondary,
+        isLoading: busy,
+        onPressed: () => resendUserInvitation(context, ref, user),
+      ),
+    ];
   }
 }

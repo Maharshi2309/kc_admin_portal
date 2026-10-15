@@ -155,6 +155,6 @@ final organizationRemoteDataSourceProvider =
         return ref.watch(mockActiveTenantProvider).organization;
       }
       // A new organization means new data: rebuild (§C).
-      ref.watch(activeOrganizationIdProvider);
+      ref.watch(activeOrganizationScopeProvider);
       return OrganizationApiDataSource(ref.watch(apiClientProvider));
     });

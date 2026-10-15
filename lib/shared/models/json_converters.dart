@@ -43,14 +43,14 @@ class CompanyDateTimeConverter implements JsonConverter<DateTime, String> {
         : CompanyTime.fromInstant(parsed);
   }
 
-  /// Sends the company wall-clock time with the company offset, e.g.
+  /// Sends the wall-clock time with the offset in force then, e.g.
   /// "2026-09-28T09:35:00+05:30", so the server knows the exact moment.
   @override
   String toJson(DateTime object) {
     final wall = object.isUtc ? CompanyTime.fromInstant(object) : object;
     String two(int n) => n.toString().padLeft(2, '0');
     return '${dateToJson(wall)}T${two(wall.hour)}:${two(wall.minute)}:'
-        '${two(wall.second)}${CompanyTime.utcOffsetText}';
+        '${two(wall.second)}${CompanyTime.offsetTextAt(wall)}';
   }
 }
 

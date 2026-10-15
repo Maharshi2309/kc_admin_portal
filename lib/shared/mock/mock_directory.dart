@@ -1,5 +1,6 @@
 import 'package:kc_admin_portal/core/constants/app_constants.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/shared/mock/mock_session.dart';
 import 'package:kc_admin_portal/shared/models/organization_model.dart';
 
@@ -157,6 +158,7 @@ class MockDirectory {
     required String name,
     required String timezone,
     bool paidLeave = true,
+    String defaultCountry = PhoneUtils.defaultCountry,
   }) {
     final trimmed = name.trim();
     final errors = {
@@ -164,6 +166,8 @@ class MockDirectory {
       if (trimmed.length > organizationNameMaxLength)
         'name': 'Use at most $organizationNameMaxLength characters',
       if (timezone.trim().isEmpty) 'timezone': 'Choose a time zone',
+      if (!PhoneUtils.isCountry(defaultCountry))
+        'defaultCountry': 'Choose a country',
     };
     if (errors.isNotEmpty) {
       throw ValidationException(errors.values.first, fieldErrors: errors);
@@ -175,6 +179,7 @@ class MockDirectory {
     );
     organizations.add(organization);
     _paidLeave[organization.id] = paidLeave;
+    _defaultCountry[organization.id] = defaultCountry.toUpperCase();
     return organization;
   }
 
@@ -186,4 +191,11 @@ class MockDirectory {
   /// Whether a new organization chose the paid leave preset.
   bool paidLeaveFor(String organizationId) =>
       _paidLeave[organizationId] ?? true;
+
+  final Map<String, String> _defaultCountry = {};
+
+  /// The phone country chosen when an organization was created (the
+  /// sample organizations are in India).
+  String defaultCountryFor(String organizationId) =>
+      _defaultCountry[organizationId] ?? PhoneUtils.defaultCountry;
 }

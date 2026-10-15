@@ -9,6 +9,7 @@ import 'package:kc_admin_portal/app/shell/app_header.dart';
 import 'package:kc_admin_portal/app/shell/app_sidebar.dart';
 import 'package:kc_admin_portal/app/shell/nav_destinations.dart';
 import 'package:kc_admin_portal/app/shell/organization_brand_mark.dart';
+import 'package:kc_admin_portal/app/shell/organization_time_note.dart';
 import 'package:kc_admin_portal/app/shell/organizations_dialog.dart';
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
@@ -263,7 +264,13 @@ class _MobileFrame extends StatelessWidget {
             ),
         ],
       ),
-      body: body,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const OrganizationTimeNote(banner: true),
+          Expanded(child: body),
+        ],
+      ),
       bottomNavigationBar: destinations.length < 2
           ? null
           : MediaQuery.withClampedTextScaling(

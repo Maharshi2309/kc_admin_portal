@@ -23,7 +23,7 @@ class AttendanceQueryNotifier extends Notifier<AttendanceQuery> {
   AttendanceQuery build() {
     ref.onDispose(() => _searchTimer?.cancel());
     // Another organization starts with fresh filters.
-    ref.watch(activeOrganizationIdProvider);
+    ref.watch(activeOrganizationScopeProvider);
     return AttendanceQuery(date: _today);
   }
 

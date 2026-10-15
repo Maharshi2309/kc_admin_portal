@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:kc_admin_portal/app/app.dart';
 import 'package:kc_admin_portal/app/router/app_router.dart';
+import 'package:kc_admin_portal/core/config/company_time.dart';
 import 'package:kc_admin_portal/core/config/env.dart';
 import 'package:kc_admin_portal/core/config/mock_latency.dart';
 import 'package:kc_admin_portal/core/errors/app_exception.dart';
@@ -13,6 +14,7 @@ import 'package:kc_admin_portal/core/permissions/app_permission.dart';
 import 'package:kc_admin_portal/core/responsive/layout_mode.dart';
 import 'package:kc_admin_portal/core/storage/local_storage.dart';
 import 'package:kc_admin_portal/core/utils/clock.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/auth/data/models/user_model.dart';
 import 'package:kc_admin_portal/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:kc_admin_portal/features/auth/domain/repositories/auth_repository.dart';
@@ -135,6 +137,7 @@ class FakeAuthRepository implements AuthRepository {
     required String name,
     required String timezone,
     bool paidLeave = true,
+    String defaultCountry = PhoneUtils.defaultCountry,
   }) async {
     final organization = OrganizationModel(
       id: 'new',
@@ -178,10 +181,20 @@ Future<GoRouter> pumpFullApp(
   Size size = const Size(1440, 1000),
   Env env = testEnv,
   List<Override> overrides = const [],
+
+  /// This device's UTC offset; by default the organization's own.
+  Duration Function()? deviceUtcOffset,
+
+  /// This device's region (ISO code), e.g. for a new organization's phone
+  /// country.
+  String? deviceCountry = 'IN',
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  // The organization's zone is global (CompanyTime): start from the default.
+  CompanyTime.use(null);
+  addTearDown(() => CompanyTime.use(null));
 
   final container = ProviderContainer(
     overrides: [
@@ -195,6 +208,11 @@ Future<GoRouter> pumpFullApp(
           dashboard ?? FakeDashboardRepository(),
         ),
       clockProvider.overrideWithValue(() => testNow),
+      // The device is on the organization's clock unless a test says not.
+      deviceUtcOffsetProvider.overrideWithValue(
+        deviceUtcOffset ?? () => CompanyTime.currentOffset,
+      ),
+      deviceCountryProvider.overrideWithValue(deviceCountry),
       mockLatencyProvider.overrideWithValue(Duration.zero),
       ...overrides,
     ],
@@ -217,10 +235,16 @@ String currentLocation(GoRouter router) =>
 /// A provider container wired like [pumpFullApp] (dev mock API, fixed
 /// clock, no simulated latency) for testing providers without widgets.
 ProviderContainer createTestContainer({List<Override> overrides = const []}) {
+  CompanyTime.use(null);
+  addTearDown(() => CompanyTime.use(null));
   final container = ProviderContainer(
     overrides: [
       envProvider.overrideWithValue(testEnv),
       clockProvider.overrideWithValue(() => testNow),
+      // The device is on the organization's clock unless a test says not.
+      deviceUtcOffsetProvider.overrideWithValue(
+        () => CompanyTime.currentOffset,
+      ),
       mockLatencyProvider.overrideWithValue(Duration.zero),
       ...overrides,
     ],

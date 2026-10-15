@@ -78,6 +78,69 @@ void main() {
     });
   });
 
+  group('invitations', () {
+    /// Adds Meera (an invitation) and returns to the list.
+    Future<GoRouter> invite(WidgetTester tester) async {
+      final router = await _open(tester, '/access-control/new');
+      await tester.enterText(_input('Full name'), 'Meera Rathod');
+      await tester.enterText(_input('Email'), 'meera.rathod@keshav.in');
+      await tester.pumpAndSettle();
+      await _tap(tester, find.widgetWithText(FilledButton, 'Add user').last);
+      router.go('/access-control');
+      await tester.pumpAndSettle();
+      expect(find.text('Invited'), findsOneWidget);
+      return router;
+    }
+
+    testWidgets('resend from the list', (tester) async {
+      await invite(tester);
+      await _tap(tester, find.byTooltip('More actions for Meera Rathod'));
+      expect(find.text('Deactivate'), findsNothing);
+      await _tap(tester, find.text('Resend invitation'));
+      expect(
+        find.text('Invitation sent again to meera.rathod@keshav.in'),
+        findsOneWidget,
+      );
+      expect(find.text('Invited'), findsOneWidget);
+    });
+
+    testWidgets('cancel from the list asks first', (tester) async {
+      await invite(tester);
+      await _tap(tester, find.byTooltip('More actions for Meera Rathod'));
+      await _tap(tester, find.text('Cancel invitation'));
+      expect(
+        find.text('Cancel the invitation to Meera Rathod?'),
+        findsOneWidget,
+      );
+
+      // Keeping it changes nothing.
+      await _tap(tester, find.text('Keep invitation'));
+      expect(find.text('Meera Rathod'), findsOneWidget);
+
+      await _tap(tester, find.byTooltip('More actions for Meera Rathod'));
+      await _tap(tester, find.text('Cancel invitation'));
+      await _tap(tester, find.text('Cancel invitation').last);
+      expect(find.text('Invitation to Meera Rathod cancelled'), findsOneWidget);
+      expect(find.text('Meera Rathod'), findsNothing);
+      expect(find.text('Invited'), findsNothing);
+    });
+
+    testWidgets("cancel from the user's page goes back to the list", (
+      tester,
+    ) async {
+      final router = await invite(tester);
+      await _tap(tester, find.byTooltip('Permissions of Meera Rathod'));
+      expect(find.text('Invited'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Deactivate'), findsNothing);
+      expect(find.text('Resend invitation'), findsOneWidget);
+
+      await _tap(tester, find.text('Cancel invitation'));
+      await _tap(tester, find.text('Cancel invitation').last);
+      expect(currentLocation(router), '/access-control');
+      expect(find.text('Meera Rathod'), findsNothing);
+    });
+  });
+
   group('adding a user', () {
     testWidgets('then choosing what they can do', (tester) async {
       final router = await _open(tester, '/access-control');

@@ -105,6 +105,6 @@ final leaveRemoteDataSourceProvider = Provider<LeaveRemoteDataSource>((ref) {
     return ref.watch(mockActiveTenantProvider).leaves;
   }
   // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
-  ref.watch(activeOrganizationIdProvider);
+  ref.watch(activeOrganizationScopeProvider);
   return LeaveApiDataSource(ref.watch(apiClientProvider));
 });

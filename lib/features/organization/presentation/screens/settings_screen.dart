@@ -27,6 +27,7 @@ import 'package:kc_admin_portal/features/organization/presentation/widgets/leave
 import 'package:kc_admin_portal/shared/models/organization_model.dart';
 import 'package:kc_admin_portal/shared/models/time_zones.dart';
 import 'package:kc_admin_portal/shared/widgets/organization_logo.dart';
+import 'package:kc_admin_portal/shared/widgets/phone_number_field.dart';
 
 /// Settings (`settings.manage`, 2026-10-06): the organization's name, logo
 /// and time zone, its departments and positions, and its working defaults
@@ -170,11 +171,8 @@ class _ProfileSectionState extends ConsumerState<_ProfileSection> {
     final logoBusy = busy.contains('logo');
     final zone = _timezone;
     final zones = [
-      for (final z in timeZoneChoices)
-        AppDropdownItem(value: z.id, label: timeZoneLabel(z)),
-      // A zone set elsewhere that the short list doesn't have.
-      if (zone != null && !timeZoneChoices.any((z) => z.id == zone))
-        AppDropdownItem(value: zone, label: zone),
+      for (final z in timeZoneOptions(include: zone))
+        AppDropdownItem(value: z.id, label: z.label),
     ];
 
     return SectionCard(
@@ -311,6 +309,7 @@ class _DefaultsFormState extends ConsumerState<_DefaultsForm> {
   late ScheduleDraft _schedule = ScheduleDraft.fromDefault(
     widget.initial.defaultSchedule,
   );
+  late String _country = widget.initial.defaultCountry;
   Map<String, String> _errors = const {};
 
   static const int _maxGraceMinutes = 120;
@@ -351,6 +350,7 @@ class _DefaultsFormState extends ConsumerState<_DefaultsForm> {
               breakStart: input.breakStart,
               weeklyOffDays: input.weeklyOffDays,
             ),
+            defaultCountry: _country,
           ),
         );
     if (!mounted) return;
@@ -362,7 +362,7 @@ class _DefaultsFormState extends ConsumerState<_DefaultsForm> {
       messenger,
       error,
       'Working defaults saved',
-      fields: const {'ecNumberPrefix', 'lateGraceMinutes'},
+      fields: const {'ecNumberPrefix', 'lateGraceMinutes', 'defaultCountry'},
     );
   }
 
@@ -411,6 +411,20 @@ class _DefaultsFormState extends ConsumerState<_DefaultsForm> {
               helperText: 'A punch-in this long after the start is late',
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               errorText: _errors['lateGraceMinutes'],
+            ),
+            AppDropdown<String>(
+              label: 'Country for phone numbers',
+              searchable: true,
+              enabled: !saving,
+              value: _country,
+              helperText:
+                  'New mobile numbers start with this country code; '
+                  'numbers saved without one are read as this country',
+              errorText: _errors['defaultCountry'],
+              items: phoneCountryItems(),
+              onChanged: (code) {
+                if (code != null) setState(() => _country = code);
+              },
             ),
           ],
         ),

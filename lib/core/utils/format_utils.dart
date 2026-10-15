@@ -8,8 +8,6 @@ abstract final class FormatUtils {
   static final NumberFormat _oneDecimal = NumberFormat('0.#', 'en');
 
   static const int _monthsPerYear = 12;
-  static const int _mobileGroup = 5;
-  static const String _mobileCountryCode = '+91';
 
   /// Up to two initials from a person's name: "Aarav Shah" → "AS", "Priya" → "P".
   static String initials(String name) {
@@ -36,13 +34,6 @@ abstract final class FormatUtils {
         ? count(value)
         : _oneDecimal.format(value);
     return value == 1 ? '$text day' : '$text days';
-  }
-
-  /// "9825011234" → "+91 98250 11234". Other shapes are shown unchanged.
-  static String mobile(String digits) {
-    if (digits.length != _mobileGroup * 2) return digits;
-    return '$_mobileCountryCode ${digits.substring(0, _mobileGroup)} '
-        '${digits.substring(_mobileGroup)}';
   }
 
   /// Time since [start] as of [today]: "5 yrs 8 mos", "3 mos", "Joins soon".

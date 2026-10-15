@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/features/auth/presentation/providers/auth_controller.dart';
 import 'package:kc_admin_portal/features/employees/presentation/providers/employee_providers.dart';
 import 'package:kc_admin_portal/features/leave/presentation/providers/leave_providers.dart';
@@ -12,6 +13,14 @@ import 'package:kc_admin_portal/shared/models/named_ref.dart';
 final organizationSettingsProvider = FutureProvider<OrganizationSettingsModel>(
   (ref) => ref.watch(organizationRepositoryProvider).settings(),
   retry: (_, _) => null,
+);
+
+/// The country for mobile numbers written without a country code, and the
+/// one the mobile field starts on (2026-10-13). India until loaded.
+final defaultPhoneCountryProvider = Provider<String>(
+  (ref) =>
+      ref.watch(organizationSettingsProvider).value?.defaultCountry ??
+      PhoneUtils.defaultCountry,
 );
 
 /// How the organization's paid leave is earned, and its leave type names.

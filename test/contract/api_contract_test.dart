@@ -269,9 +269,11 @@ void main() {
 
     test('create an organization: the creator owns it', () async {
       server.on('POST', '/organizations', 'organizations.create.response.json');
-      final created = await AuthApiDataSource(
-        client,
-      ).createOrganization(name: 'Bright Bakery', timezone: 'Asia/Dubai');
+      final created = await AuthApiDataSource(client).createOrganization(
+        name: 'Bright Bakery',
+        timezone: 'Asia/Dubai',
+        defaultCountry: 'AE',
+      );
       expect(server.lastBody, _example('organizations.create.request.json'));
       expect(created.user.organization?.timezone, 'Asia/Dubai');
       expect(created.user.hasFullAccess, isTrue);
@@ -493,7 +495,7 @@ void main() {
         EmployeeFormData(
           ecNumber: 'KC1129',
           name: 'Rahul Sharma',
-          mobile: '9876543210',
+          mobile: '+919876543210',
           departmentId: dept('Graphic Designer').id,
           positionId: post('Graphic Designer').id,
           joiningDate: DateTime(2026, 9, 28),

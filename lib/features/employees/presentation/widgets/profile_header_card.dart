@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kc_admin_portal/app/theme/app_colors.dart';
 import 'package:kc_admin_portal/app/theme/app_dimensions.dart';
@@ -6,18 +7,20 @@ import 'package:kc_admin_portal/app/theme/app_text_styles.dart';
 import 'package:kc_admin_portal/core/utils/date_utils.dart';
 import 'package:kc_admin_portal/core/utils/duration_format.dart';
 import 'package:kc_admin_portal/core/utils/format_utils.dart';
+import 'package:kc_admin_portal/core/utils/phone_utils.dart';
 import 'package:kc_admin_portal/core/widgets/app_avatar.dart';
 import 'package:kc_admin_portal/core/widgets/app_button.dart';
 import 'package:kc_admin_portal/core/widgets/app_card.dart';
 import 'package:kc_admin_portal/core/widgets/ec_number_text.dart';
 import 'package:kc_admin_portal/core/widgets/responsive_grid.dart';
 import 'package:kc_admin_portal/features/employees/data/models/employee_models.dart';
+import 'package:kc_admin_portal/features/organization/presentation/providers/organization_providers.dart';
 import 'package:kc_admin_portal/shared/models/record_status.dart';
 import 'package:kc_admin_portal/shared/widgets/status_badges.dart';
 
 /// Profile header (design board 05): identity, status, actions and contact
 /// details.
-class ProfileHeaderCard extends StatelessWidget {
+class ProfileHeaderCard extends ConsumerWidget {
   const ProfileHeaderCard({
     required this.employee,
     required this.today,
@@ -40,7 +43,7 @@ class ProfileHeaderCard extends StatelessWidget {
   static const double _detailMinWidth = 180;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isActive = employee.status == EmployeeStatus.active;
 
     return AppCard(
@@ -93,7 +96,10 @@ class ProfileHeaderCard extends StatelessWidget {
             children: [
               _Detail(
                 label: 'Mobile',
-                value: FormatUtils.mobile(employee.mobile),
+                value: PhoneUtils.format(
+                  employee.mobile,
+                  country: ref.watch(defaultPhoneCountryProvider),
+                ),
               ),
               _Detail(
                 label: 'Joined',

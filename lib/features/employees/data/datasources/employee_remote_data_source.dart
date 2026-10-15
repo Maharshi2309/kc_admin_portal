@@ -119,6 +119,6 @@ final employeeRemoteDataSourceProvider = Provider<EmployeeRemoteDataSource>((
     return ref.watch(mockActiveTenantProvider).employeeSource;
   }
   // A new organization means new data: rebuild (docs/ARCHITECTURE_MULTI_ORG.md §C).
-  ref.watch(activeOrganizationIdProvider);
+  ref.watch(activeOrganizationScopeProvider);
   return EmployeeApiDataSource(ref.watch(apiClientProvider));
 });
