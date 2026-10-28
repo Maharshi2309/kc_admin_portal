@@ -255,16 +255,6 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
     for (final employee in _employees) _recordFor(employee, date),
   ];
 
-  static const List<AttendanceDayStatus> _listOrder = [
-    AttendanceDayStatus.absent,
-    AttendanceDayStatus.late,
-    AttendanceDayStatus.present,
-    AttendanceDayStatus.halfDay,
-    AttendanceDayStatus.onLeave,
-    AttendanceDayStatus.holiday,
-    AttendanceDayStatus.weeklyOff,
-  ];
-
   static bool _matches(AttendanceFilter filter, AttendanceRecordModel r) =>
       switch (filter) {
         AttendanceFilter.all => true,
@@ -303,13 +293,13 @@ class AttendanceMockDataSource implements AttendanceRemoteDataSource {
                   _employee(r.employee.id).department == query.department,
             )
             .toList()
+          // Fixed order (name, then EC number) so rows don't move when an
+          // employee punches in or out.
           ..sort((a, b) {
-            final byStatus = _listOrder
-                .indexOf(a.status)
-                .compareTo(_listOrder.indexOf(b.status));
-            return byStatus != 0
-                ? byStatus
-                : a.employee.name.compareTo(b.employee.name);
+            final byName = a.employee.name.compareTo(b.employee.name);
+            return byName != 0
+                ? byName
+                : a.employee.ecNumber.compareTo(b.employee.ecNumber);
           });
 
     final end = math.min(page * AttendanceQuery.pageSize, rows.length);

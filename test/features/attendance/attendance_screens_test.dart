@@ -133,7 +133,10 @@ void main() {
       tester,
     ) async {
       final router = await _open(tester, '/attendance');
-      await tester.tap(find.byTooltip('Add attendance for Rohan Patel'));
+      final add = find.byTooltip('Add attendance for Rohan Patel');
+      await tester.ensureVisible(add);
+      await tester.pumpAndSettle();
+      await tester.tap(add);
       await tester.pumpAndSettle();
 
       expect(currentLocation(router), startsWith('/attendance/new?'));

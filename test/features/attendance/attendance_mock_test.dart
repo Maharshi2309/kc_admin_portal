@@ -16,15 +16,33 @@ void main() {
     AttendanceFilter filter = AttendanceFilter.all,
   ]) => source.day(AttendanceQuery(date: today, filter: filter), 1);
 
-  test('summarises the day and lists absentees first', () async {
+  test('summarises the day and lists employees by name', () async {
     final all = await day();
     expect(all.summary.totalEmployees, 19);
     expect(all.summary.absent, 3);
     expect(all.summary.late, 2);
     expect(all.summary.onLeave, 2);
     expect(all.summary.present, 12); // includes half days
-    expect(all.items.first.status, AttendanceDayStatus.absent);
-    expect(all.items.first.id, isNull); // nothing recorded yet
+    final names = [for (final r in all.items) r.employee.name];
+    expect(names, [...names]..sort());
+    final absent = all.items.firstWhere(
+      (r) => r.status == AttendanceDayStatus.absent,
+    );
+    expect(absent.id, isNull); // nothing recorded yet
+  });
+
+  test('rows keep their position when an employee punches in', () async {
+    final before = [for (final r in (await day()).items) r.employee.id];
+    final absent = (await day(AttendanceFilter.absent)).items.last.employee;
+
+    await source.punchIn(absent.id);
+
+    final after = await day();
+    expect([for (final r in after.items) r.employee.id], before);
+    expect(
+      after.items.firstWhere((r) => r.employee.id == absent.id).punchIn,
+      testNow,
+    );
   });
 
   test('filters by status', () async {
